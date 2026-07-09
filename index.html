@@ -326,6 +326,12 @@ function saveSpecialtyHub(s){
   closeProfileSheet(false);
 }
 
+function editProfile(){
+  // No borra el perfil: la hoja abre en modo edición (con opción de cerrar);
+  // elegir un chip nuevo simplemente sobreescribe.
+  showProfileSheet();
+}
+
 function showProfileSheet(){
   let ov = document.getElementById('pfOverlay');
   if (!ov){
