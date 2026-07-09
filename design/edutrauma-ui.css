@@ -773,3 +773,63 @@ footer{
   font-family:inherit; font-size:0.78rem; font-weight:600;
   text-decoration:underline; cursor:pointer; padding:6px;
 }
+
+/* ---------- 17. FEEDBACK IN-APP ---------- */
+.fb-options{
+  display:grid; grid-template-columns: 1fr 1fr; gap:10px;
+  margin: 14px 0;
+}
+.fb-options button{
+  padding: 16px 10px;
+  border-radius: var(--et-radius-md);
+  border: 2px solid var(--et-line);
+  background: #fff;
+  font-family:inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--et-navy);
+  cursor:pointer;
+  transition: transform .38s var(--et-spring), border-color .15s ease, background .15s ease;
+}
+.fb-options button:active{ transform: scale(0.94); transition-duration:.08s; }
+.fb-options button.picked{
+  border-color: var(--et-navy);
+  background: var(--et-info-soft);
+}
+.fb-comment{
+  width:100%;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: var(--et-radius-sm);
+  border: 1.5px solid var(--et-line);
+  font-family:inherit;
+  font-size: 0.9rem;
+  color: var(--et-text);
+  resize: vertical;
+  background:#fff;
+}
+.fb-comment:focus{ outline:none; border-color: var(--et-navy); }
+.fb-send{
+  width:100%; margin-top:12px;
+  background: var(--et-navy); color:#fff;
+  border:none; padding: 14px;
+  border-radius: var(--et-radius-sm);
+  font-family:inherit; font-size:0.95rem; font-weight:700;
+  cursor:pointer;
+  transition: transform .38s var(--et-spring), opacity .15s ease;
+}
+.fb-send:active{ transform: scale(0.96); transition-duration:.08s; }
+.fb-send:disabled{ opacity:0.45; }
+.fb-skip{
+  width:100%; margin-top:6px;
+  background:none; border:none;
+  color: var(--et-muted);
+  font-family:inherit; font-size:0.84rem; font-weight:600;
+  padding: 10px; cursor:pointer;
+}
+.fb-thanks{
+  text-align:center;
+  font-size: 0.95rem; font-weight:700;
+  color: var(--et-success);
+  padding: 18px 10px;
+}
