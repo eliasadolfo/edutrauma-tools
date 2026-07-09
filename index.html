@@ -26,6 +26,12 @@
   </div>
   <div class="brand-ribbon" id="brandRibbon">Herramientas Clínicas</div>
 
+  <div class="install-banner" id="installBanner">
+    <span id="installText"></span>
+    <button id="installBtn"></button>
+    <button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>
+  </div>
+
   <header>
     <h1 id="hubTitle"></h1>
     <p id="hubSubtitle"></p>
@@ -101,6 +107,13 @@ function sendEvent(event, extra){
 /* ============ i18n ============ */
 const I18N = {
   es: {
+    installText: "Instala el kit en tu pantalla de inicio para acceso rápido, incluso sin conexión.",
+    installBtn: "Instalar",
+    installIOSShort: "Guárdala en tu pantalla de inicio — funciona sin conexión.",
+    iosHow: "¿Cómo?",
+    iosTitle: "Instalar en tu iPhone",
+    iosSteps: ["Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en la barra de Safari", "Desliza hacia abajo y elige <b>“Agregar a pantalla de inicio”</b>", "Toca <b>Agregar</b> — quedará como una app con el logo EduTrauma"],
+    iosDone: "Entendido",
     profileSkip: "Ahora no",
     profileMini: "Cuéntanos quién eres (opcional)",
     htmlLang: "es",
@@ -127,6 +140,13 @@ const I18N = {
     ]
   },
   en: {
+    installText: "Install the kit on your home screen for quick access, even offline.",
+    installBtn: "Install",
+    installIOSShort: "Save it to your home screen — works offline.",
+    iosHow: "How?",
+    iosTitle: "Install on your iPhone",
+    iosSteps: ["Tap the <b>Share</b> button (the square with an ↑ arrow) in Safari's toolbar", "Scroll down and choose <b>“Add to Home Screen”</b>", "Tap <b>Add</b> — it will appear as an app with the EduTrauma logo"],
+    iosDone: "Got it",
     profileSkip: "Not now",
     profileMini: "Tell us who you are (optional)",
     htmlLang: "en",
@@ -153,6 +173,13 @@ const I18N = {
     ]
   },
   pt: {
+    installText: "Instale o kit na sua tela de início para acesso rápido, mesmo offline.",
+    installBtn: "Instalar",
+    installIOSShort: "Salve na sua tela de início — funciona offline.",
+    iosHow: "Como?",
+    iosTitle: "Instalar no seu iPhone",
+    iosSteps: ["Toque no botão <b>Compartilhar</b> (o quadrado com seta ↑) na barra do Safari", "Role para baixo e escolha <b>“Adicionar à Tela de Início”</b>", "Toque em <b>Adicionar</b> — vai aparecer como um app com o logo EduTrauma"],
+    iosDone: "Entendi",
     profileSkip: "Agora não",
     profileMini: "Conte para nós quem você é (opcional)",
     htmlLang: "pt-BR",
@@ -208,6 +235,7 @@ function setLang(lang){
       b.setAttribute('aria-pressed', LANGS[i] === lang);
     });
     applyStaticTexts();
+    if (typeof refreshInstallBanner === 'function') refreshInstallBanner();
     document.getElementById('toolGrid').innerHTML = toolGridHTML();
     document.getElementById('profileZone').innerHTML = profileHTML();
   } else {
@@ -339,6 +367,75 @@ function render(){
 render();
 sendEvent('hub_view');
 maybeAskProfile();
+
+/* ============ Instalación: prompt nativo (Android) / guía visual (iOS) ============ */
+let deferredPrompt = null;
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+const IS_STANDALONE = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+function refreshInstallBanner(){
+  const banner = document.getElementById('installBanner');
+  if (!banner) return;
+  const t = T();
+  if (IS_STANDALONE || localStorage.getItem('installDismissed') === '1'){
+    banner.classList.remove('show');
+    return;
+  }
+  const btn = document.getElementById('installBtn');
+  if (IS_IOS){
+    document.getElementById('installText').innerHTML = t.installIOSShort;
+    btn.style.display = '';
+    btn.textContent = t.iosHow;
+    btn.onclick = showIOSGuide;
+    banner.classList.add('show');
+  } else if (deferredPrompt){
+    document.getElementById('installText').innerHTML = t.installText;
+    btn.style.display = '';
+    btn.textContent = t.installBtn;
+    btn.onclick = promptInstall;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  refreshInstallBanner();
+});
+window.addEventListener('appinstalled', () => {
+  sendEvent('pwa_installed');
+  const b = document.getElementById('installBanner');
+  if (b) b.classList.remove('show');
+});
+function promptInstall(){
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(() => { deferredPrompt = null; refreshInstallBanner(); });
+}
+function dismissInstall(){
+  try{ localStorage.setItem('installDismissed', '1'); }catch(e){}
+  document.getElementById('installBanner').classList.remove('show');
+}
+function showIOSGuide(){
+  const t = T();
+  let ov = document.getElementById('iosOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'iosOverlay';
+    ov.className = 'overlay';
+    ov.onclick = (e) => { if (e.target === ov) ov.classList.remove('show'); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="sheet">
+    <h2>${t.iosTitle}</h2>
+    ${t.iosSteps.map((s, i) => `<div class="rule-item"><div class="rule-dot"></div><div><b>${i + 1}.</b> ${s}</div></div>`).join('')}
+    <button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">${t.iosDone}</button>
+  </div>`;
+  ov.classList.add('show');
+  sendEvent('ios_guide_open');
+}
+refreshInstallBanner();
 
 // Service worker (solo cachea el hub; /abdomen/ tiene el suyo)
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
