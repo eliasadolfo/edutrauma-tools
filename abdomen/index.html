@@ -54,6 +54,32 @@
 <script>
 /* ============ Analytics (anónimo, compartido con el hub) ============ */
 const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+/* Cola offline: si no hay conexión, el evento se guarda y se reenvía después */
+function etEnqueue(p){
+  try{
+    const q = JSON.parse(localStorage.getItem('et_queue') || '[]');
+    q.push(p);
+    while (q.length > 200) q.shift();
+    localStorage.setItem('et_queue', JSON.stringify(q));
+  }catch(e){}
+}
+function etPost(p){
+  return fetch(ET_EVENTS_URL, {
+    method: 'POST', keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(p)
+  }).then(r => { if (!r.ok) throw new Error('http'); });
+}
+function etFlushQueue(){
+  let q = [];
+  try{ q = JSON.parse(localStorage.getItem('et_queue') || '[]'); }catch(e){}
+  if (!q.length) return;
+  try{ localStorage.setItem('et_queue', '[]'); }catch(e){}
+  q.forEach(p => etPost(p).catch(() => etEnqueue(p)));
+}
+window.addEventListener('online', etFlushQueue);
+etFlushQueue();
+
 function etAnonId(){
   let id = localStorage.getItem('et_anon');
   if (!id){
@@ -65,16 +91,13 @@ function etAnonId(){
 function sendEvent(event, extra){
   try{
     let p = {}; try{ p = JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){}
-    fetch(ET_EVENTS_URL, {
-      method: 'POST', keepalive: true,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const __p = {
         ts: new Date().toISOString(), anon_id: etAnonId(), event: event, tool: 'abdomen',
         lang: (typeof LANG !== 'undefined' ? LANG : ''), country: p.country || '', specialty: p.specialty || '',
         tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ''), ua: navigator.userAgent.slice(0, 180),
         extra: extra || {}
-      })
-    }).catch(() => {});
+      };
+    etPost(__p).catch(() => etEnqueue(__p));
   }catch(e){}
 }
 
