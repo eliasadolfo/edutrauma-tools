@@ -1,6 +1,6 @@
 // Service Worker — Abdomen Abierto (EduTrauma)
 // Cachea la app para uso offline (útil en pabellón sin señal).
-const CACHE = 'abdomen-abierto-v14';
+const CACHE = 'abdomen-abierto-v15';
 const ASSETS = [
   './',
   './index.html',

@@ -22,7 +22,7 @@
 <div class="app">
 
   <div class="brand-strip">
-    <img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo">
+    <a href="../" aria-label="Volver a EduTrauma Tools"><img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo"></a>
     <span class="brand-chip"><img src="logo-miaa.png" alt="Curso MIAA — Manejo Integral del Abdomen Abierto"></span>
   </div>
   <div class="brand-ribbon" id="brandRibbon">Herramientas Clínicas</div>
@@ -112,6 +112,7 @@ const ICONS = {
 const I18N = {
 
   es: {
+    hubLink: "Ver todas las herramientas ›",
     fbTitle: "¿Te fue útil esta herramienta?",
     fbYes: "👍 Sí", fbNo: "👎 No mucho",
     fbPlaceholder: "¿Qué agregarías o mejorarías? (opcional)",
@@ -196,6 +197,7 @@ const I18N = {
   },
 
   en: {
+    hubLink: "See all tools ›",
     fbTitle: "Was this tool useful?",
     fbYes: "👍 Yes", fbNo: "👎 Not really",
     fbPlaceholder: "What would you add or improve? (optional)",
@@ -280,6 +282,7 @@ const I18N = {
   },
 
   pt: {
+    hubLink: "Ver todas as ferramentas ›",
     fbTitle: "Esta ferramenta foi útil?",
     fbYes: "👍 Sim", fbNo: "👎 Nem tanto",
     fbPlaceholder: "O que você adicionaria ou melhoraria? (opcional)",
@@ -445,7 +448,8 @@ function renderStart(){
   main.innerHTML = `
     <div class="start-rules" id="startRules">${startRulesHTML(t)}</div>
     <div class="anim-pop"><button class="start-btn" id="startBtn" onclick="startFlow()">${t.startBtn}</button></div>
-    <div class="lang-wrap">
+    <a class="hub-link" href="../">${t.hubLink}</a>
+    <div class="lang-wrap" style="margin-top:8px;">
       ${globe}
       <div class="lang-switch" id="langSwitch" role="group" aria-label="Idioma / Language" data-active="${LANGS.indexOf(LANG)}">
         <div class="lang-thumb"></div>
