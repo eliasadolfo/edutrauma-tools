@@ -112,6 +112,9 @@ const ICONS = {
 const I18N = {
 
   es: {
+    specTitle: "¿Cuál es tu especialidad?",
+    specSub: "Solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.",
+    specialties: ["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"],
     installIOSShort: "Guárdala en tu pantalla de inicio — funciona sin conexión.",
     iosHow: "¿Cómo?",
     iosTitle: "Instalar en tu iPhone",
@@ -202,6 +205,9 @@ const I18N = {
   },
 
   en: {
+    specTitle: "What is your specialty?",
+    specSub: "Just once — it helps us build the tools your practice needs.",
+    specialties: ["General surgery","Trauma surgery","Surgery resident","Emergency medicine","Nursing","Medical student","Other"],
     installIOSShort: "Save it to your home screen — works offline.",
     iosHow: "How?",
     iosTitle: "Install on your iPhone",
@@ -292,6 +298,9 @@ const I18N = {
   },
 
   pt: {
+    specTitle: "Qual é a sua especialidade?",
+    specSub: "Só uma vez — nos ajuda a criar as ferramentas que a sua prática precisa.",
+    specialties: ["Cirurgia geral","Cirurgia do trauma","Residente de cirurgia","Medicina de emergência","Enfermagem","Estudante de medicina","Outra"],
     installIOSShort: "Salve na sua tela de início — funciona offline.",
     iosHow: "Como?",
     iosTitle: "Instalar no seu iPhone",
@@ -476,6 +485,13 @@ function renderStart(){
 }
 
 function startFlow(){
+  let p = {};
+  try{ p = JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){}
+  if (!p.specialty){ renderSpecialtyPicker(); return; }
+  beginEvaluation();
+}
+
+function beginEvaluation(){
   currentIndex = 0;
   history = [];
   inBjorckFlow = false;
@@ -483,6 +499,34 @@ function startFlow(){
   bjorckAnswers = {};
   setFlow(true);
   renderQuestion();
+}
+
+function renderSpecialtyPicker(){
+  setFlow(true);
+  const t = T();
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressText').textContent = '';
+  document.getElementById('categoryText').textContent = '';
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="back-row"></div>
+    <div class="card">
+      <div class="question-text">${t.specTitle}</div>
+      <p class="spec-sub">${t.specSub}</p>
+      <div class="spec-grid">
+        ${t.specialties.map(s => `<button onclick="pickSpecialty(this.textContent)">${s}</button>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function pickSpecialty(s){
+  let p = {};
+  try{ p = JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){}
+  p.specialty = s;
+  try{ localStorage.setItem('et_profile', JSON.stringify(p)); }catch(e){}
+  sendEvent('profile_saved', { specialty: s });
+  beginEvaluation();
 }
 
 function renderQuestion(){

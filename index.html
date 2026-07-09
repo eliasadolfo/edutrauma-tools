@@ -115,7 +115,7 @@ const I18N = {
     iosSteps: ["Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en la barra de Safari", "Desliza hacia abajo y elige <b>“Agregar a pantalla de inicio”</b>", "Toca <b>Agregar</b> — quedará como una app con el logo EduTrauma"],
     iosDone: "Entendido",
     profileSkip: "Ahora no",
-    profileMini: "Cuéntanos quién eres (opcional)",
+    profileMini: "¿Tu especialidad? (un toque)",
     htmlLang: "es",
     ribbon: "Herramientas Clínicas",
     title: "Kit de herramientas EduTrauma",
@@ -124,8 +124,8 @@ const I18N = {
     available: "Disponible",
     soonTitle: "Más herramientas en camino",
     soonDesc: "El kit crece junto a los cursos EduTrauma.",
-    profileTitle: "Cuéntanos quién eres (opcional)",
-    profileDesc: "Nos ayuda a crear las herramientas que tu práctica necesita. 2 toques y listo.",
+    profileTitle: "¿Cuál es tu especialidad?",
+    profileDesc: "Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.",
     specialtyPh: "Tu especialidad…",
     countryPh: "Tu país…",
     save: "Guardar",
@@ -148,7 +148,7 @@ const I18N = {
     iosSteps: ["Tap the <b>Share</b> button (the square with an ↑ arrow) in Safari's toolbar", "Scroll down and choose <b>“Add to Home Screen”</b>", "Tap <b>Add</b> — it will appear as an app with the EduTrauma logo"],
     iosDone: "Got it",
     profileSkip: "Not now",
-    profileMini: "Tell us who you are (optional)",
+    profileMini: "Your specialty? (one tap)",
     htmlLang: "en",
     ribbon: "Clinical Tools",
     title: "EduTrauma tool kit",
@@ -157,8 +157,8 @@ const I18N = {
     available: "Available",
     soonTitle: "More tools on the way",
     soonDesc: "The kit grows alongside EduTrauma courses.",
-    profileTitle: "Tell us who you are (optional)",
-    profileDesc: "It helps us build the tools your practice needs. Two taps and done.",
+    profileTitle: "What is your specialty?",
+    profileDesc: "One tap, just once — it helps us build the tools your practice needs.",
     specialtyPh: "Your specialty…",
     countryPh: "Your country…",
     save: "Save",
@@ -181,7 +181,7 @@ const I18N = {
     iosSteps: ["Toque no botão <b>Compartilhar</b> (o quadrado com seta ↑) na barra do Safari", "Role para baixo e escolha <b>“Adicionar à Tela de Início”</b>", "Toque em <b>Adicionar</b> — vai aparecer como um app com o logo EduTrauma"],
     iosDone: "Entendi",
     profileSkip: "Agora não",
-    profileMini: "Conte para nós quem você é (opcional)",
+    profileMini: "Sua especialidade? (um toque)",
     htmlLang: "pt-BR",
     ribbon: "Ferramentas Clínicas",
     title: "Kit de ferramentas EduTrauma",
@@ -190,8 +190,8 @@ const I18N = {
     available: "Disponível",
     soonTitle: "Mais ferramentas a caminho",
     soonDesc: "O kit cresce junto com os cursos EduTrauma.",
-    profileTitle: "Conte para nós quem você é (opcional)",
-    profileDesc: "Nos ajuda a criar as ferramentas que a sua prática precisa. Dois toques e pronto.",
+    profileTitle: "Qual é a sua especialidade?",
+    profileDesc: "Um toque, só uma vez — nos ajuda a criar as ferramentas que a sua prática precisa.",
     specialtyPh: "Sua especialidade…",
     countryPh: "Seu país…",
     save: "Salvar",
@@ -286,17 +286,19 @@ function profileHTML(){
 
 function profileFieldsHTML(){
   const t = T();
-  const specs = t.specialties.map(s => `<option value="${s}">${s}</option>`).join('');
-  const countries = COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join('');
   return `
     <h2>${t.profileTitle}</h2>
-    <p style="margin:0 0 14px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.profileDesc}</p>
-    <div class="profile-fields">
-      <select id="pfSpecialty"><option value="" disabled selected>${t.specialtyPh}</option>${specs}</select>
-      <select id="pfCountry"><option value="" disabled selected>${t.countryPh}</option>${countries}</select>
+    <p style="margin:0 0 4px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.profileDesc}</p>
+    <div class="spec-grid">
+      ${t.specialties.map(s => `<button onclick="pickSpecialtyHub(this.textContent)">${s}</button>`).join('')}
     </div>
-    <button class="profile-save" onclick="saveProfile()">${t.save}</button>
     <button class="fb-skip" onclick="closeProfileSheet(true)">${t.profileSkip}</button>`;
+}
+
+function pickSpecialtyHub(s){
+  localStorage.setItem('et_profile', JSON.stringify({ specialty: s }));
+  sendEvent('profile_saved', { specialty: s });
+  closeProfileSheet(false);
 }
 
 function showProfileSheet(){

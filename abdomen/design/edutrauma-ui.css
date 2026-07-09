@@ -846,3 +846,37 @@ footer{
   text-decoration: none;
 }
 .hub-link:active{ opacity: 0.6; }
+
+/* Selector de especialidad (gate de un tap antes de la 1ª evaluación) */
+.spec-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+.spec-grid button{
+  min-height: 54px;
+  padding: 12px 10px;
+  border-radius: var(--et-radius-md);
+  border: 1.5px solid var(--et-line);
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--et-navy);
+  cursor: pointer;
+  transition: transform .38s var(--et-spring), background .15s ease, border-color .15s ease;
+}
+.spec-grid button:active{
+  transform: scale(0.95);
+  transition-duration: .08s;
+  background: var(--et-info-soft);
+  border-color: var(--et-navy);
+}
+.spec-grid button:last-child:nth-child(odd){ grid-column: 1 / -1; }
+.spec-sub{
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--et-muted);
+  line-height: 1.4;
+}
