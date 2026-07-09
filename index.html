@@ -101,6 +101,8 @@ function sendEvent(event, extra){
 /* ============ i18n ============ */
 const I18N = {
   es: {
+    profileSkip: "Ahora no",
+    profileMini: "Cuéntanos quién eres (opcional)",
     htmlLang: "es",
     ribbon: "Herramientas Clínicas",
     title: "Kit de herramientas EduTrauma",
@@ -125,6 +127,8 @@ const I18N = {
     ]
   },
   en: {
+    profileSkip: "Not now",
+    profileMini: "Tell us who you are (optional)",
     htmlLang: "en",
     ribbon: "Clinical Tools",
     title: "EduTrauma tool kit",
@@ -149,6 +153,8 @@ const I18N = {
     ]
   },
   pt: {
+    profileSkip: "Agora não",
+    profileMini: "Conte para nós quem você é (opcional)",
     htmlLang: "pt-BR",
     ribbon: "Ferramentas Clínicas",
     title: "Kit de ferramentas EduTrauma",
@@ -242,26 +248,59 @@ function profileHTML(){
   const t = T();
   const p = etProfile();
   if (p.specialty || p.country){
-    return `
-      <div class="profile-card">
-        <div class="profile-done">
-          <span>${t.profileDone}</span>
-          <button onclick="editProfile()">${t.edit}</button>
-        </div>
-      </div>`;
+    return `<div class="profile-done" style="margin-top:18px;">
+      <span>${t.profileDone}</span>
+      <button onclick="editProfile()">${t.edit}</button>
+    </div>`;
   }
+  return `<button class="hub-link" style="margin-top:14px;" onclick="showProfileSheet()">👤 ${t.profileMini}</button>`;
+}
+
+function profileFieldsHTML(){
+  const t = T();
   const specs = t.specialties.map(s => `<option value="${s}">${s}</option>`).join('');
   const countries = COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join('');
   return `
-    <div class="profile-card">
-      <h3>${t.profileTitle}</h3>
-      <p>${t.profileDesc}</p>
-      <div class="profile-fields">
-        <select id="pfSpecialty"><option value="" disabled selected>${t.specialtyPh}</option>${specs}</select>
-        <select id="pfCountry"><option value="" disabled selected>${t.countryPh}</option>${countries}</select>
-      </div>
-      <button class="profile-save" onclick="saveProfile()">${t.save}</button>
-    </div>`;
+    <h2>${t.profileTitle}</h2>
+    <p style="margin:0 0 14px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.profileDesc}</p>
+    <div class="profile-fields">
+      <select id="pfSpecialty"><option value="" disabled selected>${t.specialtyPh}</option>${specs}</select>
+      <select id="pfCountry"><option value="" disabled selected>${t.countryPh}</option>${countries}</select>
+    </div>
+    <button class="profile-save" onclick="saveProfile()">${t.save}</button>
+    <button class="fb-skip" onclick="closeProfileSheet(true)">${t.profileSkip}</button>`;
+}
+
+function showProfileSheet(){
+  let ov = document.getElementById('pfOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'pfOverlay';
+    ov.className = 'overlay';
+    ov.onclick = (e) => { if (e.target === ov) closeProfileSheet(true); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="sheet">${profileFieldsHTML()}</div>`;
+  ov.classList.add('show');
+}
+
+function closeProfileSheet(dismissed){
+  if (dismissed){ try{ localStorage.setItem('et_profile_dismissed', '1'); }catch(e){} }
+  const ov = document.getElementById('pfOverlay');
+  if (ov) ov.classList.remove('show');
+  const z = document.getElementById('profileZone');
+  if (z) z.innerHTML = profileHTML();
+}
+
+function maybeAskProfile(){
+  try{
+    const p = etProfile();
+    if (p.specialty || p.country) return;
+    if (localStorage.getItem('et_profile_dismissed') === '1') return;
+    const visits = 1 + parseInt(localStorage.getItem('et_hub_visits') || '0', 10);
+    localStorage.setItem('et_hub_visits', String(visits));
+    if (visits >= 2) showProfileSheet();
+  }catch(e){}
 }
 
 function saveProfile(){
@@ -270,12 +309,12 @@ function saveProfile(){
   if (!specialty && !country) return;
   localStorage.setItem('et_profile', JSON.stringify({ specialty, country }));
   sendEvent('profile_saved');
-  document.getElementById('profileZone').innerHTML = profileHTML();
+  closeProfileSheet(false);
 }
 
 function editProfile(){
   localStorage.removeItem('et_profile');
-  document.getElementById('profileZone').innerHTML = profileHTML();
+  showProfileSheet();
 }
 
 function render(){
@@ -299,6 +338,7 @@ function render(){
 
 render();
 sendEvent('hub_view');
+maybeAskProfile();
 
 // Service worker (solo cachea el hub; /abdomen/ tiene el suyo)
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
