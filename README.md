@@ -17,7 +17,7 @@ CNAME                  tools.edutrauma.net (GitHub Pages)
 |---|---|
 | **Herramienta nueva** | Carpeta `/nombre/` en este repo. Copiar estructura de `/abdomen/` (index.html + sw.js + manifest + design/). Checklist completo en `design/DESIGN.md`. |
 | **Workflows n8n** | Nombre con prefijo `ET Tools — …` + tag `ET Tools`. Instancia: devn8n.tuescuelademarcas.cl |
-| **Google Sheets** | Libro "EduTrauma Tools — Analytics" ([link](https://docs.google.com/spreadsheets/d/1Nsbsk1H2MA32pgMtJ86J1e_eCRxTI_27cNYs6lK0xms)). Pestañas: `dashboard` (métricas), `eventos` (crudo), `feedback` (comentarios). |
+| **Google Sheets** | Libro "EduTrauma Tools — Analytics" ([link](https://docs.google.com/spreadsheets/d/1Nsbsk1H2MA32pgMtJ86J1e_eCRxTI_27cNYs6lK0xms)). Pestañas: `dashboard` (KPIs + 6 gráficos automáticos: actividad semanal/mensual, funcionalidades más usadas, top países, idiomas, uso por herramienta), `eventos` (crudo: ts/anon_id/event/tool/lang/country/specialty/tz/ua/extra), `feedback` (comentarios filtrados), `calc` (series de cálculo para los gráficos — no tocar). |
 | **Service workers** | Cada herramienta tiene el suyo (scope propio). Subir versión de `CACHE` en CADA deploy o los teléfonos quedan con versión vieja. |
 | **DNS** | Subdominios de edutrauma.net se gestionan en el panel DNS de **Kajabi** (CNAME → eliasadolfo.github.io). NO tocar registros www/raíz (son de Kajabi). |
 
