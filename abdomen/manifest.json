@@ -1,0 +1,32 @@
+{
+  "name": "Abdomen Abierto — EduTrauma",
+  "short_name": "Abdomen Abierto",
+  "description": "Algoritmo de decisión clínica: ¿dejar el abdomen abierto? + grado orientativo de Björck.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#00205C",
+  "theme_color": "#00205C",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

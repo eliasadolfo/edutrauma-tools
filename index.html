@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>EduTrauma Tools — Herramientas Clínicas</title>
+<meta name="theme-color" content="#00205C">
+<meta name="description" content="Kit de herramientas clínicas EduTrauma: apoyo a la decisión en cirugía de trauma. Gratis, offline, en tres idiomas.">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ET Tools">
+
+<link rel="stylesheet" href="design/edutrauma-ui.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="brand-strip">
+    <img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo">
+  </div>
+  <div class="brand-ribbon" id="brandRibbon">Herramientas Clínicas</div>
+
+  <header>
+    <h1 id="hubTitle"></h1>
+    <p id="hubSubtitle"></p>
+  </header>
+
+  <main id="main"></main>
+
+  <footer id="hubFooter"></footer>
+</div>
+
+<script>
+/* ============ Analytics (anónimo, → n8n) ============ */
+const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+
+function etAnonId(){
+  let id = localStorage.getItem('et_anon');
+  if (!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('et_anon', id);
+  }
+  return id;
+}
+
+function etProfile(){
+  try{ return JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){ return {}; }
+}
+
+function sendEvent(event, extra){
+  try{
+    const p = etProfile();
+    fetch(ET_EVENTS_URL, {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ts: new Date().toISOString(),
+        anon_id: etAnonId(),
+        event: event,
+        tool: 'hub',
+        lang: LANG,
+        country: p.country || '',
+        specialty: p.specialty || '',
+        tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
+        ua: navigator.userAgent.slice(0, 180),
+        extra: extra || {}
+      })
+    }).catch(() => {});
+  }catch(e){}
+}
+
+/* ============ i18n ============ */
+const I18N = {
+  es: {
+    htmlLang: "es",
+    ribbon: "Herramientas Clínicas",
+    title: "Kit de herramientas EduTrauma",
+    subtitle: "Apoyo a la decisión clínica en trauma. Gratis, funciona sin conexión, directo en tu teléfono.",
+    open: "Abrir ›",
+    available: "Disponible",
+    soonTitle: "Más herramientas en camino",
+    soonDesc: "El kit crece junto a los cursos EduTrauma.",
+    profileTitle: "Cuéntanos quién eres (opcional)",
+    profileDesc: "Nos ayuda a crear las herramientas que tu práctica necesita. 2 toques y listo.",
+    specialtyPh: "Tu especialidad…",
+    countryPh: "Tu país…",
+    save: "Guardar",
+    profileDone: "✓ Perfil guardado — ¡gracias!",
+    edit: "editar",
+    specialties: ["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"],
+    footer: 'Herramientas de apoyo a la decisión clínica — no reemplazan el juicio quirúrgico.<br>EduTrauma® — Enseñando a salvar vidas.',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
+        title:"¿Cuándo dejar el abdomen abierto?",
+        desc:"Algoritmo de 6 preguntas Sí/No + grado orientativo de Björck. Para el momento de la decisión en pabellón." }
+    ]
+  },
+  en: {
+    htmlLang: "en",
+    ribbon: "Clinical Tools",
+    title: "EduTrauma tool kit",
+    subtitle: "Clinical decision support in trauma. Free, works offline, right on your phone.",
+    open: "Open ›",
+    available: "Available",
+    soonTitle: "More tools on the way",
+    soonDesc: "The kit grows alongside EduTrauma courses.",
+    profileTitle: "Tell us who you are (optional)",
+    profileDesc: "It helps us build the tools your practice needs. Two taps and done.",
+    specialtyPh: "Your specialty…",
+    countryPh: "Your country…",
+    save: "Save",
+    profileDone: "✓ Profile saved — thank you!",
+    edit: "edit",
+    specialties: ["General surgery","Trauma surgery","Surgery resident","Emergency medicine","Nursing","Medical student","Other"],
+    footer: 'Clinical decision support tools — they do not replace surgical judgment.<br>EduTrauma® — Teaching to save lives.',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"MIAA course",
+        title:"When to leave the abdomen open?",
+        desc:"6 yes/no questions + orientative Björck grade. For the moment of decision in the operating room." }
+    ]
+  },
+  pt: {
+    htmlLang: "pt-BR",
+    ribbon: "Ferramentas Clínicas",
+    title: "Kit de ferramentas EduTrauma",
+    subtitle: "Apoio à decisão clínica em trauma. Grátis, funciona offline, direto no seu telefone.",
+    open: "Abrir ›",
+    available: "Disponível",
+    soonTitle: "Mais ferramentas a caminho",
+    soonDesc: "O kit cresce junto com os cursos EduTrauma.",
+    profileTitle: "Conte para nós quem você é (opcional)",
+    profileDesc: "Nos ajuda a criar as ferramentas que a sua prática precisa. Dois toques e pronto.",
+    specialtyPh: "Sua especialidade…",
+    countryPh: "Seu país…",
+    save: "Salvar",
+    profileDone: "✓ Perfil salvo — obrigado!",
+    edit: "editar",
+    specialties: ["Cirurgia geral","Cirurgia do trauma","Residente de cirurgia","Medicina de emergência","Enfermagem","Estudante de medicina","Outra"],
+    footer: 'Ferramentas de apoio à decisão clínica — não substituem o julgamento cirúrgico.<br>EduTrauma® — Ensinando a salvar vidas.',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
+        title:"Quando deixar o abdome aberto?",
+        desc:"Algoritmo de 6 perguntas Sim/Não + grau orientativo de Björck. Para o momento da decisão no centro cirúrgico." }
+    ]
+  }
+};
+
+const COUNTRIES = ["Chile","México","Colombia","Argentina","Perú","Ecuador","Bolivia","Uruguay","Paraguay","Venezuela","Brasil","Panamá","Costa Rica","Guatemala","República Dominicana","España","Estados Unidos","Otro / Other"];
+const LANG_NAMES = { es: "Español", en: "English", pt: "Português" };
+const LANGS = ['es', 'en', 'pt'];
+
+function detectLang(){
+  const saved = localStorage.getItem('lang');
+  if (saved && I18N[saved]) return saved;
+  const nav = (navigator.language || 'es').toLowerCase();
+  if (nav.startsWith('pt')) return 'pt';
+  if (nav.startsWith('en')) return 'en';
+  return 'es';
+}
+
+let LANG = detectLang();
+function T(){ return I18N[LANG]; }
+
+function setLang(lang){
+  const changed = lang !== LANG;
+  LANG = lang;
+  localStorage.setItem('lang', lang);
+  const sw = document.getElementById('langSwitch');
+  if (sw){
+    sw.dataset.active = LANGS.indexOf(lang);
+    sw.querySelectorAll('button').forEach((b, i) => {
+      b.classList.toggle('active', LANGS[i] === lang);
+      b.setAttribute('aria-pressed', LANGS[i] === lang);
+    });
+    applyStaticTexts();
+    document.getElementById('toolGrid').innerHTML = toolGridHTML();
+    document.getElementById('profileZone').innerHTML = profileHTML();
+  } else {
+    render();
+  }
+  if (changed) sendEvent('lang_change');
+}
+
+function applyStaticTexts(){
+  const t = T();
+  document.documentElement.lang = t.htmlLang;
+  document.getElementById('brandRibbon').textContent = t.ribbon;
+  document.getElementById('hubTitle').textContent = t.title;
+  document.getElementById('hubSubtitle').textContent = t.subtitle;
+  document.getElementById('hubFooter').innerHTML = t.footer;
+}
+
+function toolGridHTML(){
+  const t = T();
+  const cards = t.tools.map(tool => `
+    <a class="tool-card" href="${tool.href}" onclick="sendEvent('tool_open', {tool_id:'${tool.id}'})">
+      <div class="tool-card-top">
+        <span class="tool-chip"><img src="${tool.chip}" alt="${tool.chipAlt}"></span>
+        <span class="tool-status">${t.available}</span>
+      </div>
+      <div class="tool-title">${tool.title}</div>
+      <p class="tool-desc">${tool.desc}</p>
+      <span class="tool-cta">${t.open}</span>
+    </a>`).join('');
+  return cards + `
+    <div class="tool-card soon">
+      <div class="tool-title">${t.soonTitle}</div>
+      <p class="tool-desc">${t.soonDesc}</p>
+    </div>`;
+}
+
+function profileHTML(){
+  const t = T();
+  const p = etProfile();
+  if (p.specialty || p.country){
+    return `
+      <div class="profile-card">
+        <div class="profile-done">
+          <span>${t.profileDone}</span>
+          <button onclick="editProfile()">${t.edit}</button>
+        </div>
+      </div>`;
+  }
+  const specs = t.specialties.map(s => `<option value="${s}">${s}</option>`).join('');
+  const countries = COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  return `
+    <div class="profile-card">
+      <h3>${t.profileTitle}</h3>
+      <p>${t.profileDesc}</p>
+      <div class="profile-fields">
+        <select id="pfSpecialty"><option value="" disabled selected>${t.specialtyPh}</option>${specs}</select>
+        <select id="pfCountry"><option value="" disabled selected>${t.countryPh}</option>${countries}</select>
+      </div>
+      <button class="profile-save" onclick="saveProfile()">${t.save}</button>
+    </div>`;
+}
+
+function saveProfile(){
+  const specialty = document.getElementById('pfSpecialty').value;
+  const country = document.getElementById('pfCountry').value;
+  if (!specialty && !country) return;
+  localStorage.setItem('et_profile', JSON.stringify({ specialty, country }));
+  sendEvent('profile_saved');
+  document.getElementById('profileZone').innerHTML = profileHTML();
+}
+
+function editProfile(){
+  localStorage.removeItem('et_profile');
+  document.getElementById('profileZone').innerHTML = profileHTML();
+}
+
+function render(){
+  applyStaticTexts();
+  const langBtns = LANGS.map(l =>
+    `<button class="${l === LANG ? 'active' : ''}" onclick="setLang('${l}')" aria-pressed="${l === LANG}">${LANG_NAMES[l]}</button>`
+  ).join('');
+  const globe = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/></svg>';
+  document.getElementById('main').innerHTML = `
+    <div class="lang-wrap" style="margin: 0 0 18px; padding-top: 4px;">
+      ${globe}
+      <div class="lang-switch" id="langSwitch" role="group" aria-label="Idioma / Language" data-active="${LANGS.indexOf(LANG)}">
+        <div class="lang-thumb"></div>
+        ${langBtns}
+      </div>
+    </div>
+    <div class="tool-grid" id="toolGrid">${toolGridHTML()}</div>
+    <div id="profileZone">${profileHTML()}</div>
+  `;
+}
+
+render();
+sendEvent('hub_view');
+
+// Service worker (solo cachea el hub; /abdomen/ tiene el suyo)
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

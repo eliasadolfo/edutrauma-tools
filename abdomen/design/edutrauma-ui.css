@@ -1,0 +1,663 @@
+/* ============================================================
+   EduTrauma UI — Sistema de diseño para apps clínicas móviles
+   v1.0 · 2026-07
+   Uso: <link rel="stylesheet" href="design/edutrauma-ui.css">
+   Documentación: design/DESIGN.md
+   ============================================================ */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  /* Marca (del manual EduTrauma, AF_Logo Edu_Trauma.ai) */
+  --et-navy: #00205C;        /* Pantone 281c — color primario */
+  --et-navy-deep: #001845;   /* variante profunda (cinta de ecosistema) */
+  --et-red: #E02826;         /* Pantone 485c — acento de marca */
+
+  /* Semánticos (resultados clínicos) */
+  --et-danger: #E02826;      /* dejar abierto / alerta */
+  --et-danger-soft: #fdecea;
+  --et-danger-line: #f0c4bd;
+  --et-success: #1F7A5C;     /* cierre seguro / ok */
+  --et-success-soft: #e9f6f1;
+  --et-success-line: #bfe3d3;
+  --et-warning-soft: #fff8ec;
+  --et-warning-line: #f2dfb3;
+  --et-warning-text: #7a5b13;
+  --et-info: #16829e;        /* acento informativo (teal) */
+  --et-info-soft: #e7f4f7;
+  --et-info-line: #c9e8ee;
+
+  /* Neutrales (grises con sesgo navy) */
+  --et-bg: #eef1f7;
+  --et-bg-2: #e3e8f3;
+  --et-card: #ffffff;
+  --et-text: #00205C;
+  --et-muted: #5b6b8c;
+  --et-line: #dbe1ee;
+  --et-track: #dde3f0;
+
+  /* Radios */
+  --et-radius-lg: 18px;      /* tarjetas principales */
+  --et-radius-md: 14px;      /* botones de respuesta */
+  --et-radius-sm: 12px;      /* botones de acción */
+  --et-radius-xs: 10px;      /* cajas informativas */
+  --et-radius-pill: 999px;   /* badges, chips */
+
+  /* Sombra (una sola elevación) */
+  --et-shadow: 0 8px 24px rgba(0,32,92,0.08);
+
+  /* Tipografía: system stack (rinde nativo en iOS) */
+  --et-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Escala tipográfica (rem) */
+  --et-fs-title: 1.28rem;    /* h1 de app */
+  --et-fs-result: 1.35rem;   /* título de resultado */
+  --et-fs-question: 1.18rem; /* pregunta principal */
+  --et-fs-btn: 1.05rem;      /* botones SÍ/NO */
+  --et-fs-body: 0.92rem;     /* texto corriente */
+  --et-fs-caption: 0.78rem;  /* cajas info, trazabilidad */
+  --et-fs-label: 0.72rem;    /* labels uppercase */
+  --et-fs-micro: 0.68rem;    /* footer legal */
+}
+
+/* ---------- 2. BASE ---------- */
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+/* Elimina el retraso de ~300ms al tocar en móvil (guía UX: tap-delay) */
+button, summary, a{ touch-action: manipulation; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: var(--et-font);
+  background: linear-gradient(180deg, var(--et-bg) 0%, var(--et-bg-2) 100%);
+  color: var(--et-text);
+  display:flex;
+  justify-content:center;
+  min-height:100%;
+}
+
+/* Contenedor de app móvil (max 480px, safe areas iPhone) */
+.app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  padding: 0 16px calc(14px + env(safe-area-inset-bottom));
+}
+
+main{ flex:1; display:flex; flex-direction:column; }
+
+/* ---------- 3. HEADER DE MARCA (doble logo) ----------
+   EduTrauma a la izquierda, logo de curso/programa a la derecha. */
+.brand-strip{
+  margin: 0 -16px 0;
+  background: var(--et-navy);
+  padding: 8px 16px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+}
+.brand-logo{ height: 24px; width: auto; display:block; }
+/* Chip blanco para logos de curso a color (MIAA, etc.) */
+.brand-chip{
+  background:#fff;
+  border-radius: 8px;
+  padding: 3px 8px;
+  display:flex;
+  align-items:center;
+  flex-shrink:0;
+}
+.brand-chip img{ height: 30px; width:auto; display:block; }
+/* Cinta de ecosistema: "HERRAMIENTAS CLÍNICAS" — idéntica en todas las apps.
+   El filete rojo superior evoca la línea divisoria del logo EduTrauma. */
+.brand-ribbon{
+  margin: 0 -16px 14px;
+  background: var(--et-navy-deep);
+  border-top: 2px solid var(--et-red);
+  color: rgba(255,255,255,0.78);
+  text-align:center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  padding: 5px 16px 6px;
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+}
+
+/* ---------- 4. CABECERA DE PÁGINA ---------- */
+header{ text-align:center; padding: 10px 4px 8px; }
+header h1{
+  font-size: var(--et-fs-title);
+  line-height:1.25;
+  margin: 0 0 6px;
+  font-weight: 800;
+  color: var(--et-navy);
+  letter-spacing:-0.01em;
+  text-wrap: balance;
+}
+header p{
+  margin:0;
+  font-size:0.84rem;
+  color: var(--et-muted);
+  font-style: italic;
+  line-height:1.4;
+}
+
+/* Botón de texto estilo iOS (acciones informativas) */
+.rule-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+  padding:7px 14px;
+  background:none;
+  border:none;
+  border-radius: var(--et-radius-pill);
+  color: var(--et-info);
+  font-family:inherit;
+  font-size:0.84rem;
+  font-weight:600;
+  letter-spacing:0.01em;
+  cursor:pointer;
+  -webkit-user-select:none;
+  user-select:none;
+  transition: opacity .15s ease, background .15s ease;
+}
+.rule-link:active{ opacity:0.55; background: rgba(22,130,158,0.08); }
+.rule-link svg{ width:17px; height:17px; flex-shrink:0; }
+
+/* ---------- 4b. PANTALLA DE INICIO Y MODO FLUJO ----------
+   Inicio: reglas visibles + botón grande "Comenzar".
+   En flujo (.app.in-flow): se oculta la cabecera para que la
+   pregunta y los botones quepan SIN scroll. */
+.app.in-flow header{ display:none; }
+
+/* Curva de resorte de la casa (rebote sutil, estilo TEM/Apple) */
+:root{ --et-spring: cubic-bezier(0.34, 1.6, 0.55, 1); }
+
+/* Selector de idioma — barra segmentada semi-translúcida con thumb
+   deslizante (rebote de resorte). Al pie de la pantalla de inicio. */
+.lang-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  margin-top: auto;      /* se apoya al fondo del main, sobre el footer */
+  padding-top: 24px;
+}
+.lang-wrap > svg{
+  width:16px; height:16px;
+  color: var(--et-muted);
+  opacity:0.7;
+  flex-shrink:0;
+}
+.lang-switch{
+  position:relative;
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: min(320px, 100%);
+  padding: 4px;
+  border-radius: var(--et-radius-pill);
+  background: rgba(255,255,255,0.55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(219,225,238,0.9);
+  box-shadow: inset 0 1px 2px rgba(0,32,92,0.04);
+}
+.lang-thumb{
+  position:absolute;
+  top:4px; bottom:4px; left:4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: var(--et-radius-pill);
+  background: var(--et-navy);
+  box-shadow: 0 2px 8px rgba(0,32,92,0.28);
+  transition: transform .42s var(--et-spring);
+}
+.lang-switch[data-active="1"] .lang-thumb{ transform: translateX(100%); }
+.lang-switch[data-active="2"] .lang-thumb{ transform: translateX(200%); }
+.lang-switch button{
+  position:relative;
+  z-index:1;
+  border:none;
+  background:none;
+  padding: 12px 6px;
+  min-height: 44px;
+  border-radius: var(--et-radius-pill);
+  font-family:inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--et-muted);
+  cursor:pointer;
+  transition: color .25s ease;
+}
+.lang-switch button.active{
+  color:#fff;
+  font-weight:700;
+}
+
+.start-rules{
+  background: var(--et-card);
+  border: 1px solid var(--et-line);
+  border-radius: var(--et-radius-lg);
+  box-shadow: var(--et-shadow);
+  padding: 18px 18px 10px;
+  text-align:left;
+  margin-top: 6px;
+}
+.start-rules h2{
+  margin:0 0 12px;
+  font-size:0.76rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color: var(--et-muted);
+  font-weight:700;
+  text-align:center;
+}
+.start-btn{
+  margin-top: 18px;
+  width:100%;
+  background: var(--et-navy);
+  color:#fff;
+  border:none;
+  padding: 19px;
+  border-radius: var(--et-radius-md);
+  font-family:inherit;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  cursor:pointer;
+  transition: transform .08s ease;
+}
+.start-btn:active{ transform: scale(0.98); }
+
+/* Trazabilidad plegable en el resultado.
+   El summary DEBE verse como botón (affordance): fondo blanco, borde,
+   target >=44px, feedback al presionar. */
+.trigger-details{
+  margin-top: 16px;
+  max-width: 360px;
+  width:100%;
+}
+.trigger-details summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height: 44px;
+  width:100%;
+  background: #fff;
+  border: 1.5px solid var(--et-line);
+  border-radius: var(--et-radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--et-navy);
+  padding: 11px 18px;
+  -webkit-user-select:none;
+  user-select:none;
+  transition: transform .08s ease, background .15s ease;
+}
+.trigger-details summary:active{ transform: scale(0.98); background: #f2f5fb; }
+.trigger-details summary::-webkit-details-marker{ display:none; }
+.trigger-details summary::after{
+  content:"›";
+  transform: rotate(90deg);
+  transition: transform .15s ease;
+  font-size:1.1rem;
+  line-height:1;
+}
+.trigger-details[open] summary::after{ transform: rotate(-90deg); }
+.trigger-details .label-open{ display:none; }
+.trigger-details[open] .label-open{ display:inline; }
+.trigger-details[open] .label-closed{ display:none; }
+.trigger-details .trigger-box{ margin-top: 8px; }
+
+/* ---------- 5. PROGRESO ---------- */
+.progress-wrap{ margin: 4px 0 18px; }
+.progress-track{
+  height:6px; background: var(--et-track);
+  border-radius:6px; overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background: linear-gradient(90deg, var(--et-navy), var(--et-red));
+  border-radius:6px;
+  transition: width .35s ease;
+}
+.progress-label{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size: var(--et-fs-label); color: var(--et-muted);
+  margin-top:6px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.04em;
+}
+
+/* ---------- 6. BADGES DE CATEGORÍA ---------- */
+.category-badge{
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--et-info-soft); color: var(--et-info);
+  border: 1px solid var(--et-info-line);
+  padding: 6px 12px 6px 8px;
+  border-radius: var(--et-radius-pill);
+  font-size: 0.76rem;
+  font-weight:700;
+  margin-bottom: 14px;
+  letter-spacing:0.02em;
+}
+.category-badge.bjorck{
+  background: var(--et-danger-soft); color: var(--et-danger);
+  border-color: var(--et-danger-line);
+}
+.category-badge svg{ width:18px; height:18px; flex-shrink:0; }
+
+/* ---------- 7. TARJETA DE PREGUNTA ---------- */
+.card{
+  background: var(--et-card);
+  border-radius: var(--et-radius-lg);
+  padding: 22px 20px;
+  box-shadow: var(--et-shadow);
+  border: 1px solid var(--et-line);
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+.question-text{
+  font-size: var(--et-fs-question);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--et-navy);
+  margin: 4px 0 auto;
+}
+
+/* Botonera dicotómica SÍ/NO (targets grandes, uso con guantes) */
+.answers{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+.answer-btn{
+  padding: 18px 10px;
+  border-radius: var(--et-radius-md);
+  border: 2px solid var(--et-navy);
+  background: #fff;
+  color: var(--et-navy);
+  font-family:inherit;
+  font-size: var(--et-fs-btn);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor:pointer;
+  transition: transform .08s ease, background .15s ease, color .15s ease;
+}
+.answer-btn:active{ transform: scale(0.97); background: var(--et-navy); color:#fff; }
+
+/* ---------- 8. NAVEGACIÓN SECUNDARIA ---------- */
+.back-row{
+  display:flex; justify-content:flex-start;
+  margin-bottom: 10px; min-height: 30px;
+}
+.back-btn{
+  background:none; border:none; color: var(--et-muted);
+  font-family:inherit;
+  font-size:0.82rem; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; gap:4px; padding:4px 2px;
+}
+
+/* ---------- 9. TARJETAS DE RESULTADO ---------- */
+.result-card{
+  border-radius: var(--et-radius-lg);
+  padding: 26px 22px 22px;
+  text-align:center;
+  border: 2px solid;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.result-card.open{ background: var(--et-danger-soft); border-color: var(--et-danger-line); }
+.result-card.closed{ background: var(--et-success-soft); border-color: var(--et-success-line); }
+.result-card.bjorck{ background: #fff; border-color: var(--et-navy); }
+
+.result-icon{ width:56px; height:56px; margin-bottom: 14px; }
+.result-eyebrow{
+  font-size:0.74rem; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+  margin-bottom: 8px;
+}
+.result-card.open .result-eyebrow{ color: var(--et-danger); }
+.result-card.closed .result-eyebrow{ color: var(--et-success); }
+.result-card.bjorck .result-eyebrow{ color: var(--et-navy); }
+
+.result-title{
+  font-size: var(--et-fs-result); font-weight:800;
+  line-height:1.3; margin: 0 0 10px;
+  text-wrap: balance;
+}
+.result-card.open .result-title{ color: var(--et-danger); }
+.result-card.closed .result-title{ color: var(--et-success); }
+.result-card.bjorck .result-title{ color: var(--et-navy); }
+
+.grade-pill{
+  display:inline-block;
+  background: var(--et-navy);
+  color:#fff;
+  font-weight:800;
+  font-size: 0.92rem;
+  padding: 6px 16px;
+  border-radius: var(--et-radius-pill);
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.result-detail{
+  font-size: var(--et-fs-body); color: var(--et-text);
+  opacity:0.85; line-height:1.5; max-width: 340px;
+}
+
+/* Caja de trazabilidad (qué determinó el resultado) */
+.trigger-box{
+  margin-top:18px;
+  background: rgba(255,255,255,0.7);
+  border-radius: var(--et-radius-xs);
+  padding: 10px 14px;
+  font-size: var(--et-fs-caption);
+  color: var(--et-muted);
+  line-height:1.4;
+  max-width: 360px;
+}
+.trigger-box b{ color: var(--et-text); }
+
+/* Caja de precaución clínica */
+.caution-box{
+  margin-top: 12px;
+  background: var(--et-warning-soft);
+  border: 1px solid var(--et-warning-line);
+  border-radius: var(--et-radius-xs);
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  color: var(--et-warning-text);
+  line-height: 1.45;
+  max-width: 360px;
+}
+
+/* ---------- 10. BOTONES DE ACCIÓN ---------- */
+.restart-btn{
+  margin-top: 20px;
+  background: var(--et-navy);
+  color: #fff;
+  border:none;
+  padding: 14px 26px;
+  border-radius: var(--et-radius-sm);
+  font-family:inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor:pointer;
+}
+.secondary-btn{
+  margin-top: 12px;
+  background: #fff;
+  color: var(--et-navy);
+  border: 2px solid var(--et-navy);
+  padding: 13px 26px;
+  border-radius: var(--et-radius-sm);
+  font-family:inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor:pointer;
+}
+
+/* ---------- 11. HOJA DESLIZANTE (bottom sheet) ---------- */
+.overlay{
+  position:fixed; inset:0;
+  background: rgba(0,32,92,0.45);
+  display:none; align-items:flex-end; justify-content:center;
+  z-index:20;
+}
+.overlay.show{ display:flex; }
+.sheet{
+  background:#fff; width:100%; max-width:480px;
+  border-radius: 22px 22px 0 0;
+  padding: 22px 20px 30px;
+  padding-bottom: calc(30px + env(safe-area-inset-bottom));
+  animation: et-slideup .25s ease;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+@keyframes et-slideup{
+  from{ transform: translateY(30px); opacity:0; }
+  to{ transform:none; opacity:1; }
+}
+@media (prefers-reduced-motion: reduce){
+  .sheet{ animation:none; }
+  .progress-fill{ transition:none; }
+}
+.sheet h2{ margin:0 0 14px; font-size:1.05rem; color: var(--et-navy); }
+.rule-item{ display:flex; gap:10px; margin-bottom:12px; font-size:0.88rem; line-height:1.45; }
+.rule-dot{ width:8px; height:8px; border-radius:50%; background: var(--et-info); margin-top:7px; flex-shrink:0; }
+.rule-item b{ color: var(--et-navy); }
+.close-sheet{
+  width:100%; margin-top:8px; padding:13px;
+  border-radius: var(--et-radius-sm);
+  border:1.5px solid var(--et-line);
+  background:#f7f9fc; color: var(--et-navy);
+  font-family:inherit;
+  font-weight:700; font-size:0.9rem; cursor:pointer;
+}
+
+/* ---------- 12. BANNER DE INSTALACIÓN PWA ---------- */
+.install-banner{
+  display:none;
+  align-items:center;
+  gap: 10px;
+  background: #fff;
+  border: 1.5px solid var(--et-line);
+  border-radius: var(--et-radius-md);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: var(--et-fs-caption);
+  color: var(--et-muted);
+}
+.install-banner.show{ display:flex; }
+.install-banner button{
+  margin-left:auto;
+  background: var(--et-navy);
+  color:#fff;
+  border:none;
+  padding: 8px 14px;
+  border-radius: var(--et-radius-xs);
+  font-family:inherit;
+  font-size: 0.76rem;
+  font-weight:700;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.install-banner .close-x{
+  background:none; color: var(--et-muted);
+  padding:8px 4px; margin-left:0;
+  font-size:1rem; line-height:1;
+}
+
+/* ---------- 13. FOOTER LEGAL ---------- */
+footer{
+  text-align:center; font-size: var(--et-fs-micro);
+  color: var(--et-muted);
+  padding-top: 16px; line-height:1.4;
+}
+
+/* ---------- 14. MICROINTERACCIONES — rebote de resorte (estilo TEM) ----------
+   Presión: encoge rápido. Soltar: vuelve con un pequeño overshoot (rebote).
+   La curva --et-spring genera el rebote sin JavaScript. */
+.start-btn, .answer-btn, .restart-btn, .secondary-btn, .trigger-details summary, .close-sheet{
+  transition: transform .38s var(--et-spring), background .15s ease, color .15s ease, opacity .15s ease;
+  will-change: transform;
+}
+.start-btn:active, .answer-btn:active, .restart-btn:active, .secondary-btn:active,
+.trigger-details summary:active, .close-sheet:active{
+  transform: scale(0.94);
+  transition-duration: .08s;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .lang-thumb,
+  .start-btn, .answer-btn, .restart-btn, .secondary-btn,
+  .trigger-details summary, .close-sheet{
+    transition: none;
+  }
+}
+
+/* ---------- 15. COREOGRAFÍA DE ENTRADA (lenguaje TEM Motions) ----------
+   Cada pantalla "llega" en secuencia: tarjeta hace pop con resorte,
+   los ítems entran en cascada, las acciones suben al final.
+   Nota: los botones con press-scale se animan vía WRAPPER (.anim-pop)
+   para que la animación no bloquee el transform del :active. */
+@keyframes et-pop-in{
+  from{ opacity:0; transform: scale(0.92) translateY(16px); }
+  to{   opacity:1; transform: none; }
+}
+@keyframes et-rise-in{
+  from{ opacity:0; transform: translateY(12px); }
+  to{   opacity:1; transform: none; }
+}
+@keyframes et-slide-in{
+  from{ opacity:0; transform: translateX(-12px); }
+  to{   opacity:1; transform: none; }
+}
+
+/* Pregunta */
+.category-badge{ animation: et-rise-in .4s ease both; }
+.card{ animation: et-pop-in .55s var(--et-spring) both .06s; }
+.card .answers{ animation: et-rise-in .45s ease both .22s; }
+
+/* Inicio */
+.start-rules{ animation: et-pop-in .55s var(--et-spring) both; }
+.start-rules .rule-item{ animation: et-slide-in .4s ease both; }
+.start-rules .rule-item:nth-child(2){ animation-delay: .16s; }
+.start-rules .rule-item:nth-child(3){ animation-delay: .26s; }
+.start-rules .rule-item:nth-child(4){ animation-delay: .36s; }
+.lang-wrap{ animation: et-rise-in .5s ease both .5s; }
+
+/* Resultado */
+.result-card{ animation: et-pop-in .55s var(--et-spring) both; }
+.result-icon{ animation: et-pop-in .5s var(--et-spring) both .12s; }
+.grade-pill{ animation: et-pop-in .5s var(--et-spring) both .12s; }
+.trigger-details, .caution-box{ animation: et-rise-in .45s ease both .3s; }
+
+/* Wrapper para animar botones sin pisar su press-scale */
+.anim-pop{ animation: et-rise-in .45s ease both .34s; }
+.anim-pop + .anim-pop{ animation-delay: .44s; }
+
+@media (prefers-reduced-motion: reduce){
+  .category-badge, .card, .card .answers,
+  .start-rules, .start-rules .rule-item, .lang-wrap,
+  .result-card, .result-icon, .grade-pill,
+  .trigger-details, .caution-box, .anim-pop{
+    animation: none;
+  }
+}
+.anim-pop > button{ width:100%; }
