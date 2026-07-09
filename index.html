@@ -286,13 +286,14 @@ function profileHTML(){
 
 function profileFieldsHTML(){
   const t = T();
+  const mandatory = !etProfile().specialty;
   return `
     <h2>${t.profileTitle}</h2>
     <p style="margin:0 0 4px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.profileDesc}</p>
     <div class="spec-grid">
       ${t.specialties.map(s => `<button onclick="pickSpecialtyHub(this.textContent)">${s}</button>`).join('')}
     </div>
-    <button class="fb-skip" onclick="closeProfileSheet(true)">${t.profileSkip}</button>`;
+    ${mandatory ? '' : `<button class="fb-skip" onclick="closeProfileSheet(true)">${t.profileSkip}</button>`}`;
 }
 
 function pickSpecialtyHub(s){
@@ -307,7 +308,7 @@ function showProfileSheet(){
     ov = document.createElement('div');
     ov.id = 'pfOverlay';
     ov.className = 'overlay';
-    ov.onclick = (e) => { if (e.target === ov) closeProfileSheet(true); };
+    ov.onclick = (e) => { if (e.target === ov && etProfile().specialty) closeProfileSheet(true); };
     document.body.appendChild(ov);
   }
   ov.innerHTML = `<div class="sheet">${profileFieldsHTML()}</div>`;
@@ -324,27 +325,8 @@ function closeProfileSheet(dismissed){
 
 function maybeAskProfile(){
   try{
-    const p = etProfile();
-    if (p.specialty || p.country) return;
-    if (localStorage.getItem('et_profile_dismissed') === '1') return;
-    const visits = 1 + parseInt(localStorage.getItem('et_hub_visits') || '0', 10);
-    localStorage.setItem('et_hub_visits', String(visits));
-    if (visits >= 2) showProfileSheet();
+    if (!etProfile().specialty) showProfileSheet();
   }catch(e){}
-}
-
-function saveProfile(){
-  const specialty = document.getElementById('pfSpecialty').value;
-  const country = document.getElementById('pfCountry').value;
-  if (!specialty && !country) return;
-  localStorage.setItem('et_profile', JSON.stringify({ specialty, country }));
-  sendEvent('profile_saved');
-  closeProfileSheet(false);
-}
-
-function editProfile(){
-  localStorage.removeItem('et_profile');
-  showProfileSheet();
 }
 
 function render(){
