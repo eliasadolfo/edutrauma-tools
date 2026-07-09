@@ -112,6 +112,8 @@ const ICONS = {
 const I18N = {
 
   es: {
+    specOtherPh: "Escríbela aquí… (ej: Veterinaria)",
+    specContinue: "Continuar ›",
     specTitle: "¿Cuál es tu especialidad?",
     specSub: "Solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.",
     specialties: ["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"],
@@ -205,6 +207,8 @@ const I18N = {
   },
 
   en: {
+    specOtherPh: "Type it here… (e.g. Veterinary)",
+    specContinue: "Continue ›",
     specTitle: "What is your specialty?",
     specSub: "Just once — it helps us build the tools your practice needs.",
     specialties: ["General surgery","Trauma surgery","Surgery resident","Emergency medicine","Nursing","Medical student","Other"],
@@ -298,6 +302,8 @@ const I18N = {
   },
 
   pt: {
+    specOtherPh: "Escreva aqui… (ex: Veterinária)",
+    specContinue: "Continuar ›",
     specTitle: "Qual é a sua especialidade?",
     specSub: "Só uma vez — nos ajuda a criar as ferramentas que a sua prática precisa.",
     specialties: ["Cirurgia geral","Cirurgia do trauma","Residente de cirurgia","Medicina de emergência","Enfermagem","Estudante de medicina","Outra"],
@@ -521,12 +527,41 @@ function renderSpecialtyPicker(){
 }
 
 function pickSpecialty(s){
+  const t = T();
+  // "Otra" → preguntar cuál (texto libre)
+  if (s === t.specialties[t.specialties.length - 1]){
+    renderOtherSpecialty();
+    return;
+  }
+  saveSpecialty(s, beginEvaluation);
+}
+
+function renderOtherSpecialty(){
+  const t = T();
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="back-row">
+      <button class="back-btn" onclick="renderSpecialtyPicker()">${t.backPrev}</button>
+    </div>
+    <div class="card">
+      <div class="question-text">${t.specTitle}</div>
+      <input class="spec-input" id="specOther" maxlength="60" placeholder="${t.specOtherPh}"
+        oninput="document.getElementById('specGo').disabled = !this.value.trim()">
+      <button class="spec-continue" id="specGo" disabled
+        onclick="saveSpecialty(document.getElementById('specOther').value.trim(), beginEvaluation)">${t.specContinue}</button>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('specOther').focus(), 100);
+}
+
+function saveSpecialty(s, next){
+  if (!s) return;
   let p = {};
   try{ p = JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){}
-  p.specialty = s;
+  p.specialty = s.slice(0, 60);
   try{ localStorage.setItem('et_profile', JSON.stringify(p)); }catch(e){}
-  sendEvent('profile_saved', { specialty: s });
-  beginEvaluation();
+  sendEvent('profile_saved', { specialty: p.specialty });
+  next();
 }
 
 function renderQuestion(){

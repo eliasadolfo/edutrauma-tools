@@ -107,6 +107,8 @@ function sendEvent(event, extra){
 /* ============ i18n ============ */
 const I18N = {
   es: {
+    specOtherPh: "Escríbela aquí… (ej: Veterinaria)",
+    specContinue: "Continuar ›",
     installText: "Instala el kit en tu pantalla de inicio para acceso rápido, incluso sin conexión.",
     installBtn: "Instalar",
     installIOSShort: "Guárdala en tu pantalla de inicio — funciona sin conexión.",
@@ -140,6 +142,8 @@ const I18N = {
     ]
   },
   en: {
+    specOtherPh: "Type it here… (e.g. Veterinary)",
+    specContinue: "Continue ›",
     installText: "Install the kit on your home screen for quick access, even offline.",
     installBtn: "Install",
     installIOSShort: "Save it to your home screen — works offline.",
@@ -173,6 +177,8 @@ const I18N = {
     ]
   },
   pt: {
+    specOtherPh: "Escreva aqui… (ex: Veterinária)",
+    specContinue: "Continuar ›",
     installText: "Instale o kit na sua tela de início para acesso rápido, mesmo offline.",
     installBtn: "Instalar",
     installIOSShort: "Salve na sua tela de início — funciona offline.",
@@ -297,8 +303,26 @@ function profileFieldsHTML(){
 }
 
 function pickSpecialtyHub(s){
-  localStorage.setItem('et_profile', JSON.stringify({ specialty: s }));
-  sendEvent('profile_saved', { specialty: s });
+  const t = T();
+  if (s === t.specialties[t.specialties.length - 1]){
+    // "Otra" → texto libre dentro de la misma hoja
+    const sheet = document.querySelector('#pfOverlay .sheet');
+    sheet.innerHTML = `
+      <h2>${t.profileTitle}</h2>
+      <input class="spec-input" id="specOtherHub" maxlength="60" placeholder="${t.specOtherPh}"
+        oninput="document.getElementById('specGoHub').disabled = !this.value.trim()">
+      <button class="spec-continue" id="specGoHub" disabled
+        onclick="saveSpecialtyHub(document.getElementById('specOtherHub').value.trim())">${t.specContinue}</button>`;
+    setTimeout(() => document.getElementById('specOtherHub').focus(), 100);
+    return;
+  }
+  saveSpecialtyHub(s);
+}
+
+function saveSpecialtyHub(s){
+  if (!s) return;
+  localStorage.setItem('et_profile', JSON.stringify({ specialty: s.slice(0, 60) }));
+  sendEvent('profile_saved', { specialty: s.slice(0, 60) });
   closeProfileSheet(false);
 }
 

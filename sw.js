@@ -1,6 +1,6 @@
 // Service Worker — Hub EduTrauma Tools
 // Cachea SOLO el hub. /abdomen/ (y cada herramienta) tiene su propio SW.
-const CACHE = 'et-tools-hub-v7';
+const CACHE = 'et-tools-hub-v8';
 const ASSETS = [
   './',
   './index.html',
