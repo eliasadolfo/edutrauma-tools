@@ -6,7 +6,8 @@ Kit de herramientas clínicas de EduTrauma. Hub trilingüe (ES/EN/PT) + apps de 
 
 ```
 /                      Hub: selector de idioma, grid de herramientas, mini-perfil
-/abdomen/              Herramienta: ¿Cuándo dejar el abdomen abierto? (curso MIAA)
+/abdomen/              Tool: ¿Cuándo dejar el abdomen abierto? (curso MIAA)
+/aast/                Tool: Escalas AAST de lesiones de órganos (curso DQT) — DB + aast-trans.js (ES/EN/PT)
 /design/               Sistema de diseño EduTrauma UI (css + DESIGN.md) — canónico
 CNAME                  tools.edutrauma.net (GitHub Pages)
 ```
@@ -15,7 +16,7 @@ CNAME                  tools.edutrauma.net (GitHub Pages)
 
 | Recurso | Convención |
 |---|---|
-| **Herramienta nueva** | Carpeta `/nombre/` en este repo. Copiar estructura de `/abdomen/` (index.html + sw.js + manifest + design/). Checklist completo en `design/DESIGN.md`. |
+| **Tool nueva** | Carpeta `/nombre/` en este repo. Copiar estructura de una tool existente (index.html + sw.js + manifest + design/). Contenido clínico grande → base de datos + `<tool>-trans.js` con traducciones mapeadas por etiqueta ES canónica (ver `/aast/`). Chip del curso en el header. |
 | **Workflows n8n** | Nombre con prefijo `ET Tools — …` + tag `ET Tools`. Instancia: devn8n.tuescuelademarcas.cl |
 | **Google Sheets** | Libro "EduTrauma Tools — Analytics" ([link](https://docs.google.com/spreadsheets/d/1Nsbsk1H2MA32pgMtJ86J1e_eCRxTI_27cNYs6lK0xms)). Pestañas: `dashboard` (veredicto automático de decisión + KPIs por etapa —adquisición, retención, activación, embudo, calidad— con metas, + 6 gráficos automáticos), `eventos` (crudo: ts/anon_id/event/tool/lang/country/specialty/tz/ua/extra), `feedback` (comentarios filtrados), `calc` (series de cálculo para los gráficos — no tocar). |
 | **Service workers** | Cada herramienta tiene el suyo (scope propio). Subir versión de `CACHE` en CADA deploy o los teléfonos quedan con versión vieja. |
@@ -40,8 +41,14 @@ CNAME                  tools.edutrauma.net (GitHub Pages)
 
 ## Deploy
 
+Fuente de verdad local: `~/Desktop/EduTrauma_Tools/`. Para publicar:
 ```bash
-git add -A && git commit -m "..." && git push   # GitHub Pages publica solo (~1 min)
+# clonar fresco, copiar SIN pisar .git/CNAME, commit, push
+git clone https://github.com/eliasadolfo/edutrauma-tools.git _pub && cd _pub
+rsync -a --exclude '.git' --exclude 'CNAME' ~/Desktop/EduTrauma_Tools/ .
+git add -A && git commit -m "..." && git push   # Pages publica en ~1 min
 ```
+⚠️ NO usar rsync directo sobre un clon que tenga `.git` sin `--exclude '.git'` (lo borra).
+⚠️ Repos PÚBLICOS obligatorio (GitHub Pages no sirve repos privados en plan Free).
 
 URLs: producción **https://tools.edutrauma.net** · alias herramienta abdomen: miaa.edutrauma.net
