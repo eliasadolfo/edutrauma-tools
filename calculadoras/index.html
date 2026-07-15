@@ -44,7 +44,7 @@ function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.g
 /* ============ Definición de calculadoras ============
    Cada compute(v) recibe los valores de entrada y devuelve:
    { display, unit, level:'ok|warn|alert|info', cat, detail, alert?, formula, ref } */
-const AREAS = ['Medicina general','Urgencias','Cardiología','Salud mental'];
+const AREAS = ['Trauma','Urgencias','Medicina general','Cardiología','Salud mental'];
 const CALCS = [
   {
     id:'imc', area:'Medicina general', name:'IMC — Índice de Masa Corporal',
@@ -185,7 +185,196 @@ const CALCS = [
       if((v.q9||0)>=1){ r.alert='⚠ Respuesta positiva en el ítem 9 (ideación de muerte/autolesión). Evaluar riesgo de suicidio de inmediato.'; }
       return r;
     }
+  }  ,
+  {
+    id:'glasgow', area:'Trauma', name:'Escala de Coma de Glasgow (GCS)',
+    kw:['glasgow','gcs','coma','conciencia','tec','trauma craneal'],
+    inputs:[
+      {id:'ocular', t:'segv', label:'Respuesta ocular', options:[{v:4,label:'4 · Espontánea'},{v:3,label:'3 · Al estímulo verbal'},{v:2,label:'2 · Al dolor'},{v:1,label:'1 · Ninguna'}]},
+      {id:'verbal', t:'segv', label:'Respuesta verbal', options:[{v:5,label:'5 · Orientada'},{v:4,label:'4 · Confusa'},{v:3,label:'3 · Palabras inapropiadas'},{v:2,label:'2 · Sonidos incomprensibles'},{v:1,label:'1 · Ninguna'}]},
+      {id:'motora', t:'segv', label:'Respuesta motora', options:[{v:6,label:'6 · Obedece órdenes'},{v:5,label:'5 · Localiza el dolor'},{v:4,label:'4 · Retirada al dolor'},{v:3,label:'3 · Flexión anormal (decorticación)'},{v:2,label:'2 · Extensión (descerebración)'},{v:1,label:'1 · Ninguna'}]}
+    ],
+    compute(v){
+      const p=v.ocular+v.verbal+v.motora;
+      let cat,level;
+      if(p>=13){cat='TEC leve';level='ok';}
+      else if(p>=9){cat='TEC moderado';level='warn';}
+      else {cat='TEC grave (coma)';level='alert';}
+      return { display:p, unit:'/15', level, cat,
+        detail:'O'+v.ocular+' V'+v.verbal+' M'+v.motora+'. Nivel de conciencia; ≤8 define coma.',
+        formula:'GCS = Ocular (1–4) + Verbal (1–5) + Motora (1–6)', ref:'Teasdale & Jennett, 1974' };
+    }
+  },
+  {
+    id:'shock', area:'Trauma', name:'Índice de Shock',
+    kw:['indice de shock','shock index','hipovolemia','triage','choque'],
+    inputs:[
+      {id:'fc', t:'number', label:'Frecuencia cardíaca', unit:'lpm', min:20, max:250},
+      {id:'pas', t:'number', label:'Presión arterial sistólica', unit:'mmHg', min:40, max:300}
+    ],
+    compute(v){
+      const si=v.fc/v.pas;
+      let cat,level;
+      if(si<0.7){cat='Normal';level='ok';}
+      else if(si<0.9){cat='Vigilar';level='warn';}
+      else {cat='Posible shock / hipovolemia';level='alert';}
+      return { display:si.toFixed(2), unit:'', level, cat,
+        detail:'Normal 0.5–0.7. ≥0.9 sugiere compromiso hemodinámico; útil en triage de trauma.',
+        formula:'Índice de Shock = FC / PAS', ref:'Allgöwer & Burri, 1967' };
+    }
+  },
+  {
+    id:'parkland', area:'Trauma', name:'Fórmula de Parkland (reanimación en quemados)',
+    kw:['parkland','quemados','quemadura','reanimacion','fluidos','superficie quemada'],
+    inputs:[
+      {id:'peso', t:'number', label:'Peso', unit:'kg', min:1, max:400},
+      {id:'scq', t:'number', label:'Superficie corporal quemada', unit:'%', min:1, max:100}
+    ],
+    compute(v){
+      const total=4*v.peso*v.scq;
+      const prim8=Math.round(total/2);
+      const vel=Math.round((total/2)/8);
+      return { display:Math.round(total), unit:'mL / 24 h', level:'info', cat:'Cristaloides (Ringer lactato)',
+        detail:'Primeras 8 h: '+prim8+' mL (≈ '+vel+' mL/h). Restante 16 h: '+prim8+' mL. Ajustar por diuresis (0.5–1 mL/kg/h).',
+        formula:'Volumen 24 h = 4 mL × peso (kg) × % SCQ', ref:'Baxter (Parkland), 1968' };
+    }
+  },
+  {
+    id:'hasbled', area:'Cardiología', name:'HAS-BLED — Riesgo de sangrado con anticoagulación',
+    kw:['hasbled','has-bled','sangrado','hemorragia','anticoagulacion'],
+    inputs:[
+      {id:'hta', t:'toggle', label:'Hipertensión no controlada (PAS >160 mmHg)'},
+      {id:'renal', t:'toggle', label:'Función renal alterada (diálisis, trasplante o creatinina >2.26 mg/dL)'},
+      {id:'hep', t:'toggle', label:'Función hepática alterada'},
+      {id:'acv', t:'toggle', label:'ACV previo'},
+      {id:'sang', t:'toggle', label:'Sangrado mayor previo o predisposición'},
+      {id:'inr', t:'toggle', label:'INR lábil (mal control de TTR)'},
+      {id:'edad', t:'toggle', label:'Edad >65 años'},
+      {id:'farm', t:'toggle', label:'Fármacos: antiplaquetarios o AINE'},
+      {id:'alc', t:'toggle', label:'Consumo de alcohol ≥8 unidades/semana'}
+    ],
+    compute(v){
+      const p=['hta','renal','hep','acv','sang','inr','edad','farm','alc'].reduce((s,k)=>s+(v[k]?1:0),0);
+      let cat,level;
+      if(p>=3){cat='Riesgo alto';level='alert';}
+      else if(p>=1){cat='Riesgo bajo-moderado';level='warn';}
+      else {cat='Riesgo bajo';level='ok';}
+      return { display:p, unit:'/9 puntos', level, cat,
+        detail:(p>=3?'≥3 = riesgo alto de sangrado; extremar controles, no contraindica anticoagular.':'Evalúa el riesgo de sangrado; se interpreta junto al CHA₂DS₂-VASc.'),
+        formula:'1 punto por cada factor presente (máximo 9)', ref:'Pisters et al., 2010' };
+    }
+  },
+  {
+    id:'gad7', area:'Salud mental', name:'GAD-7 — Tamizaje de ansiedad',
+    kw:['gad','gad7','ansiedad','tamizaje','salud mental','gad-7'],
+    phq:true,
+    inputs:[
+      {id:'g1', t:'phq', label:'1. Sentirse nervioso(a), ansioso(a) o muy alterado(a)'},
+      {id:'g2', t:'phq', label:'2. No poder dejar de preocuparse o controlar la preocupación'},
+      {id:'g3', t:'phq', label:'3. Preocuparse demasiado por diferentes cosas'},
+      {id:'g4', t:'phq', label:'4. Dificultad para relajarse'},
+      {id:'g5', t:'phq', label:'5. Estar tan inquieto(a) que es difícil permanecer sentado(a)'},
+      {id:'g6', t:'phq', label:'6. Molestarse o irritarse fácilmente'},
+      {id:'g7', t:'phq', label:'7. Sentir miedo como si algo terrible fuera a pasar'}
+    ],
+    compute(v){
+      const p=[1,2,3,4,5,6,7].reduce((s,i)=>s+(v['g'+i]||0),0);
+      let cat,level;
+      if(p<=4){cat='Mínima';level='ok';}
+      else if(p<=9){cat='Leve';level='warn';}
+      else if(p<=14){cat='Moderada';level='warn';}
+      else {cat='Grave';level='alert';}
+      return { display:p, unit:'/21 puntos', level, cat,
+        detail:(p>=10?'≥10 sugiere trastorno de ansiedad probable; se recomienda evaluación clínica.':'Severidad de síntomas de ansiedad en las últimas 2 semanas.'),
+        formula:'Suma de 7 ítems (0–3 cada uno)', ref:'Spitzer et al., 2006 · versión validada en español' };
+    }
+  },
+  {
+    id:'qsofa', area:'Urgencias', name:'qSOFA — Riesgo en sospecha de sepsis',
+    kw:['qsofa','sepsis','sofa','mortalidad','sepsis rapida'],
+    inputs:[
+      {id:'fr', t:'toggle', label:'Frecuencia respiratoria ≥22/min'},
+      {id:'pas', t:'toggle', label:'Presión arterial sistólica ≤100 mmHg'},
+      {id:'mental', t:'toggle', label:'Alteración del estado mental (Glasgow <15)'}
+    ],
+    compute(v){
+      const p=(v.fr?1:0)+(v.pas?1:0)+(v.mental?1:0);
+      let cat,level;
+      if(p>=2){cat='Riesgo alto';level='alert';}
+      else if(p===1){cat='Riesgo intermedio';level='warn';}
+      else {cat='Riesgo bajo';level='ok';}
+      return { display:p, unit:'/3 puntos', level, cat,
+        detail:(p>=2?'≥2 = mayor riesgo de mortalidad; evaluar sepsis y disfunción orgánica.':'Tamizaje rápido de gravedad en sospecha de infección.'),
+        formula:'1 punto por: FR ≥22 · PAS ≤100 · alteración del sensorio', ref:'Sepsis-3, Singer et al., 2016' };
+    }
+  },
+  {
+    id:'calcio', area:'Medicina general', name:'Calcio corregido por albúmina',
+    kw:['calcio','calcio corregido','albumina','hipocalcemia','hipercalcemia'],
+    inputs:[
+      {id:'ca', t:'number', label:'Calcio sérico total', unit:'mg/dL', min:2, max:20},
+      {id:'alb', t:'number', label:'Albúmina', unit:'g/dL', min:0.5, max:7}
+    ],
+    compute(v){
+      const cc=v.ca+0.8*(4.0-v.alb);
+      let cat,level;
+      if(cc<8.5){cat='Hipocalcemia';level='alert';}
+      else if(cc<=10.5){cat='Normal';level='ok';}
+      else {cat='Hipercalcemia';level='alert';}
+      return { display:cc.toFixed(1), unit:'mg/dL', level, cat,
+        detail:'Corrige el calcio total en hipoalbuminemia. Rango normal ≈ 8.5–10.5 mg/dL.',
+        formula:'Ca corregido = Ca medido + 0.8 × (4.0 − albúmina g/dL)', ref:'Payne et al., 1973' };
+    }
+  },
+  {
+    id:'bsa', area:'Medicina general', name:'Superficie corporal (Mosteller)',
+    kw:['superficie corporal','bsa','sc','mosteller','dosificacion','quimioterapia'],
+    inputs:[
+      {id:'peso', t:'number', label:'Peso', unit:'kg', min:1, max:400},
+      {id:'talla', t:'number', label:'Talla', unit:'cm', min:30, max:250}
+    ],
+    compute(v){
+      const bsa=Math.sqrt(v.peso*v.talla/3600);
+      return { display:bsa.toFixed(2), unit:'m²', level:'info', cat:'Superficie corporal',
+        detail:'Usada para dosificación (quimioterapia, algunos fármacos) e índices fisiológicos.',
+        formula:'SC (m²) = √( peso[kg] × talla[cm] / 3600 )', ref:'Mosteller, 1987' };
+    }
+  },
+  {
+    id:'pesoideal', area:'Medicina general', name:'Peso ideal (Devine)',
+    kw:['peso ideal','devine','ibw','peso corporal ideal','dosificacion'],
+    inputs:[
+      {id:'sexo', t:'seg', label:'Sexo', options:[{v:'H',label:'Hombre'},{v:'M',label:'Mujer'}]},
+      {id:'talla', t:'number', label:'Talla', unit:'cm', min:130, max:230}
+    ],
+    compute(v){
+      const base=v.sexo==='H'?50:45.5;
+      const pi=base+0.91*(v.talla-152.4);
+      return { display:pi.toFixed(1), unit:'kg', level:'info', cat:'Peso ideal estimado',
+        detail:'Referencia para dosificación de fármacos y ventilación. No sustituye la evaluación nutricional.',
+        formula:'PI = '+base+' + 0.91 × (talla[cm] − 152.4)', ref:'Devine, 1974' };
+    }
+  },
+  {
+    id:'aniongap', area:'Medicina general', name:'Anion Gap (brecha aniónica)',
+    kw:['anion gap','brecha anionica','acidosis','metabolica','ag'],
+    inputs:[
+      {id:'na', t:'number', label:'Sodio (Na⁺)', unit:'mEq/L', min:100, max:180},
+      {id:'cl', t:'number', label:'Cloro (Cl⁻)', unit:'mEq/L', min:60, max:140},
+      {id:'hco3', t:'number', label:'Bicarbonato (HCO₃⁻)', unit:'mEq/L', min:1, max:60}
+    ],
+    compute(v){
+      const ag=v.na-(v.cl+v.hco3);
+      let cat,level;
+      if(ag<8){cat='Disminuido';level='warn';}
+      else if(ag<=12){cat='Normal';level='ok';}
+      else {cat='Elevado';level='alert';}
+      return { display:Math.round(ag), unit:'mEq/L', level, cat,
+        detail:(ag>12?'AG elevado → considerar acidosis metabólica con anión gap aumentado (cetoacidosis, láctica, tóxicos, uremia).':'Rango normal ≈ 8–12 mEq/L. Corregir por albúmina si está baja.'),
+        formula:'Anion Gap = Na⁺ − (Cl⁻ + HCO₃⁻)', ref:'Estándar de laboratorio' };
+    }
   }
+
 ];
 const CALC_BY_ID = Object.fromEntries(CALCS.map(c=>[c.id,c]));
 
@@ -258,9 +447,9 @@ function renderInput(inp){
       <input type="number" inputmode="decimal" id="in_${inp.id}" step="0.01" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
       </div><div class="seg" style="margin-top:8px;">${units}</div></div>`;
   }
-  if(inp.t==='seg'){
-    const opts=inp.options.map(o=>`<button class="${vals[inp.id]===o.v?'on':''}" onclick="setSeg('${inp.id}','${o.v}')">${o.label}</button>`).join('');
-    return `<div class="calc-field"><label>${inp.label}</label><div class="seg">${opts}</div></div>`;
+  if(inp.t==='seg' || inp.t==='segv'){
+    const opts=inp.options.map(o=>`<button class="${vals[inp.id]===o.v?'on':''}" onclick="setSeg('${inp.id}',${typeof o.v==='number'?o.v:`'${o.v}'`})">${o.label}</button>`).join('');
+    return `<div class="calc-field"><label>${inp.label}</label><div class="seg${inp.t==='segv'?' segv':''}">${opts}</div></div>`;
   }
   if(inp.t==='toggle'){
     return `<div class="adjust-toggle ${vals[inp.id]?'on':''}" onclick="setTgl('${inp.id}')" style="margin-bottom:10px;">
@@ -285,7 +474,7 @@ function isValid(){
       if(inp.min!=null && x<inp.min) return false;
       if(inp.max!=null && x>inp.max) return false;
     }
-    if(inp.t==='seg'){ if(vals[inp.id]===undefined) return false; }
+    if(inp.t==='seg'||inp.t==='segv'){ if(vals[inp.id]===undefined) return false; }
     if(inp.t==='phq'){ if(vals[inp.id]===undefined) return false; }
   }
   return true;

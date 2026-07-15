@@ -1078,3 +1078,7 @@ footer{
 .calc-formula b{ color:var(--et-text); }
 .fav-star{ background:none; border:none; cursor:pointer; padding:6px; font-size:1.1rem; line-height:1; color:var(--et-line-2, #c3ccdd); }
 .fav-star.on{ color:var(--et-red); }
+
+/* Segmentado vertical (escalas con opciones largas: Glasgow, etc.) */
+.seg.segv{ flex-direction:column; }
+.seg.segv button{ width:100%; text-align:left; }
