@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Calculadoras Médicas en Español — EduTrauma</title>
+<meta name="theme-color" content="#00205C">
+<meta name="description" content="Calculadoras médicas en español: IMC, depuración de creatinina (Cockcroft-Gault), CHA₂DS₂-VASc, CURB-65, presión arterial media y PHQ-9. Gratis, sin conexión, para el punto de atención.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calculadoras">
+<link rel="stylesheet" href="design/edutrauma-ui.css">
+</head>
+<body>
+<div class="app">
+  <div class="brand-strip">
+    <a href="../" aria-label="Volver a EduTrauma Tools"><img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo"></a>
+  </div>
+  <div class="brand-ribbon">Herramientas Clínicas</div>
+
+  <header id="appHeader">
+    <h1 id="appTitle">Calculadoras médicas</h1>
+    <p id="appSubtitle">Puntaje y fórmulas de uso diario, en español. Toca una calculadora.</p>
+  </header>
+
+  <main id="main"></main>
+  <footer id="appFooter"></footer>
+</div>
+
+<script>
+/* ============ Analytics + cola offline ============ */
+const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+function etEnqueue(p){ try{ const q=JSON.parse(localStorage.getItem('et_queue')||'[]'); q.push(p); while(q.length>200)q.shift(); localStorage.setItem('et_queue',JSON.stringify(q)); }catch(e){} }
+function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>{if(!r.ok)throw 0;}); }
+function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
+window.addEventListener('online', etFlush); etFlush();
+function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'calc',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+
+/* ============ Definición de calculadoras ============
+   Cada compute(v) recibe los valores de entrada y devuelve:
+   { display, unit, level:'ok|warn|alert|info', cat, detail, alert?, formula, ref } */
+const AREAS = ['Medicina general','Urgencias','Cardiología','Salud mental'];
+const CALCS = [
+  {
+    id:'imc', area:'Medicina general', name:'IMC — Índice de Masa Corporal',
+    kw:['imc','masa corporal','bmi','peso','obesidad','sobrepeso'],
+    inputs:[
+      {id:'peso', t:'number', label:'Peso', unit:'kg', min:1, max:400},
+      {id:'talla', t:'number', label:'Talla', unit:'cm', min:30, max:250}
+    ],
+    compute(v){
+      const m=v.talla/100, imc=v.peso/(m*m);
+      let cat,level;
+      if(imc<18.5){cat='Bajo peso';level='warn';}
+      else if(imc<25){cat='Peso normal';level='ok';}
+      else if(imc<30){cat='Sobrepeso';level='warn';}
+      else if(imc<35){cat='Obesidad grado I';level='alert';}
+      else if(imc<40){cat='Obesidad grado II';level='alert';}
+      else {cat='Obesidad grado III';level='alert';}
+      return { display:imc.toFixed(1), unit:'kg/m²', level, cat,
+        detail:'Clasificación OMS del estado nutricional en adultos.',
+        formula:'IMC = peso (kg) / talla (m)²', ref:'Organización Mundial de la Salud (OMS)' };
+    }
+  },
+  {
+    id:'pam', area:'Urgencias', name:'Presión Arterial Media (PAM)',
+    kw:['pam','presion arterial media','map','perfusion','presion media'],
+    inputs:[
+      {id:'pas', t:'number', label:'Presión sistólica (PAS)', unit:'mmHg', min:40, max:300},
+      {id:'pad', t:'number', label:'Presión diastólica (PAD)', unit:'mmHg', min:20, max:200}
+    ],
+    compute(v){
+      if(v.pad>v.pas) return { error:'La diastólica no puede ser mayor que la sistólica.' };
+      const pam=(v.pas+2*v.pad)/3;
+      let cat,level;
+      if(pam<65){cat='Perfusión en riesgo';level='alert';}
+      else if(pam<=105){cat='Rango normal';level='ok';}
+      else {cat='Elevada';level='warn';}
+      return { display:Math.round(pam), unit:'mmHg', level, cat,
+        detail: pam<65 ? 'Objetivo habitual ≥65 mmHg para perfusión de órganos (shock/sepsis).' : 'Presión media del ciclo cardíaco; guía la perfusión tisular.',
+        formula:'PAM = (PAS + 2 × PAD) / 3', ref:'Fisiología cardiovascular estándar' };
+    }
+  },
+  {
+    id:'creatinina', area:'Medicina general', name:'Depuración de creatinina — Cockcroft-Gault',
+    kw:['creatinina','depuracion','aclaramiento','cockcroft','gault','funcion renal','falla renal','clearance'],
+    inputs:[
+      {id:'edad', t:'number', label:'Edad', unit:'años', min:1, max:120},
+      {id:'sexo', t:'seg', label:'Sexo', options:[{v:'H',label:'Hombre'},{v:'M',label:'Mujer'}]},
+      {id:'peso', t:'number', label:'Peso', unit:'kg', min:1, max:400},
+      {id:'creat', t:'numberunit', label:'Creatinina sérica', units:[{v:'mgdl',label:'mg/dL'},{v:'umol',label:'µmol/L'}]}
+    ],
+    compute(v){
+      let cr = v.creat_unit==='umol' ? v.creat/88.4 : v.creat;
+      if(cr<=0) return { error:'La creatinina debe ser mayor que 0.' };
+      const crcl = ((140-v.edad)*v.peso*(v.sexo==='M'?0.85:1))/(72*cr);
+      let cat,level;
+      if(crcl>=90){cat='Normal';level='ok';}
+      else if(crcl>=60){cat='Descenso leve';level='ok';}
+      else if(crcl>=30){cat='Descenso moderado';level='warn';}
+      else if(crcl>=15){cat='Descenso grave';level='alert';}
+      else {cat='Falla renal';level='alert';}
+      return { display:Math.round(crcl), unit:'mL/min', level, cat,
+        detail:'Estima el aclaramiento de creatinina. Usado sobre todo para ajustar dosis de medicamentos.',
+        formula:'CrCl = [(140 − edad) × peso × (0.85 si mujer)] / (72 × creatinina mg/dL)', ref:'Cockcroft & Gault, 1976' };
+    }
+  },
+  {
+    id:'chadsvasc', area:'Cardiología', name:'CHA₂DS₂-VASc — Riesgo de ACV en fibrilación auricular',
+    kw:['chads','chadsvasc','cha2ds2','fibrilacion auricular','acv','anticoagulacion','ictus','fa'],
+    inputs:[
+      {id:'sexo', t:'seg', label:'Sexo', options:[{v:'H',label:'Hombre'},{v:'M',label:'Mujer'}]},
+      {id:'edad', t:'seg', label:'Edad', options:[{v:'a',label:'<65'},{v:'b',label:'65–74'},{v:'c',label:'≥75'}]},
+      {id:'icc', t:'toggle', label:'Insuficiencia cardíaca / disfunción del VI'},
+      {id:'hta', t:'toggle', label:'Hipertensión arterial'},
+      {id:'dm', t:'toggle', label:'Diabetes mellitus'},
+      {id:'acv', t:'toggle', label:'ACV / AIT / tromboembolia previa'},
+      {id:'vasc', t:'toggle', label:'Enfermedad vascular (IAM, arteriopatía periférica, placa aórtica)'}
+    ],
+    compute(v){
+      const p = (v.sexo==='M'?1:0) + (v.edad==='b'?1:v.edad==='c'?2:0)
+        + (v.icc?1:0) + (v.hta?1:0) + (v.dm?1:0) + (v.acv?2:0) + (v.vasc?1:0);
+      const mujer = v.sexo==='M';
+      let cat, level, rec;
+      if(p===0){ cat='Riesgo bajo'; level='ok'; rec='No se recomienda anticoagulación.'; }
+      else if((!mujer && p===1) || (mujer && p===1)){ cat='Riesgo bajo-moderado'; level='warn'; rec='Considerar anticoagulación según el caso.'; }
+      else if(mujer && p===2){ cat='Riesgo bajo-moderado'; level='warn'; rec='Considerar anticoagulación (en mujeres, 1 punto es solo por el sexo).'; }
+      else { cat='Riesgo alto'; level='alert'; rec='Se recomienda anticoagulación oral.'; }
+      return { display:p, unit:'/9 puntos', level, cat,
+        detail:rec+' La decisión final integra el riesgo de sangrado (p. ej. HAS-BLED) y el juicio clínico.',
+        formula:'C1 · H1 · A₂(≥75)=2 · D1 · S₂(ACV)=2 · V1 · A(65-74)=1 · Sc(mujer)=1', ref:'Lip et al., 2010' };
+    }
+  },
+  {
+    id:'curb65', area:'Urgencias', name:'CURB-65 — Gravedad de neumonía',
+    kw:['curb','curb65','neumonia','gravedad','hospitalizar','curb-65'],
+    inputs:[
+      {id:'c', t:'toggle', label:'Confusión de nueva aparición'},
+      {id:'u', t:'toggle', label:'Urea >42 mg/dL (BUN >19 mg/dL · urea >7 mmol/L)'},
+      {id:'r', t:'toggle', label:'Frecuencia respiratoria ≥30/min'},
+      {id:'b', t:'toggle', label:'Presión baja: PAS <90 o PAD ≤60 mmHg'},
+      {id:'e', t:'toggle', label:'Edad ≥65 años'}
+    ],
+    compute(v){
+      const p=(v.c?1:0)+(v.u?1:0)+(v.r?1:0)+(v.b?1:0)+(v.e?1:0);
+      let cat,level,rec;
+      if(p<=1){cat='Riesgo bajo';level='ok';rec='Mortalidad baja. Habitualmente manejo ambulatorio.';}
+      else if(p===2){cat='Riesgo intermedio';level='warn';rec='Considerar hospitalización u observación en urgencias.';}
+      else {cat='Riesgo alto';level='alert';rec='Hospitalización; con 4–5 puntos, valorar UCI.';}
+      return { display:p, unit:'/5 puntos', level, cat, detail:rec,
+        formula:'1 punto por: Confusión · Urea alta · FR ≥30 · PA baja · edad ≥65', ref:'Lim et al., Thorax 2003' };
+    }
+  },
+  {
+    id:'phq9', area:'Salud mental', name:'PHQ-9 — Tamizaje de depresión',
+    kw:['phq','phq9','depresion','tamizaje','animo','salud mental','phq-9'],
+    phq:true,
+    inputs:[
+      {id:'q1', t:'phq', label:'1. Poco interés o placer en hacer las cosas'},
+      {id:'q2', t:'phq', label:'2. Sentirse decaído(a), deprimido(a) o sin esperanza'},
+      {id:'q3', t:'phq', label:'3. Problemas para dormir, o dormir demasiado'},
+      {id:'q4', t:'phq', label:'4. Sentirse cansado(a) o con poca energía'},
+      {id:'q5', t:'phq', label:'5. Poco apetito o comer en exceso'},
+      {id:'q6', t:'phq', label:'6. Sentirse mal consigo mismo(a), como un fracaso o que ha defraudado a su familia'},
+      {id:'q7', t:'phq', label:'7. Dificultad para concentrarse (leer, ver televisión)'},
+      {id:'q8', t:'phq', label:'8. Moverse o hablar tan lento que otros lo notan; o lo contrario, muy inquieto(a)'},
+      {id:'q9', t:'phq', label:'9. Pensamientos de que estaría mejor muerto(a) o de hacerse daño'}
+    ],
+    compute(v){
+      const p=[1,2,3,4,5,6,7,8,9].reduce((s,i)=>s+(v['q'+i]||0),0);
+      let cat,level;
+      if(p<=4){cat='Mínima';level='ok';}
+      else if(p<=9){cat='Leve';level='warn';}
+      else if(p<=14){cat='Moderada';level='warn';}
+      else if(p<=19){cat='Moderadamente grave';level='alert';}
+      else {cat='Grave';level='alert';}
+      const r = { display:p, unit:'/27 puntos', level, cat,
+        detail:'Severidad de síntomas depresivos en las últimas 2 semanas.',
+        formula:'Suma de 9 ítems (0–3 cada uno)', ref:'Kroenke, Spitzer & Williams, 2001 · versión validada en español' };
+      if((v.q9||0)>=1){ r.alert='⚠ Respuesta positiva en el ítem 9 (ideación de muerte/autolesión). Evaluar riesgo de suicidio de inmediato.'; }
+      return r;
+    }
+  }
+];
+const CALC_BY_ID = Object.fromEntries(CALCS.map(c=>[c.id,c]));
+
+/* ============ Estado y favoritos/recientes ============ */
+let cur=null, vals={};
+function recents(){ try{ return JSON.parse(localStorage.getItem('calc_recent')||'[]'); }catch(e){ return []; } }
+function pushRecent(id){ let r=recents().filter(x=>x!==id); r.unshift(id); r=r.slice(0,4); localStorage.setItem('calc_recent', JSON.stringify(r)); }
+
+function setHeader(show){ document.getElementById('appHeader').style.display=show?'':'none'; }
+
+/* ---------- HOME ---------- */
+function renderHome(filter){
+  setHeader(true); cur=null; vals={};
+  filter=(filter||'').trim().toLowerCase();
+  const match = c => !filter || c.name.toLowerCase().includes(filter) || c.kw.some(k=>k.includes(filter)) || c.area.toLowerCase().includes(filter);
+  let html = `<input class="aast-search" id="calcSearch" placeholder="Buscar calculadora…" value="${filter}" oninput="renderHome(this.value); focusSearch();">`;
+
+  // Recientes (solo sin filtro)
+  const rec = recents().map(id=>CALC_BY_ID[id]).filter(Boolean);
+  if(!filter && rec.length){
+    html += `<div class="region-block"><div class="region-title">★ Recientes</div><div class="organ-grid">` +
+      rec.map(c=>`<button class="organ-btn" onclick="openCalc('${c.id}')">${shortName(c)}</button>`).join('') + `</div></div>`;
+  }
+  // Por área
+  let any=false;
+  AREAS.forEach(area=>{
+    const list=CALCS.filter(c=>c.area===area && match(c));
+    if(!list.length) return; any=true;
+    html += `<div class="region-block"><div class="region-title">${area}</div><div class="organ-grid">` +
+      list.map(c=>`<button class="organ-btn" onclick="openCalc('${c.id}')">${shortName(c)}</button>`).join('') + `</div></div>`;
+  });
+  if(!any) html += `<p style="text-align:center;color:var(--et-muted);padding:30px 0;">Sin resultados</p>`;
+  html += `<a class="hub-link" href="../">Ver todas las herramientas ›</a>`;
+  document.getElementById('main').innerHTML = html;
+}
+function shortName(c){ return c.name.split('—')[0].trim(); }
+function focusSearch(){ const el=document.getElementById('calcSearch'); if(el){ const v=el.value; el.focus(); el.setSelectionRange(v.length,v.length);} }
+
+/* ---------- CALCULADORA ---------- */
+function openCalc(id){
+  cur=CALC_BY_ID[id]; vals={};
+  cur.inputs.forEach(inp=>{ if(inp.t==='toggle') vals[inp.id]=false; if(inp.t==='numberunit') vals[inp.id+'_unit']=inp.units[0].v; });
+  sendEvent('calc_open',{ calc:id });
+  renderCalc();
+}
+function renderCalc(){
+  setHeader(false); window.scrollTo(0,0);
+  const c=cur;
+  let fields='';
+  if(c.phq) fields += `<div class="phq-legend"><b>Durante las últimas 2 semanas, ¿con qué frecuencia?</b><br>0 = Para nada · 1 = Varios días · 2 = Más de la mitad de los días · 3 = Casi todos los días</div>`;
+  c.inputs.forEach(inp=>{ fields += renderInput(inp); });
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderHome('')">‹ Todas las calculadoras</button></div>
+    <div class="category-badge"><span>${c.area}</span></div>
+    <div class="question-text" style="margin-bottom:16px;">${c.name}</div>
+    ${fields}
+    <button class="calc-btn" id="calcGo" onclick="doCalc()">Calcular ›</button>
+  `;
+  updateValidity();
+}
+function renderInput(inp){
+  if(inp.t==='number'){
+    return `<div class="calc-field"><label>${inp.label}</label><div class="row">
+      <input type="number" inputmode="decimal" id="in_${inp.id}" min="${inp.min}" max="${inp.max}" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
+      <div class="unit">${inp.unit}</div></div></div>`;
+  }
+  if(inp.t==='numberunit'){
+    const units=inp.units.map(u=>`<button class="${vals[inp.id+'_unit']===u.v?'on':''}" onclick="setUnit('${inp.id}','${u.v}')">${u.label}</button>`).join('');
+    return `<div class="calc-field"><label>${inp.label}</label><div class="row">
+      <input type="number" inputmode="decimal" id="in_${inp.id}" step="0.01" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
+      </div><div class="seg" style="margin-top:8px;">${units}</div></div>`;
+  }
+  if(inp.t==='seg'){
+    const opts=inp.options.map(o=>`<button class="${vals[inp.id]===o.v?'on':''}" onclick="setSeg('${inp.id}','${o.v}')">${o.label}</button>`).join('');
+    return `<div class="calc-field"><label>${inp.label}</label><div class="seg">${opts}</div></div>`;
+  }
+  if(inp.t==='toggle'){
+    return `<div class="adjust-toggle ${vals[inp.id]?'on':''}" onclick="setTgl('${inp.id}')" style="margin-bottom:10px;">
+      <div class="at-label">${inp.label}</div><div class="at-switch"></div></div>`;
+  }
+  if(inp.t==='phq'){
+    const opts=[0,1,2,3].map(n=>`<button class="${vals[inp.id]===n?'on':''}" onclick="setSeg('${inp.id}',${n})">${n}</button>`).join('');
+    return `<div class="calc-field"><label>${inp.label}</label><div class="seg four">${opts}</div></div>`;
+  }
+  return '';
+}
+function setNum(id,val){ vals[id]= val===''?undefined:parseFloat(val); updateValidity(); }
+function setUnit(id,u){ vals[id+'_unit']=u; renderCalc(); }
+function setSeg(id,v){ vals[id]=v; renderCalc(); }
+function setTgl(id){ vals[id]=!vals[id]; renderCalc(); }
+
+function isValid(){
+  for(const inp of cur.inputs){
+    if(inp.t==='number' || inp.t==='numberunit'){
+      const x=vals[inp.id];
+      if(x===undefined || isNaN(x)) return false;
+      if(inp.min!=null && x<inp.min) return false;
+      if(inp.max!=null && x>inp.max) return false;
+    }
+    if(inp.t==='seg'){ if(vals[inp.id]===undefined) return false; }
+    if(inp.t==='phq'){ if(vals[inp.id]===undefined) return false; }
+  }
+  return true;
+}
+function updateValidity(){ const b=document.getElementById('calcGo'); if(b) b.disabled=!isValid(); }
+
+function doCalc(){
+  if(!isValid()) return;
+  const r = cur.compute(vals);
+  pushRecent(cur.id);
+  if(r.error){ alert(r.error); return; }
+  sendEvent('calc_result',{ calc:cur.id, level:r.level });
+  renderResult(r);
+}
+function renderResult(r){
+  window.scrollTo(0,0);
+  const iconOK='<svg class="result-icon" viewBox="0 0 24 24" fill="none" stroke="#1F7A5C" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>';
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderCalc()">‹ Corregir datos</button></div>
+    <div class="result-card bjorck" style="justify-content:center;">
+      <div class="result-eyebrow">${cur.name.split('—')[0].trim()}</div>
+      <div class="calc-value">${r.display}<span class="u">${r.unit}</span></div>
+      <div class="calc-cat lvl-${r.level}">${r.cat}</div>
+      <div class="result-detail" style="margin-top:14px;">${r.detail}</div>
+      ${r.alert?`<div class="calc-alert">${r.alert}</div>`:''}
+      <div class="calc-formula"><b>Fórmula:</b> ${r.formula}<br><b>Referencia:</b> ${r.ref}</div>
+    </div>
+    <button class="restart-btn" onclick="renderHome('')">Otra calculadora</button>
+  `;
+}
+
+/* ---------- Gate de especialidad (compartido) ---------- */
+function needSpec(){ try{ return !JSON.parse(localStorage.getItem('et_profile')||'{}').specialty; }catch(e){ return true; } }
+const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Medicina interna","Medicina general","Enfermería","Estudiante de medicina","Otra"];
+function renderSpecGate(){
+  setHeader(false);
+  const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${s}</button>`).join('');
+  document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+    <p class="spec-sub">Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.</p>
+    <div class="spec-grid">${chips}</div></div>`;
+}
+function pickSpec(s){
+  if(s===SPECS[SPECS.length-1]){
+    document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+      <input class="spec-input" id="so" maxlength="60" placeholder="Escríbela aquí… (ej: Veterinaria)" oninput="document.getElementById('sg').disabled=!this.value.trim()">
+      <button class="spec-continue" id="sg" disabled onclick="saveSpec(document.getElementById('so').value.trim())">Continuar ›</button></div>`;
+    setTimeout(()=>document.getElementById('so').focus(),100); return;
+  }
+  saveSpec(s);
+}
+function saveSpec(s){ if(!s)return; let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} p.specialty=s.slice(0,60); localStorage.setItem('et_profile',JSON.stringify(p)); sendEvent('profile_saved',{specialty:p.specialty}); renderHome(''); }
+
+/* ---------- Instalación PWA ---------- */
+let deferredPrompt=null;
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document);
+const IS_STANDALONE=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+function ensureBanner(){ if(document.getElementById('installBanner'))return; const b=document.createElement('div'); b.className='install-banner'; b.id='installBanner'; b.innerHTML='<span id="installText"></span><button id="installBtn"></button><button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>'; document.querySelector('.brand-ribbon').after(b); }
+function refreshInstallBanner(){ ensureBanner(); const banner=document.getElementById('installBanner'); if(IS_STANDALONE||localStorage.getItem('installDismissed')==='1'){ banner.classList.remove('show'); return; } const btn=document.getElementById('installBtn'); if(IS_IOS){ document.getElementById('installText').innerHTML='Guárdala en tu pantalla de inicio — funciona sin conexión.'; btn.style.display=''; btn.textContent='¿Cómo?'; btn.onclick=showIOSGuide; banner.classList.add('show'); } else if(deferredPrompt){ document.getElementById('installText').innerHTML='Instala esta app en tu pantalla de inicio, incluso sin conexión.'; btn.style.display=''; btn.textContent='Instalar'; btn.onclick=promptInstall; banner.classList.add('show'); } else { banner.classList.remove('show'); } }
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; refreshInstallBanner(); });
+window.addEventListener('appinstalled',()=>{ sendEvent('pwa_installed'); const b=document.getElementById('installBanner'); if(b)b.classList.remove('show'); });
+function promptInstall(){ if(!deferredPrompt)return; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; refreshInstallBanner(); }); }
+function dismissInstall(){ try{localStorage.setItem('installDismissed','1');}catch(e){} document.getElementById('installBanner').classList.remove('show'); }
+function showIOSGuide(){ let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} const steps=['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>']; ov.innerHTML=`<div class="sheet"><h2>Instalar en tu iPhone</h2>${steps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">Entendido</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
+
+/* ---------- Footer + init ---------- */
+document.getElementById('appFooter').innerHTML='Herramienta de referencia clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>';
+if(needSpec()){ renderSpecGate(); } else { renderHome(''); }
+sendEvent('app_open');
+refreshInstallBanner();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  const hadController=!!navigator.serviceWorker.controller; let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(refreshing||!hadController)return; refreshing=true; location.reload(); });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').then(reg=>{ reg.update(); setInterval(()=>reg.update(),60000); }).catch(()=>{}); });
+}
+</script>
+</body>
+</html>

@@ -141,7 +141,10 @@ const I18N = {
         desc:"Algoritmo de 6 preguntas Sí/No + grado orientativo de Björck. Para el momento de la decisión en pabellón." },
       { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"Curso DQT",
         title:"Escalas AAST de lesiones",
-        desc:"Gradación de lesiones de órganos (Moore et al.): 32 órganos con grado, ICD-9 y AIS. Referencia de bolsillo en pabellón." }
+        desc:"Gradación de lesiones de órganos (Moore et al.): 32 órganos con grado, ICD-9 y AIS. Referencia de bolsillo en pabellón." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Calculadoras médicas",
+        desc:"IMC, depuración de creatinina, CHA₂DS₂-VASc, CURB-65, PAM y PHQ-9. Puntajes y fórmulas de uso diario, en español." }
     ]
   },
   en: {
@@ -179,7 +182,10 @@ const I18N = {
         desc:"6 yes/no questions + orientative Björck grade. For the moment of decision in the operating room." },
       { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"DQT course",
         title:"AAST injury scales",
-        desc:"Organ injury scaling (Moore et al.): 32 organs with grade, ICD-9 and AIS. Pocket reference in the OR." }
+        desc:"Organ injury scaling (Moore et al.): 32 organs with grade, ICD-9 and AIS. Pocket reference in the OR." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Medical calculators",
+        desc:"BMI, creatinine clearance, CHA₂DS₂-VASc, CURB-65, MAP and PHQ-9. Everyday scores and formulas." }
     ]
   },
   pt: {
@@ -217,7 +223,10 @@ const I18N = {
         desc:"Algoritmo de 6 perguntas Sim/Não + grau orientativo de Björck. Para o momento da decisão no centro cirúrgico." },
       { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"Curso DQT",
         title:"Escalas AAST de lesões",
-        desc:"Graduação de lesões de órgãos (Moore et al.): 32 órgãos com grau, ICD-9 e AIS. Referência de bolso no centro cirúrgico." }
+        desc:"Graduação de lesões de órgãos (Moore et al.): 32 órgãos com grau, ICD-9 e AIS. Referência de bolso no centro cirúrgico." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Calculadoras médicas",
+        desc:"IMC, depuração de creatinina, CHA₂DS₂-VASc, CURB-65, PAM e PHQ-9. Escores e fórmulas do dia a dia." }
     ]
   }
 };
@@ -273,7 +282,7 @@ function toolGridHTML(){
   const cards = t.tools.map(tool => `
     <a class="tool-card" href="${tool.href}" onclick="sendEvent('tool_open', {tool_id:'${tool.id}'})">
       <div class="tool-card-top">
-        <span class="tool-chip"><img src="${tool.chip}" alt="${tool.chipAlt}"></span>
+        ${tool.chip ? `<span class="tool-chip"><img src="${tool.chip}" alt="${tool.chipAlt}"></span>` : `<span class="tool-chip" style="border:none;background:none;padding:0;font-size:1.4rem;">🧮</span>`}
         <span class="tool-status">${t.available}</span>
       </div>
       <div class="tool-title">${tool.title}</div>
