@@ -145,18 +145,34 @@ const KEY_STORE = 'et_panel_key';
 function stars(avg){ const full=Math.round(avg); let s=''; for(let i=1;i<=5;i++) s+= i<=full?'★':'☆'; return s; }
 function esc(x){ return String(x==null?'':x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-function sparkline(data){
-  const w=100, h=34, pad=3;
+function chart(data){
+  const W=720,H=200,padL=32,padR=46,padT=24,padB=30;
+  const pw=W-padL-padR, ph=H-padT-padB;
   const vals=data.map(d=>d.users);
-  const max=Math.max(1,...vals);
-  const pts=data.map((d,i)=>{ const x=pad+i*((w-2*pad)/(data.length-1)); const y=h-pad-(d.users/max)*(h-2*pad); return [x,y]; });
+  const maxV=Math.max(...vals,1);
+  let step, top;
+  if(maxV<=5){ step=1; top=maxV; }
+  else { const rough=maxV/4, mag=Math.pow(10,Math.floor(Math.log10(rough))), u=rough/mag; step=(u<=1?1:u<=2?2:u<=5?5:10)*mag; top=Math.ceil(maxV/step)*step; }
+  const X=i=>padL+(data.length<2?0:i*(pw/(data.length-1)));
+  const Y=v=>padT+ph-(v/top)*ph;
+  const tk=[]; for(let v=0; v<=top+1e-6; v+=step) tk.push(Math.round(v));
+  const grid=tk.map(t=>`<line x1="${padL}" y1="${Y(t).toFixed(1)}" x2="${W-padR}" y2="${Y(t).toFixed(1)}" stroke="var(--line)" stroke-width="1" ${t===0?'':'stroke-dasharray="3 4"'}/><text x="${padL-8}" y="${(Y(t)+4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--muted)">${t}</text>`).join('');
+  const pts=data.map((d,i)=>[X(i),Y(d.users)]);
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-  const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${h-pad} L${pts[0][0].toFixed(1)} ${h-pad} Z`;
-  const last=pts[pts.length-1];
-  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:80px;display:block;">
+  const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${padT+ph} L${pts[0][0].toFixed(1)} ${padT+ph} Z`;
+  const dots=data.map((d,i)=>`<circle cx="${pts[i][0].toFixed(1)}" cy="${pts[i][1].toFixed(1)}" r="3" fill="var(--navy)"><title>${d.day}: ${d.users} ${d.users===1?'usuario':'usuarios'}</title></circle>`).join('');
+  const last=data.length-1, peakI=vals.indexOf(maxV), tv=data[last].users;
+  let labels='';
+  if(maxV>0 && peakI!==last) labels+=`<text x="${X(peakI).toFixed(1)}" y="${(Y(maxV)-9).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">${maxV}</text>`;
+  labels+=`<text x="${X(last).toFixed(1)}" y="${(Y(tv)-11).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--navy)">${tv}</text>`;
+  const todayDot=`<circle cx="${X(last).toFixed(1)}" cy="${Y(tv).toFixed(1)}" r="4.5" fill="var(--navy)" stroke="var(--card)" stroke-width="2"/>`;
+  const midI=Math.floor(last/2);
+  const xlab=[[0,data[0].day.slice(5),'start'],[midI,data[midI].day.slice(5),'middle'],[last,'hoy','end']].map(([i,t,a])=>`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="${a}" font-size="12" fill="var(--muted)">${t}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" font-family="inherit">
+    ${grid}
     <path d="${area}" fill="var(--navy)" opacity="0.10"/>
-    <path d="${line}" fill="none" stroke="var(--navy)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.6" fill="var(--navy)"/>
+    <path d="${line}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}${todayDot}${labels}${xlab}
   </svg>`;
 }
 
@@ -211,9 +227,7 @@ function render(d){
       <div class="panel">
         <h3>Actividad — usuarios por día</h3>
         <p class="hint">Últimos 14 días. Lo que quieres ver: la línea subiendo.</p>
-        <div class="spark-wrap">${sparkline(d.spark)}
-          <div class="spark-cap"><span>${esc(d.spark[0].day.slice(5))}</span><span>hoy</span></div>
-        </div>
+        <div class="spark-wrap">${chart(d.spark)}</div>
       </div>
       <div class="panel">
         <h3>¿Les sirve? — nota 1 a 5</h3>
