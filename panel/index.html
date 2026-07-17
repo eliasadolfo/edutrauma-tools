@@ -30,7 +30,7 @@
   .refresh:active{ transform:scale(.97); }
 
   /* Verdict banner */
-  .verdict{ display:flex; align-items:center; gap:16px; border-radius:var(--r); padding:20px 24px; margin:16px 0 8px; border:1px solid; }
+  .verdict{ display:flex; align-items:flex-start; gap:16px; border-radius:var(--r); padding:20px 24px; margin:16px 0 8px; border:1px solid; }
   .verdict.go{ background:var(--go-bg); border-color:color-mix(in srgb,var(--go) 35%,transparent); }
   .verdict.weak, .verdict.wait{ background:var(--warn-bg); border-color:color-mix(in srgb,var(--warn) 35%,transparent); }
   .verdict.stop{ background:var(--stop-bg); border-color:color-mix(in srgb,var(--stop) 35%,transparent); }
@@ -39,6 +39,9 @@
   .verdict .lbl{ font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
   .verdict .txt{ font-size:1.15rem; font-weight:800; letter-spacing:-.01em; }
   .verdict.go .txt{ color:var(--go); } .verdict.weak .txt,.verdict.wait .txt{ color:var(--warn); } .verdict.stop .txt{ color:var(--stop); }
+  .verdict .v-why{ font-size:.92rem; color:var(--ink); margin-top:8px; line-height:1.55; max-width:76ch; opacity:.82; }
+  .verdict .v-why b{ font-weight:800; opacity:1; }
+  .verdict .dot{ margin-top:2px; }
 
   h2{ font-size:.74rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:34px 0 12px; }
 
@@ -210,10 +213,24 @@ function render(d){
   const petGroup = (arr, vacio) => arr.length ? arr.map(petCard).join('') : `<div class="pet-empty">${vacio}</div>`;
 
   document.getElementById('app').innerHTML = `
-    <div class="verdict ${d.verdict.level}">
-      <div class="dot">${d.verdict.level==='go'?'🟢':d.verdict.level==='stop'?'🔴':'🟡'}</div>
-      <div><div class="lbl">El veredicto</div><div class="txt">${esc(d.verdict.text)}</div></div>
-    </div>
+    ${(()=>{
+      const V={
+        wait:{word:'Aún es pronto para saber', why:`Solo hay <b>${d.users} usuarios</b>: muy pocos para concluir. Ahora el trabajo es <b>distribuir y traer gente</b>, todavía no cambiar la app.`},
+        go:{word:'Hay tracción — vale la pena invertir más', why:`<b>${d.retention}%</b> vuelve otro día y <b>${d.activation}%</b> llega a un resultado — ambos sobre la meta. La gente <b>la usa y regresa</b>: suma más herramientas y empuja la difusión.`},
+        weak:{word:'Tracción débil — mejora antes de escalar', why:`<b>${d.retention}%</b> de la gente vuelve otro día (meta 25%) y <b>${d.activation}%</b> llega a un resultado (meta 50%). Hay interés, pero <b>pocos regresan</b>. Antes de gastar en difusión masiva, atiende lo que piden más abajo.`},
+        stop:{word:'Sin tracción — hay que replantear', why:`Solo <b>${d.retention}%</b> vuelve otro día. La gente entra una vez y <b>no regresa</b>: el formato no está enganchando; conviene replantear antes de invertir.`}
+      };
+      const v=V[d.verdict.level]||V.weak;
+      const ic=d.verdict.level==='go'?'🟢':d.verdict.level==='stop'?'🔴':'🟡';
+      return `<div class="verdict ${d.verdict.level}">
+        <div class="dot">${ic}</div>
+        <div>
+          <div class="lbl">El veredicto — ¿vale la pena seguir invirtiendo en estas herramientas?</div>
+          <div class="txt">${v.word}</div>
+          <div class="v-why">${v.why}</div>
+        </div>
+      </div>`;
+    })()}
 
     <h2>¿Cuánta gente la usa?</h2>
     <div class="kpis">
