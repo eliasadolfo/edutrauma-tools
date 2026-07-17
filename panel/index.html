@@ -106,6 +106,18 @@
   .loading, .errbox{ text-align:center; padding:80px 20px; color:var(--muted); }
   .errbox b{ color:var(--stop); }
 
+  /* login */
+  .login{ display:flex; justify-content:center; padding:70px 20px; }
+  .login-card{ background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:36px 32px; max-width:360px; width:100%; text-align:center; }
+  .login-ico{ font-size:2rem; }
+  .login-h{ font-size:1.15rem; font-weight:800; margin:12px 0 4px; color:var(--ink); }
+  .login-p{ font-size:.88rem; color:var(--muted); margin:0 0 20px; }
+  .login-input{ width:100%; padding:12px 14px; font-size:1rem; border:1px solid var(--line); border-radius:var(--r-sm); background:var(--wash); color:var(--ink); font-family:inherit; margin-bottom:12px; }
+  .login-input:focus{ outline:2px solid var(--navy); border-color:transparent; }
+  .login-btn{ width:100%; padding:12px; font-size:.95rem; font-weight:800; color:#fff; background:var(--navy); border:none; border-radius:var(--r-sm); cursor:pointer; font-family:inherit; }
+  .login-btn:active{ transform:scale(.98); }
+  .login-err{ margin-top:14px; font-size:.85rem; color:var(--stop); font-weight:600; }
+
   @media (max-width:820px){ .kpis{ grid-template-columns:repeat(2,1fr); } .grid2{ grid-template-columns:1fr; } }
   @media (max-width:460px){ .bar-row{ grid-template-columns:96px 1fr 40px; } }
 </style>
@@ -117,14 +129,18 @@
       <h1>EduTrauma Tools · Panel</h1>
       <div class="sub" id="sub">Cargando…</div>
     </div>
-    <button class="refresh" onclick="load()">↻ Actualizar</button>
+    <div style="display:flex;gap:8px;">
+      <button class="refresh" id="btnSalir" onclick="logout()" style="display:none">Salir</button>
+      <button class="refresh" onclick="load()">↻ Actualizar</button>
+    </div>
   </header>
   <div id="app"><div class="loading">Cargando datos…</div></div>
   <div class="foot">Panel interno · datos anónimos y agregados · no compartir el enlace.</div>
 </div>
 
 <script>
-const URL_DATA = 'https://devn8n.tuescuelademarcas.cl/webhook/et-panel-data?k=et-panel-9k3x';
+const URL_BASE = 'https://devn8n.tuescuelademarcas.cl/webhook/et-panel-data';
+const KEY_STORE = 'et_panel_key';
 
 function stars(avg){ const full=Math.round(avg); let s=''; for(let i=1;i<=5;i++) s+= i<=full?'★':'☆'; return s; }
 function esc(x){ return String(x==null?'':x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -266,11 +282,41 @@ function render(d){
   document.getElementById('sub').textContent = `${d.total_events.toLocaleString('es')} eventos · actualizado ${t.toLocaleString('es-CL',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`;
 }
 
+function showLogin(msg){
+  document.getElementById('btnSalir').style.display='none';
+  document.getElementById('sub').textContent = 'Acceso restringido — solo el equipo';
+  document.getElementById('app').innerHTML = `
+    <div class="login"><div class="login-card">
+      <div class="login-ico">🔒</div>
+      <div class="login-h">Panel del equipo EduTrauma</div>
+      <p class="login-p">Ingresa la clave de acceso para ver los datos.</p>
+      <input id="pw" type="password" class="login-input" placeholder="Clave" autocomplete="current-password">
+      <button class="login-btn" onclick="doLogin()">Entrar</button>
+      ${msg?`<div class="login-err">${msg}</div>`:''}
+    </div></div>`;
+  const pw=document.getElementById('pw'); pw.focus();
+  pw.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+}
+function doLogin(){
+  const v=document.getElementById('pw').value.trim();
+  if(!v) return;
+  localStorage.setItem(KEY_STORE, v);
+  load();
+}
+function logout(){ localStorage.removeItem(KEY_STORE); showLogin(''); }
+
 function load(){
+  const key = localStorage.getItem(KEY_STORE);
+  if(!key){ showLogin(''); return; }
   document.getElementById('app').innerHTML = '<div class="loading">Cargando datos…</div>';
-  fetch(URL_DATA, {cache:'no-store'})
+  fetch(URL_BASE+'?k='+encodeURIComponent(key), {cache:'no-store'})
     .then(r=>r.json())
-    .then(d=>{ if(d.error) throw new Error(d.error); render(d); })
+    .then(d=>{
+      if(d.error==='no-auth'){ localStorage.removeItem(KEY_STORE); showLogin('Clave incorrecta. Intenta de nuevo.'); return; }
+      if(d.error) throw new Error(d.error);
+      document.getElementById('btnSalir').style.display='';
+      render(d);
+    })
     .catch(e=>{ document.getElementById('app').innerHTML = `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>Revisa que el servidor n8n esté activo.<br><small>${esc(e.message)}</small></div>`; });
 }
 load();
