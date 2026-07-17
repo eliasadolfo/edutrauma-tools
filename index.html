@@ -134,6 +134,9 @@ const I18N = {
     profileDone: "✓ Perfil guardado — ¡gracias!",
     edit: "editar",
     specialties: ["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"],
+    sourceTitle: "¿Cómo nos conociste?",
+    sourceDesc: "Un toque, opcional — nos ayuda a saber por dónde llegar a más colegas.",
+    sources: [{id:"correo",label:"Correo EduTrauma"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"Un amigo / colega"},{id:"otro",label:"Otro"}],
     footer: 'Herramientas de apoyo a la decisión clínica — no reemplazan el juicio quirúrgico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>',
     tools: [
       { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
@@ -175,6 +178,9 @@ const I18N = {
     profileDone: "✓ Profile saved — thank you!",
     edit: "edit",
     specialties: ["General surgery","Trauma surgery","Surgery resident","Emergency medicine","Nursing","Medical student","Other"],
+    sourceTitle: "How did you hear about us?",
+    sourceDesc: "One tap, optional — it helps us know how to reach more colleagues.",
+    sources: [{id:"correo",label:"EduTrauma email"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"A friend / colleague"},{id:"otro",label:"Other"}],
     footer: 'Clinical decision support tools — they do not replace surgical judgment.<br>EduTrauma® — Teaching to save lives.<br><span style="opacity:0.75">© 2026 EduTrauma® · All rights reserved. Commercialization, reproduction or modification without written authorization is prohibited.</span>',
     tools: [
       { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"MIAA course",
@@ -216,6 +222,9 @@ const I18N = {
     profileDone: "✓ Perfil salvo — obrigado!",
     edit: "editar",
     specialties: ["Cirurgia geral","Cirurgia do trauma","Residente de cirurgia","Medicina de emergência","Enfermagem","Estudante de medicina","Outra"],
+    sourceTitle: "Como você nos conheceu?",
+    sourceDesc: "Um toque, opcional — nos ajuda a saber como alcançar mais colegas.",
+    sources: [{id:"correo",label:"E-mail EduTrauma"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"Um amigo / colega"},{id:"otro",label:"Outro"}],
     footer: 'Ferramentas de apoio à decisão clínica — não substituem o julgamento cirúrgico.<br>EduTrauma® — Ensinando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos os direitos reservados. Proibida a comercialização, reprodução ou modificação sem autorização por escrito.</span>',
     tools: [
       { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
@@ -341,7 +350,51 @@ function saveSpecialtyHub(s){
   if (!s) return;
   localStorage.setItem('et_profile', JSON.stringify({ specialty: s.slice(0, 60) }));
   sendEvent('profile_saved', { specialty: s.slice(0, 60) });
-  closeProfileSheet(false);
+  // Encadena con "¿cómo nos conociste?" si aún no la respondió
+  if (!localStorage.getItem('et_source') && !localStorage.getItem('et_source_asked')){
+    showSourceSheet();
+  } else {
+    closeProfileSheet(false);
+  }
+}
+
+/* ===== ¿Cómo nos conociste? (origen, un toque, opcional) ===== */
+function sourceFieldsHTML(){
+  const t = T();
+  return `
+    <h2>${t.sourceTitle}</h2>
+    <p style="margin:0 0 4px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.sourceDesc}</p>
+    <div class="spec-grid">
+      ${t.sources.map(s => `<button onclick="saveSourceHub('${s.id}')">${s.label}</button>`).join('')}
+    </div>
+    <button class="fb-skip" onclick="skipSourceHub()">${t.profileSkip}</button>`;
+}
+function showSourceSheet(){
+  let ov = document.getElementById('pfOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'pfOverlay';
+    ov.className = 'overlay';
+    document.body.appendChild(ov);
+  }
+  ov.onclick = (e) => { if (e.target === ov) skipSourceHub(); };
+  ov.innerHTML = `<div class="sheet">${sourceFieldsHTML()}</div>`;
+  ov.classList.add('show');
+}
+function saveSourceHub(id){
+  try{ localStorage.setItem('et_source', id); }catch(e){}
+  sendEvent('source', { source: id });
+  closeSourceSheet();
+}
+function skipSourceHub(){
+  try{ localStorage.setItem('et_source_asked', '1'); }catch(e){}
+  closeSourceSheet();
+}
+function closeSourceSheet(){
+  const ov = document.getElementById('pfOverlay');
+  if (ov) ov.classList.remove('show');
+  const z = document.getElementById('profileZone');
+  if (z) z.innerHTML = profileHTML();
 }
 
 function editProfile(){
@@ -373,7 +426,11 @@ function closeProfileSheet(dismissed){
 
 function maybeAskProfile(){
   try{
-    if (!etProfile().specialty) showProfileSheet();
+    if (!etProfile().specialty){ showProfileSheet(); return; }
+    // Ya tiene especialidad pero nunca respondió cómo llegó → preguntar una vez
+    if (!localStorage.getItem('et_source') && !localStorage.getItem('et_source_asked')){
+      showSourceSheet();
+    }
   }catch(e){}
 }
 

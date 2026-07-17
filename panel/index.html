@@ -187,7 +187,7 @@ function bars(items, label){
     <div class="bv">${i.n}</div>
   </div>`).join('');
 }
-function barName(i){ return esc(i.name||i.pais||i.prof); }
+function barName(i){ return esc(i.name||i.pais||i.prof||i.fuente); }
 
 function kpi(name, val, sub, pill){
   return `<div class="kpi"><div class="k-top"><span class="k-name">${name}</span>${pill?`<span class="pill ${pill.c}">${pill.t}</span>`:''}</div>
@@ -282,6 +282,12 @@ function render(d){
           <div class="otras-list">${d.otras.map(o=>`<span class="chip ${o.prof==='(sin especificar)'?'mute':''}">${esc(o.prof)}${o.n>1?`<span class="cn">×${o.n}</span>`:''}</span>`).join('')}</div>
         </div>` : ''}
       </div>
+    </div>
+
+    <h2>¿Cómo nos conocieron?</h2>
+    <div class="panel">
+      <p class="hint">De «¿Cómo nos conociste?» en el hub. ${d.fuentesTotal||0} de ${d.users} respondieron. ${d.fuentesTotal ? 'Muestra qué canal trae más gente.' : 'Aún nadie ha respondido — empezará a llenarse con los nuevos ingresos.'}</p>
+      ${d.fuentes && d.fuentes.length ? bars(d.fuentes) : '<div class="pet-empty">Sin respuestas todavía.</div>'}
     </div>
 
     <h2>📋 Lo que piden tus usuarios — tu lista de tareas</h2>
