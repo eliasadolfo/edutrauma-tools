@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AAST">
 <link rel="stylesheet" href="design/edutrauma-ui.css">
+<script src="design/feedback.js"></script>
 <script src="aast-trans.js"></script>
 </head>
 <body>
@@ -116,6 +117,7 @@ function setHeader(show){ document.getElementById('appHeader').style.display=sho
 /* ---------- HOME ---------- */
 function renderHome(filter){
   setHeader(true);
+  
   document.getElementById('progressWrap').style.display='none';
   const u=U(); filter=(filter||'').trim().toLowerCase();
   const langBtns=LANGS.map(l=>`<button class="${l===LANG?'active':''}" onclick="setLang('${l}')" aria-pressed="${l===LANG}">${u.langNames[l]}</button>`).join('');
@@ -132,6 +134,7 @@ function renderHome(filter){
   document.getElementById('main').innerHTML=`
     <input class="aast-search" id="aastSearch" placeholder="${u.search}" value="${filter?filter:''}" oninput="renderHome(this.value); requeryFocus();">
     ${regionsHTML}
+    ${window.etFbButton ? etFbButton() : ''}
     <a class="hub-link" href="../">${u.hubLink}</a>
     <div class="lang-wrap" style="margin-top:8px;">${globe}<div class="lang-switch" id="langSwitch" data-active="${LANGS.indexOf(LANG)}"><div class="lang-thumb"></div>${langBtns}</div></div>`;
 }
@@ -218,6 +221,7 @@ function showResult(){
   setHeader(false); window.scrollTo(0,0);
   const u=U(); const o=DB.organs[state.organKey]; const r=computeGrade();
   sendEvent('aast_result',{ organ:state.organKey, grade:r.grade });
+  if(window.etFbAfterUse) etFbAfterUse();
   const backFn = o.adjust==='none' ? 'renderOptions()' : 'renderAdjust()';
   document.getElementById('main').innerHTML=`
     <div class="back-row"><button class="back-btn" onclick="${backFn}">${u.back}</button></div>
@@ -281,6 +285,7 @@ function dismissInstall(){ try{localStorage.setItem('installDismissed','1');}cat
 function showIOSGuide(){ const u=U(); let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} ov.innerHTML=`<div class="sheet"><h2>${u.iosTitle}</h2>${u.iosSteps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">${u.iosDone}</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
 
 /* ---------- Init ---------- */
+if(window.etFbInit) etFbInit('aast','Escalas AAST');
 applyStatic();
 if(needSpecialty()){ renderSpecialtyGate(); } else { renderHome(''); }
 sendEvent('app_open');

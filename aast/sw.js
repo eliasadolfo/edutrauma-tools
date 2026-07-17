@@ -1,11 +1,12 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'aast-v2';
+const CACHE = 'aast-v3';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './design/edutrauma-ui.css',
+  './design/feedback.js',
   './aast-trans.js',
   './logo-blanco-trim.png',
   './logo-dqt.png',

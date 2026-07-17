@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="Abdomen Abierto">
 
 <link rel="stylesheet" href="design/edutrauma-ui.css">
+<script src="design/feedback.js"></script>
 </head>
 <body>
 <div class="app">
@@ -123,11 +124,6 @@ const I18N = {
     iosSteps: ["Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en la barra de Safari", "Desliza hacia abajo y elige <b>“Agregar a pantalla de inicio”</b>", "Toca <b>Agregar</b> — quedará como una app con el logo EduTrauma"],
     iosDone: "Entendido",
     hubLink: "Ver todas las herramientas ›",
-    fbTitle: "¿Te fue útil esta herramienta?",
-    fbYes: "👍 Sí", fbNo: "👎 No mucho",
-    fbPlaceholder: "¿Qué agregarías o mejorarías? (opcional)",
-    fbSend: "Enviar", fbSkip: "Ahora no",
-    fbThanks: "¡Gracias! Tu opinión define las próximas herramientas.",
     htmlLang: "es",
     docTitle: "¿Dejar el abdomen abierto? — EduTrauma",
     ribbon: "Herramientas Clínicas",
@@ -218,11 +214,6 @@ const I18N = {
     iosSteps: ["Tap the <b>Share</b> button (the square with an ↑ arrow) in Safari's toolbar", "Scroll down and choose <b>“Add to Home Screen”</b>", "Tap <b>Add</b> — it will appear as an app with the EduTrauma logo"],
     iosDone: "Got it",
     hubLink: "See all tools ›",
-    fbTitle: "Was this tool useful?",
-    fbYes: "👍 Yes", fbNo: "👎 Not really",
-    fbPlaceholder: "What would you add or improve? (optional)",
-    fbSend: "Send", fbSkip: "Not now",
-    fbThanks: "Thank you! Your feedback shapes the next tools.",
     htmlLang: "en",
     docTitle: "Leave the abdomen open? — EduTrauma",
     ribbon: "Clinical Tools",
@@ -313,11 +304,6 @@ const I18N = {
     iosSteps: ["Toque no botão <b>Compartilhar</b> (o quadrado com seta ↑) na barra do Safari", "Role para baixo e escolha <b>“Adicionar à Tela de Início”</b>", "Toque em <b>Adicionar</b> — vai aparecer como um app com o logo EduTrauma"],
     iosDone: "Entendi",
     hubLink: "Ver todas as ferramentas ›",
-    fbTitle: "Esta ferramenta foi útil?",
-    fbYes: "👍 Sim", fbNo: "👎 Nem tanto",
-    fbPlaceholder: "O que você adicionaria ou melhoraria? (opcional)",
-    fbSend: "Enviar", fbSkip: "Agora não",
-    fbThanks: "Obrigado! Sua opinião define as próximas ferramentas.",
     htmlLang: "pt-BR",
     docTitle: "Deixar o abdome aberto? — EduTrauma",
     ribbon: "Ferramentas Clínicas",
@@ -479,6 +465,7 @@ function renderStart(){
   main.innerHTML = `
     <div class="start-rules" id="startRules">${startRulesHTML(t)}</div>
     <div class="anim-pop"><button class="start-btn" id="startBtn" onclick="startFlow()">${t.startBtn}</button></div>
+    ${window.etFbButton ? etFbButton() : ''}
     <a class="hub-link" href="../">${t.hubLink}</a>
     <div class="lang-wrap" style="margin-top:8px;">
       ${globe}
@@ -592,6 +579,7 @@ function renderQuestion(){
 function renderResult(result){
   window.scrollTo(0, 0);
   sendEvent('eval_completed', { result: result.result });
+  if(window.etFbAfterUse) etFbAfterUse();
   try{ localStorage.setItem('et_evals', String(1 + parseInt(localStorage.getItem('et_evals') || '0', 10))); }catch(e){}
   const t = T();
   document.getElementById('progressFill').style.width = '100%';
@@ -741,76 +729,17 @@ function goBack(){
 }
 
 
-/* ============ Feedback in-app ============ */
-let fbUseful = null;
-
-function maybeAskFeedback(){
-  try{
-    return localStorage.getItem('et_fb_done') !== '1'
-      && parseInt(localStorage.getItem('et_evals') || '0', 10) >= 2;
-  }catch(e){ return false; }
-}
-
-function showFeedback(){
-  const t = T();
-  fbUseful = null;
-  let ov = document.getElementById('fbOverlay');
-  if (!ov){
-    ov = document.createElement('div');
-    ov.id = 'fbOverlay';
-    ov.className = 'overlay';
-    document.body.appendChild(ov);
-  }
-  ov.innerHTML = `
-    <div class="sheet">
-      <h2>${t.fbTitle}</h2>
-      <div class="fb-options">
-        <button id="fbYes" onclick="fbPick(true)">${t.fbYes}</button>
-        <button id="fbNo" onclick="fbPick(false)">${t.fbNo}</button>
-      </div>
-      <textarea class="fb-comment" id="fbComment" maxlength="500" placeholder="${t.fbPlaceholder}"></textarea>
-      <button class="fb-send" id="fbSendBtn" onclick="fbSend()" disabled>${t.fbSend}</button>
-      <button class="fb-skip" onclick="fbClose(false)">${t.fbSkip}</button>
-    </div>`;
-  ov.classList.add('show');
-}
-
-function fbPick(useful){
-  fbUseful = useful;
-  document.getElementById('fbYes').classList.toggle('picked', useful === true);
-  document.getElementById('fbNo').classList.toggle('picked', useful === false);
-  document.getElementById('fbSendBtn').disabled = false;
-}
-
-function fbSend(){
-  const comment = (document.getElementById('fbComment').value || '').slice(0, 500);
-  sendEvent('feedback', { useful: fbUseful ? 'yes' : 'no', comment: comment });
-  try{ localStorage.setItem('et_fb_done', '1'); }catch(e){}
-  const t = T();
-  document.querySelector('#fbOverlay .sheet').innerHTML = `<div class="fb-thanks">${t.fbThanks}</div>`;
-  setTimeout(() => fbClose(true), 1400);
-}
-
-function fbClose(sent){
-  if (!sent){
-    try{ localStorage.setItem('et_fb_done', '1'); }catch(e){}
-    sendEvent('feedback_skipped');
-  }
-  const ov = document.getElementById('fbOverlay');
-  if (ov) ov.classList.remove('show');
-  renderStart();
-}
-
 function restart(){
   currentIndex = 0;
   history = [];
   inBjorckFlow = false;
   bjorckIndex = 0;
   bjorckAnswers = {};
-  if (maybeAskFeedback()){ showFeedback(); return; }
   renderStart();
+
 }
 
+if(window.etFbInit) etFbInit('abdomen','Abdomen Abierto');
 applyStaticTexts();
 renderStart();
 sendEvent('app_open');

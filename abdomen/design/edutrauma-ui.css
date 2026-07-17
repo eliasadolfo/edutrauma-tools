@@ -1082,3 +1082,29 @@ footer{
 /* Segmentado vertical (escalas con opciones largas: Glasgow, etc.) */
 .seg.segv{ flex-direction:column; }
 .seg.segv button{ width:100%; text-align:left; }
+
+/* ---------- 20. FEEDBACK POR HERRAMIENTA ---------- */
+.fb-step{ font-size:0.68rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--et-muted); margin-bottom:8px; }
+#fbOv h2{ line-height:1.35; }
+#fbOv h2 b{ color:var(--et-navy); }
+.fb-note{ margin:-6px 0 14px; font-size:0.84rem; color:var(--et-muted); line-height:1.45; }
+.fb-faces{ display:flex; gap:8px; margin:18px 0 8px; }
+.fb-faces button{
+  flex:1; min-height:62px; font-size:1.9rem; line-height:1;
+  border:1.5px solid var(--et-line); background:#fff; border-radius:var(--et-radius-md);
+  cursor:pointer; padding:8px 2px;
+  transition:transform .3s var(--et-spring), background .15s ease, border-color .15s ease;
+}
+.fb-faces button:active{ transform:scale(0.9); background:var(--et-info-soft); border-color:var(--et-navy); }
+.fb-scale{ display:flex; justify-content:space-between; font-size:0.72rem; color:var(--et-muted);
+  font-weight:600; margin-bottom:6px; padding:0 4px; }
+.fb-choices{ display:flex; flex-direction:column; gap:10px; margin:16px 0 6px; }
+.fb-choices button{
+  width:100%; min-height:56px; padding:14px 16px; text-align:left;
+  border:1.5px solid var(--et-line); background:#fff; border-radius:var(--et-radius-md);
+  font-family:inherit; font-size:0.95rem; font-weight:700; color:var(--et-navy); cursor:pointer;
+  transition:transform .3s var(--et-spring), background .15s ease, border-color .15s ease;
+}
+.fb-choices button:active{ transform:scale(0.97); background:var(--et-info-soft); border-color:var(--et-navy); }
+.fb-open-btn{ color:var(--et-info) !important; }
