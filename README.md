@@ -62,4 +62,7 @@ git add -A && git commit -m "..." && git push   # Pages publica en ~1 min
 ⚠️ NO usar rsync directo sobre un clon que tenga `.git` sin `--exclude '.git'` (lo borra).
 ⚠️ Repos PÚBLICOS obligatorio (GitHub Pages no sirve repos privados en plan Free).
 
-URLs: producción **https://tools.edutrauma.net** · alias herramienta abdomen: miaa.edutrauma.net
+URLs: producción **https://tools.edutrauma.net**.
+`miaa.edutrauma.net` (repo separado `eliasadolfo/abdomen-abierto`) ya NO sirve la app: es solo
+un **redirect al hub** (`tools.edutrauma.net/`) con SW de auto-destrucción, para que todo el
+tráfico entre por el embudo con onboarding obligatorio. Único source de verdad del abdomen: `/abdomen/` en este repo.
