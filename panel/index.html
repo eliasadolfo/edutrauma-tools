@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel — EduTrauma Tools</title>
+<style>
+  :root{
+    --navy:#00205C; --red:#E02826;
+    --ink:#111c33; --muted:#5b6b8c; --line:#e6ebf3; --bg:#eef2f8; --card:#ffffff; --wash:#f5f7fb;
+    --go:#1F7A5C; --go-bg:#e9f6f1; --warn:#B7791F; --warn-bg:#fdf6e7; --stop:#C0392B; --stop-bg:#fdecea;
+    --r:16px; --r-sm:11px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#e9eef7; --muted:#93a1bd; --line:#243149; --bg:#0a1020; --card:#131c30; --wash:#0f1728;
+      --go-bg:#0f2a22; --warn-bg:#2a2211; --stop-bg:#2a1512; }
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:24px 20px 80px; }
+
+  header.top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:8px; }
+  header.top h1{ font-size:1.5rem; font-weight:800; margin:0; letter-spacing:-.01em; }
+  header.top .sub{ font-size:.82rem; color:var(--muted); margin-top:2px; }
+  .refresh{ display:inline-flex; align-items:center; gap:7px; background:var(--card); border:1px solid var(--line);
+    color:var(--muted); font-family:inherit; font-size:.82rem; font-weight:700; padding:9px 15px; border-radius:999px; cursor:pointer; }
+  .refresh:active{ transform:scale(.97); }
+
+  /* Verdict banner */
+  .verdict{ display:flex; align-items:center; gap:16px; border-radius:var(--r); padding:20px 24px; margin:16px 0 8px; border:1px solid; }
+  .verdict.go{ background:var(--go-bg); border-color:color-mix(in srgb,var(--go) 35%,transparent); }
+  .verdict.weak, .verdict.wait{ background:var(--warn-bg); border-color:color-mix(in srgb,var(--warn) 35%,transparent); }
+  .verdict.stop{ background:var(--stop-bg); border-color:color-mix(in srgb,var(--stop) 35%,transparent); }
+  .verdict .dot{ width:44px; height:44px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+  .verdict.go .dot{ background:var(--go); } .verdict.weak .dot,.verdict.wait .dot{ background:var(--warn); } .verdict.stop .dot{ background:var(--stop); }
+  .verdict .lbl{ font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .verdict .txt{ font-size:1.15rem; font-weight:800; letter-spacing:-.01em; }
+  .verdict.go .txt{ color:var(--go); } .verdict.weak .txt,.verdict.wait .txt{ color:var(--warn); } .verdict.stop .txt{ color:var(--stop); }
+
+  h2{ font-size:.74rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:34px 0 12px; }
+
+  /* KPI grid */
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .kpi{ background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px; }
+  .kpi .k-top{ display:flex; align-items:center; justify-content:space-between; }
+  .kpi .k-name{ font-size:.8rem; font-weight:700; color:var(--muted); }
+  .kpi .k-val{ font-size:2.3rem; font-weight:900; line-height:1.05; margin:6px 0 2px; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .kpi .k-sub{ font-size:.78rem; color:var(--muted); }
+  .kpi .k-sub b{ color:var(--ink); font-weight:700; }
+  .pill{ font-size:.64rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; padding:4px 9px; border-radius:999px; white-space:nowrap; }
+  .pill.go{ color:var(--go); background:var(--go-bg); } .pill.warn{ color:var(--warn); background:var(--warn-bg); } .pill.stop{ color:var(--stop); background:var(--stop-bg); }
+
+  .grid2{ display:grid; grid-template-columns:1.4fr 1fr; gap:14px; align-items:start; }
+  .panel{ background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:20px 22px; }
+  .panel h3{ margin:0 0 4px; font-size:1rem; font-weight:800; }
+  .panel .hint{ font-size:.78rem; color:var(--muted); margin:0 0 14px; }
+
+  /* bars (single hue = magnitude) */
+  .bar-row{ display:grid; grid-template-columns:130px 1fr 46px; align-items:center; gap:12px; padding:7px 0; font-size:.88rem; }
+  .bar-row .bn{ font-weight:700; }
+  .bar-track{ height:12px; border-radius:6px; background:var(--wash); overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:6px; background:var(--navy); }
+  .bar-row .bv{ font-variant-numeric:tabular-nums; font-weight:800; text-align:right; }
+
+  /* ratings */
+  .rate-row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; padding:9px 0; border-top:1px solid var(--line); }
+  .rate-row:first-child{ border-top:none; }
+  .rate-row .rn{ font-weight:700; font-size:.9rem; }
+  .rate-val{ display:flex; align-items:center; gap:8px; }
+  .rate-num{ font-size:1.3rem; font-weight:900; font-variant-numeric:tabular-nums; }
+  .rate-stars{ letter-spacing:1px; font-size:.95rem; }
+  .rate-n{ font-size:.72rem; color:var(--muted); }
+  .rate-empty{ font-size:.8rem; color:var(--muted); font-style:italic; }
+
+  /* sparkline */
+  .spark-wrap{ margin-top:6px; }
+  .spark-cap{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-top:6px; }
+
+  /* peticiones */
+  .pet{ background:var(--wash); border:1px solid var(--line); border-radius:var(--r-sm); padding:13px 15px; margin-bottom:10px; }
+  .pet .p-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
+  .p-tag{ font-size:.64rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; padding:3px 8px; border-radius:6px; }
+  .p-tag.mejora{ color:var(--warn); background:var(--warn-bg); } .p-tag.nueva{ color:var(--go); background:var(--go-bg); }
+  .p-meta{ font-size:.72rem; color:var(--muted); }
+  .pet .p-txt{ font-size:.92rem; color:var(--ink); }
+  .pet-empty{ color:var(--muted); font-style:italic; padding:20px 0; text-align:center; }
+
+  .howto{ background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:6px 22px; margin-top:24px; }
+  .howto summary{ cursor:pointer; font-weight:800; font-size:.88rem; padding:14px 0; list-style:none; color:var(--muted); }
+  .howto summary::-webkit-details-marker{ display:none; }
+  .howto ol{ margin:0 0 16px; padding-left:20px; font-size:.9rem; color:var(--ink); line-height:1.7; }
+
+  .foot{ margin-top:30px; font-size:.72rem; color:var(--muted); text-align:center; }
+  .loading, .errbox{ text-align:center; padding:80px 20px; color:var(--muted); }
+  .errbox b{ color:var(--stop); }
+
+  @media (max-width:820px){ .kpis{ grid-template-columns:repeat(2,1fr); } .grid2{ grid-template-columns:1fr; } }
+  @media (max-width:460px){ .bar-row{ grid-template-columns:96px 1fr 40px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>EduTrauma Tools · Panel</h1>
+      <div class="sub" id="sub">Cargando…</div>
+    </div>
+    <button class="refresh" onclick="load()">↻ Actualizar</button>
+  </header>
+  <div id="app"><div class="loading">Cargando datos…</div></div>
+  <div class="foot">Panel interno · datos anónimos y agregados · no compartir el enlace.</div>
+</div>
+
+<script>
+const URL_DATA = 'https://devn8n.tuescuelademarcas.cl/webhook/et-panel-data?k=et-panel-9k3x';
+
+function stars(avg){ const full=Math.round(avg); let s=''; for(let i=1;i<=5;i++) s+= i<=full?'★':'☆'; return s; }
+function esc(x){ return String(x==null?'':x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function sparkline(data){
+  const w=100, h=34, pad=3;
+  const vals=data.map(d=>d.users);
+  const max=Math.max(1,...vals);
+  const pts=data.map((d,i)=>{ const x=pad+i*((w-2*pad)/(data.length-1)); const y=h-pad-(d.users/max)*(h-2*pad); return [x,y]; });
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${h-pad} L${pts[0][0].toFixed(1)} ${h-pad} Z`;
+  const last=pts[pts.length-1];
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:80px;display:block;">
+    <path d="${area}" fill="var(--navy)" opacity="0.10"/>
+    <path d="${line}" fill="none" stroke="var(--navy)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.6" fill="var(--navy)"/>
+  </svg>`;
+}
+
+function bars(items, label){
+  const max=Math.max(1,...items.map(i=>i.n));
+  return items.map(i=>`<div class="bar-row">
+    <div class="bn">${esc(i.name||i.pais)}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,i.n/max*100)}%"></div></div>
+    <div class="bv">${i.n}</div>
+  </div>`).join('');
+}
+
+function kpi(name, val, sub, pill){
+  return `<div class="kpi"><div class="k-top"><span class="k-name">${name}</span>${pill?`<span class="pill ${pill.c}">${pill.t}</span>`:''}</div>
+    <div class="k-val">${val}</div><div class="k-sub">${sub||''}</div></div>`;
+}
+
+function render(d){
+  const retPill = d.retention>=25?{c:'go',t:'meta ✓'}:{c:'warn',t:'meta 25%'};
+  const actPill = d.activation>=50?{c:'go',t:'meta ✓'}:{c:'warn',t:'meta 50%'};
+  const langsArr=[{name:'Español',n:d.langs.es},{name:'English',n:d.langs.en},{name:'Português',n:d.langs.pt}];
+
+  const ratingsHTML = d.ratings.map(r=> r.avg!=null
+    ? `<div class="rate-row"><div class="rn">${esc(r.name)}</div>
+        <div class="rate-val"><span class="rate-num">${r.avg.toFixed(1)}</span><span class="rate-stars" style="color:var(--warn)">${stars(r.avg)}</span><span class="rate-n">${r.n}</span></div></div>`
+    : `<div class="rate-row"><div class="rn">${esc(r.name)}</div><div class="rate-empty">sin respuestas aún</div></div>`
+  ).join('');
+
+  const petHTML = d.peticiones.length
+    ? d.peticiones.map(p=>`<div class="pet"><div class="p-top">
+        <span class="p-tag ${p.tipo==='Herramienta nueva'?'nueva':'mejora'}">${p.tipo}</span>
+        <span class="p-meta">${esc(p.fecha)} · ${esc(p.tool)} · ${esc(p.esp||'—')} · ${esc(p.pais||'—')}</span>
+      </div><div class="p-txt">${esc(p.texto)}</div></div>`).join('')
+    : `<div class="pet-empty">Aún no hay peticiones — aparecerán aquí cuando los usuarios escriban en la encuesta.</div>`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="verdict ${d.verdict.level}">
+      <div class="dot">${d.verdict.level==='go'?'🟢':d.verdict.level==='stop'?'🔴':'🟡'}</div>
+      <div><div class="lbl">El veredicto</div><div class="txt">${esc(d.verdict.text)}</div></div>
+    </div>
+
+    <h2>¿Cuánta gente la usa?</h2>
+    <div class="kpis">
+      ${kpi('Usuarios únicos', d.users, `<b>${d.u7}</b> esta semana · <b>${d.u30}</b> este mes`)}
+      ${kpi('Vuelven otro día', d.retention+'%', `<b>${d.returned}</b> personas · la métrica que decide`, retPill)}
+      ${kpi('Llegan a un resultado', d.activation+'%', 'de los que entran usan la app de verdad', actPill)}
+      ${kpi('Países', d.countries, 'se está esparciendo')}
+    </div>
+
+    <div class="grid2" style="margin-top:14px;">
+      <div class="panel">
+        <h3>Actividad — usuarios por día</h3>
+        <p class="hint">Últimos 14 días. Lo que quieres ver: la línea subiendo.</p>
+        <div class="spark-wrap">${sparkline(d.spark)}
+          <div class="spark-cap"><span>${esc(d.spark[0].day.slice(5))}</span><span>hoy</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>¿Les sirve? — nota 1 a 5</h3>
+        <p class="hint">Lo que respondieron en la encuesta.</p>
+        ${ratingsHTML}
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px;">
+      <div class="panel">
+        <h3>Uso por herramienta</h3>
+        <p class="hint">Resultados entregados por cada una.</p>
+        ${bars(d.usoTool)}
+      </div>
+      <div class="panel">
+        <h3>Idioma de uso</h3>
+        <p class="hint">Confirma si el trilingüe se está usando.</p>
+        ${bars(langsArr)}
+      </div>
+    </div>
+
+    <h2>📋 Lo que piden tus usuarios — tu lista de tareas</h2>
+    <div class="panel">${petHTML}</div>
+
+    <details class="howto">
+      <summary>ℹ️ Cómo leer este panel</summary>
+      <ol>
+        <li><b>Mira el veredicto</b> (arriba). Te dice qué hacer, sin que tengas que interpretar números.</li>
+        <li>Si dice <b>"pocos datos"</b>: tu trabajo es distribuir, no cambiar la app.</li>
+        <li>El número que más importa es <b>"vuelven otro día"</b> (retención). Arriba de 25% = tienes algo real.</li>
+        <li>Si la gente vuelve pero la nota es baja → mira <b>"lo que piden"</b> y mejora eso.</li>
+        <li>Revísalo <b>una vez por semana</b>, no todos los días — el ruido diario confunde.</li>
+      </ol>
+    </details>`;
+
+  const t=new Date(d.generated);
+  document.getElementById('sub').textContent = `${d.total_events.toLocaleString('es')} eventos · actualizado ${t.toLocaleString('es-CL',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`;
+}
+
+function load(){
+  document.getElementById('app').innerHTML = '<div class="loading">Cargando datos…</div>';
+  fetch(URL_DATA, {cache:'no-store'})
+    .then(r=>r.json())
+    .then(d=>{ if(d.error) throw new Error(d.error); render(d); })
+    .catch(e=>{ document.getElementById('app').innerHTML = `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>Revisa que el servidor n8n esté activo.<br><small>${esc(e.message)}</small></div>`; });
+}
+load();
+setInterval(load, 5*60*1000); // auto-refresca cada 5 min
+</script>
+</body>
+</html>
