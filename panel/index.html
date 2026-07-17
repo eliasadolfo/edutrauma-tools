@@ -75,6 +75,14 @@
   .rate-n{ font-size:.72rem; color:var(--muted); }
   .rate-empty{ font-size:.8rem; color:var(--muted); font-style:italic; }
 
+  /* otras (texto libre) */
+  .otras-wrap{ margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); }
+  .otras-head{ font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .otras-list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{ font-size:.84rem; font-weight:600; background:var(--wash); border:1px solid var(--line); border-radius:999px; padding:5px 12px; color:var(--ink); }
+  .chip .cn{ color:var(--muted); font-weight:800; margin-left:5px; }
+  .chip.mute{ color:var(--muted); font-style:italic; font-weight:500; }
+
   /* sparkline */
   .spark-wrap{ margin-top:6px; }
   .spark-cap{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-top:6px; }
@@ -221,6 +229,10 @@ function render(d){
         <h3>Profesiones</h3>
         <p class="hint">Personas por especialidad declarada.${d.sinProf ? ` <b>${d.sinProf}</b> no la indicaron.` : ''}</p>
         ${d.profesiones && d.profesiones.length ? bars(d.profesiones) : '<div class="pet-empty">Nadie ha declarado su profesión aún.</div>'}
+        ${d.otras && d.otras.length ? `<div class="otras-wrap">
+          <div class="otras-head">↳ Otra — ${d.otrasTotal} ${d.otrasTotal===1?'persona escribió':'personas escribieron'} lo suyo</div>
+          <div class="otras-list">${d.otras.map(o=>`<span class="chip ${o.prof==='(sin especificar)'?'mute':''}">${esc(o.prof)}${o.n>1?`<span class="cn">×${o.n}</span>`:''}</span>`).join('')}</div>
+        </div>` : ''}
       </div>
     </div>
 
