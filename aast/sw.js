@@ -1,6 +1,6 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'aast-v3';
+const CACHE = 'aast-v4';
 const ASSETS = [
   './',
   './index.html',

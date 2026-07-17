@@ -409,7 +409,7 @@ function renderHome(filter){
       list.map(c=>`<button class="organ-btn" onclick="openCalc('${c.id}')">${shortName(c)}</button>`).join('') + `</div></div>`;
   });
   if(!any) html += `<p style="text-align:center;color:var(--et-muted);padding:30px 0;">Sin resultados</p>`;
-  html += (window.etFbButton ? etFbButton() : '') + `<a class="hub-link" href="../">Ver todas las herramientas ›</a>`;
+  html += (window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : '');
   document.getElementById('main').innerHTML = html;
 }
 function shortName(c){ return c.name.split('—')[0].trim(); }

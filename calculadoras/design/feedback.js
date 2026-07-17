@@ -39,8 +39,13 @@
   /* Botón manual: siempre disponible, permite volver a opinar */
   window.etFbOpen = function(){ open(true); };
 
-  window.etFbButton = function(){
-    return `<button class="hub-link fb-open-btn" onclick="etFbOpen()">💬 Danos tu opinión</button>`;
+  /* Pie compartido: MISMA estructura en todas las tools.
+     El idioma no va aquí — es preferencia global del hub. */
+  window.etToolFooter = function(hubLabel, fbLabel){
+    return `<div class="tool-foot">
+      <a href="../">${hubLabel || 'Todas las herramientas'}</a>
+      <button onclick="etFbOpen()">💬 ${fbLabel || 'Danos tu opinión'}</button>
+    </div>`;
   };
 
   function open(manual){

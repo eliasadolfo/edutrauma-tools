@@ -1108,3 +1108,37 @@ footer{
 }
 .fb-choices button:active{ transform:scale(0.97); background:var(--et-info-soft); border-color:var(--et-navy); }
 .fb-open-btn{ color:var(--et-info) !important; }
+
+/* ---------- 21. PIE DE HERRAMIENTA — idéntico en TODAS las tools ----------
+   Acciones secundarias. El idioma NO va aquí: es preferencia global del hub. */
+.tool-foot{
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--et-line);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.tool-foot a, .tool-foot button{
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--et-muted);
+  text-decoration: none;
+  padding: 12px;
+  min-height: 46px;
+  border-radius: var(--et-radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background .15s ease, color .15s ease, transform .3s var(--et-spring);
+}
+.tool-foot a:active, .tool-foot button:active{
+  background: var(--et-bg); color: var(--et-navy); transform: scale(0.97);
+}

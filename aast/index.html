@@ -68,7 +68,7 @@ const UI = {
   es:{ htmlLang:'es', ribbon:'Herramientas Clínicas', title:'Escalas AAST', subtitle:'Gradación de lesiones de órganos (Moore et al.). Toca un órgano para consultar.',
     search:'Buscar órgano…', pickType:'Tipo de lesión', pickInjury:'Selecciona la lesión', back:'‹ Volver', backOrgans:'‹ Todos los órganos',
     seeResult:'Ver grado ›', result:'Grado AAST', gradeWord:'Grado', adjustTitle:'Ajustes', noResults:'Sin resultados',
-    restart:'Consultar otro órgano', hubLink:'Ver todas las herramientas ›', langNames:{es:'Español',en:'English',pt:'Português'},
+    restart:'Consultar otro órgano', hubLink:'Ver todas las herramientas ›', fbLink:'Danos tu opinión', langNames:{es:'Español',en:'English',pt:'Português'},
     footer:'Herramienta de referencia clínica — no reemplaza el juicio quirúrgico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>',
     installIOSShort:'Guárdala en tu pantalla de inicio — funciona sin conexión.', iosHow:'¿Cómo?', iosTitle:'Instalar en tu iPhone', iosDone:'Entendido',
     iosSteps:['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>'],
@@ -80,7 +80,7 @@ const UI = {
   en:{ htmlLang:'en', ribbon:'Clinical Tools', title:'AAST scales', subtitle:'Organ injury scaling (Moore et al.). Tap an organ to look it up.',
     search:'Search organ…', pickType:'Injury type', pickInjury:'Select the injury', back:'‹ Back', backOrgans:'‹ All organs',
     seeResult:'See grade ›', result:'AAST grade', gradeWord:'Grade', adjustTitle:'Adjustments', noResults:'No results',
-    restart:'Look up another organ', hubLink:'See all tools ›', langNames:{es:'Español',en:'English',pt:'Português'},
+    restart:'Look up another organ', hubLink:'See all tools ›', fbLink:'Give us feedback', langNames:{es:'Español',en:'English',pt:'Português'},
     footer:'Clinical reference tool — it does not replace surgical judgment.<br>EduTrauma® — Teaching to save lives.<br><span style="opacity:0.75">© 2026 EduTrauma® · All rights reserved. Commercialization, reproduction or modification without written authorization is prohibited.</span>',
     installIOSShort:'Save it to your home screen — works offline.', iosHow:'How?', iosTitle:'Install on your iPhone', iosDone:'Got it',
     iosSteps:['Tap the <b>Share</b> button (square with ↑) in Safari','Choose <b>“Add to Home Screen”</b>','Tap <b>Add</b>'],
@@ -92,7 +92,7 @@ const UI = {
   pt:{ htmlLang:'pt-BR', ribbon:'Ferramentas Clínicas', title:'Escalas AAST', subtitle:'Graduação de lesões de órgãos (Moore et al.). Toque em um órgão para consultar.',
     search:'Buscar órgão…', pickType:'Tipo de lesão', pickInjury:'Selecione a lesão', back:'‹ Voltar', backOrgans:'‹ Todos os órgãos',
     seeResult:'Ver grau ›', result:'Grau AAST', gradeWord:'Grau', adjustTitle:'Ajustes', noResults:'Sem resultados',
-    restart:'Consultar outro órgão', hubLink:'Ver todas as ferramentas ›', langNames:{es:'Español',en:'English',pt:'Português'},
+    restart:'Consultar outro órgão', hubLink:'Ver todas as ferramentas ›', fbLink:'Dê sua opinião', langNames:{es:'Español',en:'English',pt:'Português'},
     footer:'Ferramenta de referência clínica — não substitui o julgamento cirúrgico.<br>EduTrauma® — Ensinando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos os direitos reservados. Proibida a comercialização, reprodução ou modificação sem autorização por escrito.</span>',
     installIOSShort:'Salve na sua tela de início — funciona offline.', iosHow:'Como?', iosTitle:'Instalar no seu iPhone', iosDone:'Entendi',
     iosSteps:['Toque no botão <b>Compartilhar</b> (quadrado com ↑) no Safari','Escolha <b>“Adicionar à Tela de Início”</b>','Toque em <b>Adicionar</b>'],
@@ -120,8 +120,6 @@ function renderHome(filter){
   
   document.getElementById('progressWrap').style.display='none';
   const u=U(); filter=(filter||'').trim().toLowerCase();
-  const langBtns=LANGS.map(l=>`<button class="${l===LANG?'active':''}" onclick="setLang('${l}')" aria-pressed="${l===LANG}">${u.langNames[l]}</button>`).join('');
-  const globe='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/></svg>';
   let regionsHTML='';
   DB.regionOrder.forEach(region=>{
     const organs=Object.entries(DB.organs).filter(([k,o])=>o.region===region && (!filter || tr(o.name).toLowerCase().includes(filter) || tr(region).toLowerCase().includes(filter)));
@@ -134,9 +132,7 @@ function renderHome(filter){
   document.getElementById('main').innerHTML=`
     <input class="aast-search" id="aastSearch" placeholder="${u.search}" value="${filter?filter:''}" oninput="renderHome(this.value); requeryFocus();">
     ${regionsHTML}
-    ${window.etFbButton ? etFbButton() : ''}
-    <a class="hub-link" href="../">${u.hubLink}</a>
-    <div class="lang-wrap" style="margin-top:8px;">${globe}<div class="lang-switch" id="langSwitch" data-active="${LANGS.indexOf(LANG)}"><div class="lang-thumb"></div>${langBtns}</div></div>`;
+    ${window.etToolFooter ? etToolFooter(u.hubLink, u.fbLink) : ''}`;
 }
 function requeryFocus(){ const el=document.getElementById('aastSearch'); if(el){ const v=el.value; el.focus(); el.setSelectionRange(v.length,v.length);} }
 
