@@ -138,11 +138,12 @@ function sparkline(data){
 function bars(items, label){
   const max=Math.max(1,...items.map(i=>i.n));
   return items.map(i=>`<div class="bar-row">
-    <div class="bn">${esc(i.name||i.pais)}</div>
+    <div class="bn">${barName(i)}</div>
     <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,i.n/max*100)}%"></div></div>
     <div class="bv">${i.n}</div>
   </div>`).join('');
 }
+function barName(i){ return esc(i.name||i.pais||i.prof); }
 
 function kpi(name, val, sub, pill){
   return `<div class="kpi"><div class="k-top"><span class="k-name">${name}</span>${pill?`<span class="pill ${pill.c}">${pill.t}</span>`:''}</div>
@@ -206,6 +207,20 @@ function render(d){
         <h3>Idioma de uso</h3>
         <p class="hint">Confirma si el trilingüe se está usando.</p>
         ${bars(langsArr)}
+      </div>
+    </div>
+
+    <h2>¿De dónde y quiénes son?</h2>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Países — top</h3>
+        <p class="hint">Ordenados por actividad. ${d.countries} países en total.</p>
+        ${d.paises && d.paises.length ? bars(d.paises) : '<div class="pet-empty">Sin datos aún.</div>'}
+      </div>
+      <div class="panel">
+        <h3>Profesiones</h3>
+        <p class="hint">Personas por especialidad declarada.${d.sinProf ? ` <b>${d.sinProf}</b> no la indicaron.` : ''}</p>
+        ${d.profesiones && d.profesiones.length ? bars(d.profesiones) : '<div class="pet-empty">Nadie ha declarado su profesión aún.</div>'}
       </div>
     </div>
 
