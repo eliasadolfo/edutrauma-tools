@@ -39,6 +39,15 @@ CNAME                  tools.edutrauma.net (GitHub Pages)
 | % feedback útil 👍 | >80% |
 | Crecimiento orgánico | sostenido sin promoción |
 
+## Antes de cada deploy — auditoría de coherencia
+
+```bash
+node design/auditar.mjs     # ~37 reglas, 1 segundo, debe pasar
+```
+Verifica que las tools no diverjan: archivos compartidos idénticos, pie unificado,
+idioma solo en el hub, disclaimers, SW network-first. Reglas completas y checklist
+en `design/DESIGN.md` → "Reglas de la casa".
+
 ## Deploy
 
 Fuente de verdad local: `~/Desktop/EduTrauma_Tools/`. Para publicar:
