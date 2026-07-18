@@ -1,5 +1,5 @@
 // Service Worker — MIP · NETWORK-FIRST + auto-actualización
-const CACHE = 'mip-v3';
+const CACHE = 'mip-v4';
 const ASSETS = ['./','./index.html','./manifest.json','./design/edutrauma-ui.css',
   './design/feedback.js','./logo-blanco-trim.png','./logo-mip.png','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
