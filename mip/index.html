@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MIP — Valoración y Manejo Primario · EduTrauma</title>
+<meta name="theme-color" content="#00205C">
+<meta name="description" content="Algoritmos de decisión del abordaje primario (ABCDE) del paciente politraumatizado — curso MIP de EduTrauma. Restricción del movimiento espinal, criterios NEXUS y evaluación de vía aérea. Gratis, sin conexión.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIP">
+<link rel="stylesheet" href="design/edutrauma-ui.css">
+<script src="design/feedback.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="brand-strip">
+    <a href="../" aria-label="Volver a EduTrauma Tools"><img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo"></a>
+  </div>
+  <div class="brand-ribbon">Herramientas Clínicas</div>
+
+  <header id="appHeader">
+    <h1 id="appTitle">MIP — Manejo Primario</h1>
+    <p id="appSubtitle">Algoritmos de decisión del abordaje primario (ABCDE) del politraumatizado. Toca un algoritmo.</p>
+  </header>
+
+  <main id="main"></main>
+  <footer id="appFooter"></footer>
+</div>
+
+<script>
+/* ============ Analytics + cola offline ============ */
+const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+function etEnqueue(p){ try{ const q=JSON.parse(localStorage.getItem('et_queue')||'[]'); q.push(p); while(q.length>200)q.shift(); localStorage.setItem('et_queue',JSON.stringify(q)); }catch(e){} }
+function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>{if(!r.ok)throw 0;}); }
+function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
+window.addEventListener('online', etFlush); etFlush();
+function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'mip',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+
+/* ============ Motor genérico de algoritmos MIP ============
+   type:'tree'      → nodos de decisión encadenados; cada opción tiene set?/next(id|null).
+                      next:null = terminal → resolve(ctx) devuelve el resultado.
+   type:'checklist' → criterios independientes; resolve(nPresentes) devuelve el resultado.
+   Resultado: { level:'ok|warn|alert|info', title, detail, warn?, goto?:{id,label} }
+   ============================================================ */
+const REGIONS = ['Vía aérea (A)', 'Control de columna cervical (A)'];
+const ALGOS = [
+  /* ---- Restricción del movimiento espinal (collarín) ---- */
+  {
+    id:'espinal', region:'Control de columna cervical (A)',
+    name:'Restricción del movimiento espinal',
+    short:'Collarín cervical: colocar, mantener o retirar según el mecanismo.',
+    kw:['collarin','collar','columna','cervical','espinal','inmovilizacion','penetrante','cerrado','restriccion'],
+    ref:'Algoritmo MIP — Restricción del movimiento espinal (Dr. Pablo Ottolino, curso MIP, 2026)',
+    validado:true,
+    type:'tree', start:'mecanismo',
+    nodes:{
+      mecanismo:{ q:'¿Cuál fue el mecanismo de trauma?', opts:[
+        { label:'Penetrante', sub:'Arma blanca, proyectil', set:{mech:'pen'}, next:'collar' },
+        { label:'Cerrado (contuso)', sub:'Caída, colisión, aplastamiento', set:{mech:'cer'}, next:null }
+      ]},
+      collar:{ q:'¿El paciente YA trae el collarín puesto?',
+        help:'De esto depende si la conducta se enuncia como «colocar / mantener» o como «retirar / no colocar». La lógica es la misma.',
+        opts:[
+          { label:'Sí, ya lo trae', set:{collar:'trae'}, next:'zona' },
+          { label:'No lo trae', set:{collar:'no'}, next:'zona' }
+        ]},
+      zona:{ q:'¿Dónde está la herida penetrante?', opts:[
+        { label:'Cuello', set:{}, next:'lesion' },
+        { label:'Cráneo / Torso / Extremidades', set:{base:'liberar'}, next:null }
+      ]},
+      lesion:{ q:'Abra la parte frontal del collarín y examine la herida. ¿Hay signos de lesión medular?',
+        help:'Déficit motor o sensitivo, o dolor/deformidad en la línea media cervical.',
+        opts:[
+          { label:'Sí, hay lesión medular', set:{base:'inmov'}, next:null },
+          { label:'No hay lesión medular', set:{base:'liberar'}, next:null }
+        ]}
+    },
+    resolve(ctx){
+      if(ctx.mech==='cer'){
+        return { level:'ok', title:'Mantener el collarín',
+          detail:'Mecanismo cerrado: dedíquese a las lesiones potencialmente mortales y espere a la evaluación secundaria.',
+          warn:'Pendiente para la 2ª valoración: aplique los criterios NEXUS para decidir si la columna puede liberarse.',
+          goto:{ id:'nexus', label:'Aplicar criterios NEXUS ›' } };
+      }
+      const inmov = ctx.base==='inmov';
+      const trae = ctx.collar==='trae';
+      if(inmov){
+        return trae
+          ? { level:'ok', title:'Mantener el collarín', detail:'Herida penetrante en cuello con signos de lesión medular: la columna debe permanecer inmovilizada.' }
+          : { level:'ok', title:'Colocar el collarín', detail:'Herida penetrante en cuello con signos de lesión medular: inmovilice la columna cervical.' };
+      }
+      return trae
+        ? { level:'info', title:'Retirar el collarín', detail:'Sin indicación de inmovilización por este mecanismo: el collarín puede retirarse.' }
+        : { level:'info', title:'No colocar el collarín', detail:'Sin indicación de inmovilización por este mecanismo: no es necesario colocar collarín.' };
+    }
+  },
+
+  /* ---- Criterios NEXUS ---- */
+  {
+    id:'nexus', region:'Control de columna cervical (A)',
+    name:'Criterios NEXUS',
+    short:'¿Se puede liberar la columna cervical? 5 criterios.',
+    kw:['nexus','columna','cervical','liberar','criterios','inmovilizacion','collar'],
+    ref:'NEXUS — Hoffman et al., NEJM 2000 · valoración secundaria, curso MIP',
+    validado:true,
+    type:'checklist',
+    intro:'Marque los criterios PRESENTES en el paciente. La columna solo se libera si NINGUNO está presente.',
+    criteria:[
+      { id:'dolor', label:'Dolor en la línea media cervical' },
+      { id:'deficit', label:'Déficit neurológico focal' },
+      { id:'alerta', label:'Estado de alerta anormal (GCS < 14)' },
+      { id:'intox', label:'Intoxicación' },
+      { id:'distr', label:'Lesión distractora' }
+    ],
+    resolve(n){
+      if(n>=1) return { level:'ok', title:'Mantener / colocar la inmovilización cervical',
+        detail:n+' de 5 criterios presentes. Con al menos uno positivo, la columna NO puede liberarse; mantenga la inmovilización.' };
+      return { level:'info', title:'Se puede liberar el collarín',
+        detail:'0 de 5 criterios presentes: ningún criterio positivo, la columna cervical puede liberarse.' };
+    }
+  },
+
+  /* ---- Evaluación de vía aérea (respuesta verbal) — POR VALIDAR ---- */
+  {
+    id:'viaaerea', region:'Vía aérea (A)',
+    name:'Evaluación de vía aérea (respuesta verbal)',
+    short:'Permeable, obstruida o en riesgo, según la respuesta verbal.',
+    kw:['via aerea','airway','respuesta verbal','permeable','obstruida','proteger','voz','a'],
+    ref:'Algoritmo MIP — Evaluación 1, Secuencia de Respuesta Verbal (curso MIP, 2026)',
+    validado:false,
+    type:'tree', start:'verbal',
+    nodes:{
+      verbal:{ q:'¿El paciente emite respuesta verbal?', opts:[
+        { label:'Sí, responde', set:{}, next:'calidad' },
+        { label:'No responde', set:{}, next:'obstr' }
+      ]},
+      calidad:{ q:'Calidad de la respuesta:', opts:[
+        { label:'Coherente', set:{}, next:'voz' },
+        { label:'Incoherente', set:{}, next:'neuro' }
+      ]},
+      voz:{ q:'Características de la voz: ¿hay alteración?',
+        help:'Disfonía, estridor, voz «apagada» o gorgoteo sugieren lesión de la vía aérea.',
+        opts:[
+          { label:'Sí, voz alterada', set:{out:'lesionada'}, next:null },
+          { label:'No, voz normal', set:{out:'permeable'}, next:null }
+        ]},
+      neuro:{ q:'¿Hay compromiso neurológico?', opts:[
+        { label:'Sí', set:{out:'proteger'}, next:null },
+        { label:'No', set:{}, next:'obstr' }
+      ]},
+      obstr:{ q:'¿Hay obstrucción mecánica de la vía aérea?',
+        help:'Cuerpo extraño, sangre, secreciones, edema o compresión.',
+        opts:[
+          { label:'Sí', set:{out:'obstruida'}, next:null },
+          { label:'No', set:{out:'permeable'}, next:null }
+        ]}
+    },
+    resolve(ctx){
+      switch(ctx.out){
+        case 'permeable': return { level:'ok', title:'Vía aérea permeable', detail:'La vía aérea está permeable en este momento. Continúe con el abordaje primario (B).' };
+        case 'lesionada': return { level:'warn', title:'Vía aérea permeable, pero LESIONADA', detail:'Permeable ahora, pero con signos de lesión.', warn:'⚠ Puede evolucionar a obstrucción de la vía aérea asociada a la lesión. REEVALÚE de forma periódica durante la reanimación.' };
+        case 'proteger': return { level:'alert', title:'¡PROTEGER LA VÍA AÉREA!', detail:'Respuesta incoherente con compromiso neurológico: la vía aérea está en riesgo. Asegúrela de inmediato.' };
+        case 'obstruida': return { level:'alert', title:'Vía aérea OBSTRUIDA', detail:'Obstrucción mecánica presente: intervención inmediata de la vía aérea.' };
+        default: return { level:'info', title:'Sin resultado', detail:'Revise las respuestas.' };
+      }
+    }
+  }
+];
+const ALGO_BY_ID = Object.fromEntries(ALGOS.map(a=>[a.id,a]));
+const LVL_COLOR = { ok:'#1F7A5C', warn:'#c99a12', alert:'#E02826', info:'#00205C' };
+
+/* ============ Estado + recientes ============ */
+let state=null; // {algo, nodeId, ctx, history:[], checks:{}}
+function recents(){ try{ return JSON.parse(localStorage.getItem('mip_recent')||'[]'); }catch(e){ return []; } }
+function pushRecent(id){ let r=recents().filter(x=>x!==id); r.unshift(id); r=r.slice(0,4); localStorage.setItem('mip_recent', JSON.stringify(r)); }
+function setHeader(show){ document.getElementById('appHeader').style.display=show?'':'none'; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- HOME ---------- */
+function renderHome(filter){
+  setHeader(true); state=null;
+  filter=(filter||'').trim().toLowerCase();
+  const match = a => !filter || a.name.toLowerCase().includes(filter) || a.short.toLowerCase().includes(filter) || a.kw.some(k=>k.includes(filter)) || a.region.toLowerCase().includes(filter);
+  let html = `<input class="aast-search" id="mipSearch" placeholder="Buscar algoritmo…" value="${esc(filter)}" oninput="renderHome(this.value); focusSearch();">`;
+  const rec = recents().map(id=>ALGO_BY_ID[id]).filter(Boolean);
+  if(!filter && rec.length){
+    html += `<div class="region-block"><div class="region-title">★ Recientes</div><div class="organ-grid">` +
+      rec.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(a.name)}</button>`).join('') + `</div></div>`;
+  }
+  let any=false;
+  REGIONS.forEach(region=>{
+    const list=ALGOS.filter(a=>a.region===region && match(a));
+    if(!list.length) return; any=true;
+    html += `<div class="region-block"><div class="region-title">${esc(region)}</div><div class="organ-grid">` +
+      list.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(a.name)}${a.validado===false?' <span style="color:#c99a12">•</span>':''}</button>`).join('') + `</div></div>`;
+  });
+  if(!any) html += `<p style="text-align:center;color:var(--et-muted);padding:30px 0;">Sin resultados</p>`;
+  html += (window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : '');
+  document.getElementById('main').innerHTML = html;
+}
+function focusSearch(){ const el=document.getElementById('mipSearch'); if(el){ const v=el.value; el.focus(); el.setSelectionRange(v.length,v.length);} }
+
+/* ---------- Abrir algoritmo ---------- */
+function openAlgo(id){
+  const algo=ALGO_BY_ID[id]; if(!algo)return;
+  state={ algo, nodeId:algo.start, ctx:{}, history:[], checks:{} };
+  sendEvent('mip_open',{ algo:id });
+  if(algo.type==='checklist') renderChecklist(); else renderNode();
+}
+
+/* ---------- Árbol de decisión ---------- */
+function renderNode(){
+  setHeader(false); window.scrollTo(0,0);
+  const algo=state.algo, node=algo.nodes[state.nodeId];
+  const back = state.history.length
+    ? `<button class="back-btn" onclick="nodeBack()">‹ Atrás</button>`
+    : `<button class="back-btn" onclick="renderHome('')">‹ Todos los algoritmos</button>`;
+  const opts = node.opts.map((o,i)=>`
+    <button class="organ-btn" style="text-align:left;padding:16px 18px;" onclick="pickOpt(${i})">
+      <span style="display:block;font-weight:700;">${esc(o.label)}</span>
+      ${o.sub?`<span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${esc(o.sub)}</span>`:''}
+    </button>`).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="back-row">${back}</div>
+    <div class="category-badge"><span>${esc(algo.name)}</span></div>
+    ${algo.validado===false?validarBanner():''}
+    <div class="question-text">${esc(node.q)}</div>
+    ${node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(node.help)}</p>`:''}
+    <div class="organ-grid" style="grid-template-columns:1fr;margin-top:6px;">${opts}</div>
+  `;
+}
+function pickOpt(i){
+  const node=state.algo.nodes[state.nodeId];
+  const o=node.opts[i];
+  state.history.push({ nodeId:state.nodeId, ctx:Object.assign({},state.ctx) });
+  Object.assign(state.ctx, o.set||{});
+  if(o.next==null){ finishTree(); } else { state.nodeId=o.next; renderNode(); }
+}
+function nodeBack(){
+  const prev=state.history.pop();
+  if(!prev){ renderHome(''); return; }
+  state.nodeId=prev.nodeId; state.ctx=prev.ctx;
+  renderNode();
+}
+function finishTree(){
+  const r=state.algo.resolve(state.ctx);
+  pushRecent(state.algo.id);
+  sendEvent('mip_result',{ algo:state.algo.id, level:r.level, title:r.title });
+  if(window.etFbAfterUse) etFbAfterUse();
+  renderResult(r);
+}
+
+/* ---------- Checklist ---------- */
+function renderChecklist(){
+  setHeader(false); window.scrollTo(0,0);
+  const algo=state.algo;
+  const items=algo.criteria.map(c=>`
+    <div class="adjust-toggle ${state.checks[c.id]?'on':''}" onclick="toggleCheck('${c.id}')" style="margin-bottom:10px;">
+      <div class="at-label">${esc(c.label)}</div><div class="at-switch"></div></div>`).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderHome('')">‹ Todos los algoritmos</button></div>
+    <div class="category-badge"><span>${esc(algo.name)}</span></div>
+    ${algo.validado===false?validarBanner():''}
+    <div class="question-text" style="margin-bottom:6px;">${esc(algo.name)}</div>
+    <p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(algo.intro)}</p>
+    ${items}
+    <button class="calc-btn" onclick="finishChecklist()">Ver resultado ›</button>
+  `;
+}
+function toggleCheck(id){ state.checks[id]=!state.checks[id]; renderChecklist(); }
+function finishChecklist(){
+  const n=state.algo.criteria.filter(c=>state.checks[c.id]).length;
+  const r=state.algo.resolve(n);
+  pushRecent(state.algo.id);
+  sendEvent('mip_result',{ algo:state.algo.id, level:r.level, n });
+  if(window.etFbAfterUse) etFbAfterUse();
+  renderResult(r);
+}
+
+/* ---------- Resultado ---------- */
+function validarBanner(){
+  return `<div class="calc-alert" style="background:#fff7e6;border-color:#c99a12;color:#7a5c00;">
+    ⚠ <b>Algoritmo por validar</b> — la lógica de este flujo está pendiente de confirmación clínica con el Dr. Ottolino. Úsalo con criterio.</div>`;
+}
+function renderResult(r){
+  window.scrollTo(0,0);
+  const algo=state.algo;
+  const color=LVL_COLOR[r.level]||'#00205C';
+  const backBtn = algo.type==='checklist'
+    ? `<button class="back-btn" onclick="renderChecklist()">‹ Corregir</button>`
+    : `<button class="back-btn" onclick="renderNode()">‹ Corregir</button>`;
+  document.getElementById('main').innerHTML = `
+    <div class="back-row">${backBtn}</div>
+    <div class="result-card bjorck" style="justify-content:center;text-align:center;">
+      <div class="result-eyebrow">${esc(algo.name)}</div>
+      <div class="question-text" style="font-size:1.5rem;line-height:1.25;margin:8px 0 4px;color:${color};">${esc(r.title)}</div>
+      <div class="result-detail" style="margin-top:10px;">${esc(r.detail)}</div>
+      ${r.warn?`<div class="calc-alert">${esc(r.warn)}</div>`:''}
+      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openAlgo('${r.goto.id}')">${esc(r.goto.label)}</button>`:''}
+      <div class="calc-formula"><b>Referencia:</b> ${esc(algo.ref)}</div>
+    </div>
+    <button class="restart-btn" onclick="renderHome('')">Otro algoritmo</button>
+  `;
+}
+
+/* ---------- Gate de especialidad (compartido) ---------- */
+function needSpec(){ try{ return !JSON.parse(localStorage.getItem('et_profile')||'{}').specialty; }catch(e){ return true; } }
+const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Medicina interna","Medicina general","Enfermería","Estudiante de medicina","Otra"];
+function renderSpecGate(){
+  setHeader(false);
+  const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${s}</button>`).join('');
+  document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+    <p class="spec-sub">Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.</p>
+    <div class="spec-grid">${chips}</div></div>`;
+}
+function pickSpec(s){
+  if(s===SPECS[SPECS.length-1]){
+    document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+      <input class="spec-input" id="so" maxlength="60" placeholder="Escríbela aquí… (ej: Veterinaria)" oninput="document.getElementById('sg').disabled=!this.value.trim()">
+      <button class="spec-continue" id="sg" disabled onclick="saveSpec(document.getElementById('so').value.trim())">Continuar ›</button></div>`;
+    setTimeout(()=>document.getElementById('so').focus(),100); return;
+  }
+  saveSpec(s);
+}
+function saveSpec(s){ if(!s)return; let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} p.specialty=s.slice(0,60); localStorage.setItem('et_profile',JSON.stringify(p)); sendEvent('profile_saved',{specialty:p.specialty}); renderHome(''); }
+
+/* ---------- Instalación PWA ---------- */
+let deferredPrompt=null;
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document);
+const IS_STANDALONE=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+function ensureBanner(){ if(document.getElementById('installBanner'))return; const b=document.createElement('div'); b.className='install-banner'; b.id='installBanner'; b.innerHTML='<span id="installText"></span><button id="installBtn"></button><button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>'; document.querySelector('.brand-ribbon').after(b); }
+function refreshInstallBanner(){ ensureBanner(); const banner=document.getElementById('installBanner'); if(IS_STANDALONE||localStorage.getItem('installDismissed')==='1'){ banner.classList.remove('show'); return; } const btn=document.getElementById('installBtn'); if(IS_IOS){ document.getElementById('installText').innerHTML='Guárdala en tu pantalla de inicio — funciona sin conexión.'; btn.style.display=''; btn.textContent='¿Cómo?'; btn.onclick=showIOSGuide; banner.classList.add('show'); } else if(deferredPrompt){ document.getElementById('installText').innerHTML='Instala esta app en tu pantalla de inicio, incluso sin conexión.'; btn.style.display=''; btn.textContent='Instalar'; btn.onclick=promptInstall; banner.classList.add('show'); } else { banner.classList.remove('show'); } }
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; refreshInstallBanner(); });
+window.addEventListener('appinstalled',()=>{ sendEvent('pwa_installed'); const b=document.getElementById('installBanner'); if(b)b.classList.remove('show'); });
+function promptInstall(){ if(!deferredPrompt)return; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; refreshInstallBanner(); }); }
+function dismissInstall(){ try{localStorage.setItem('installDismissed','1');}catch(e){} document.getElementById('installBanner').classList.remove('show'); }
+function showIOSGuide(){ let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} const steps=['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>']; ov.innerHTML=`<div class="sheet"><h2>Instalar en tu iPhone</h2>${steps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">Entendido</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
+
+/* ---------- Footer + init ---------- */
+document.getElementById('appFooter').innerHTML='Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>';
+if(window.etFbInit) etFbInit('mip','MIP');
+if(needSpec()){ renderSpecGate(); } else { renderHome(''); }
+sendEvent('app_open');
+refreshInstallBanner();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  const hadController=!!navigator.serviceWorker.controller; let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(refreshing||!hadController)return; refreshing=true; location.reload(); });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').then(reg=>{ reg.update(); setInterval(()=>reg.update(),60000); }).catch(()=>{}); });
+}
+</script>
+</body>
+</html>

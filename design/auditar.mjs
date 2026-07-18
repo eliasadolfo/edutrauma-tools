@@ -9,7 +9,7 @@
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
 
-const TOOLS = ['abdomen', 'aast', 'calculadoras'];
+const TOOLS = ['abdomen', 'aast', 'calculadoras', 'mip'];
 const problemas = [];
 const ok = [];
 
