@@ -1,6 +1,6 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'et-tools-hub-v16';
+const CACHE = 'et-tools-hub-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './logo-blanco-trim.png',
   './logo-miaa.png',
   './logo-dqt.png',
+  './logo-mip.png',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png'
