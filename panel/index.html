@@ -7,7 +7,7 @@
 <title>Panel — EduTrauma Tools</title>
 <style>
   :root{
-    --navy:#00205C; --red:#E02826;
+    --navy:#00205C; --red:#E02826; --data:#00205C;
     --ink:#111c33; --muted:#5b6b8c; --line:#e6ebf3; --bg:#eef2f8; --card:#ffffff; --wash:#f5f7fb;
     --go:#1F7A5C; --go-bg:#e9f6f1; --warn:#B7791F; --warn-bg:#fdf6e7; --stop:#C0392B; --stop-bg:#fdecea;
     --r:16px; --r-sm:11px;
@@ -16,7 +16,10 @@
   }
   @media (prefers-color-scheme: dark){
     :root{ --ink:#e9eef7; --muted:#93a1bd; --line:#243149; --bg:#0a1020; --card:#131c30; --wash:#0f1728;
-      --go-bg:#0f2a22; --warn-bg:#2a2211; --stop-bg:#2a1512; }
+      --go-bg:#0f2a22; --warn-bg:#2a2211; --stop-bg:#2a1512;
+      /* colores de datos y estado propios del modo oscuro — el navy de marca no contrasta sobre fondo oscuro */
+      --data:#7ca4f4; --go:#43bd8e; --warn:#e3a63c; --stop:#f2705f; }
+    .login-btn{ background:var(--data); color:#0a1020; }
   }
   *{box-sizing:border-box;}
   body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.5; -webkit-font-smoothing:antialiased; }
@@ -66,7 +69,7 @@
   .bar-row{ display:grid; grid-template-columns:130px 1fr 46px; align-items:center; gap:12px; padding:7px 0; font-size:.88rem; }
   .bar-row .bn{ font-weight:700; }
   .bar-track{ height:12px; border-radius:6px; background:var(--wash); overflow:hidden; }
-  .bar-fill{ height:100%; border-radius:6px; background:var(--navy); }
+  .bar-fill{ height:100%; border-radius:6px; background:var(--data); }
   .bar-row .bv{ font-variant-numeric:tabular-nums; font-weight:800; text-align:right; }
 
   /* ratings */
@@ -116,8 +119,8 @@
   .login-h{ font-size:1.15rem; font-weight:800; margin:12px 0 4px; color:var(--ink); }
   .login-p{ font-size:.88rem; color:var(--muted); margin:0 0 20px; }
   .login-input{ width:100%; padding:12px 14px; font-size:1rem; border:1px solid var(--line); border-radius:var(--r-sm); background:var(--wash); color:var(--ink); font-family:inherit; margin-bottom:12px; }
-  .login-input:focus{ outline:2px solid var(--navy); border-color:transparent; }
-  .login-btn{ width:100%; padding:12px; font-size:.95rem; font-weight:800; color:#fff; background:var(--navy); border:none; border-radius:var(--r-sm); cursor:pointer; font-family:inherit; }
+  .login-input:focus{ outline:2px solid var(--data); border-color:transparent; }
+  .login-btn{ width:100%; padding:12px; font-size:.95rem; font-weight:800; color:#fff; background:var(--data); border:none; border-radius:var(--r-sm); cursor:pointer; font-family:inherit; }
   .login-btn:active{ transform:scale(.98); }
   .login-err{ margin-top:14px; font-size:.85rem; color:var(--stop); font-weight:600; }
 
@@ -163,18 +166,18 @@ function chart(data){
   const pts=data.map((d,i)=>[X(i),Y(d.users)]);
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
   const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${padT+ph} L${pts[0][0].toFixed(1)} ${padT+ph} Z`;
-  const dots=data.map((d,i)=>`<circle cx="${pts[i][0].toFixed(1)}" cy="${pts[i][1].toFixed(1)}" r="3" fill="var(--navy)"><title>${d.day}: ${d.users} ${d.users===1?'usuario':'usuarios'}</title></circle>`).join('');
+  const dots=data.map((d,i)=>`<circle cx="${pts[i][0].toFixed(1)}" cy="${pts[i][1].toFixed(1)}" r="3" fill="var(--data)"><title>${d.day}: ${d.users} ${d.users===1?'usuario':'usuarios'}</title></circle>`).join('');
   const last=data.length-1, peakI=vals.indexOf(maxV), tv=data[last].users;
   let labels='';
   if(maxV>0 && peakI!==last) labels+=`<text x="${X(peakI).toFixed(1)}" y="${(Y(maxV)-9).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink)">${maxV}</text>`;
-  labels+=`<text x="${X(last).toFixed(1)}" y="${(Y(tv)-11).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--navy)">${tv}</text>`;
-  const todayDot=`<circle cx="${X(last).toFixed(1)}" cy="${Y(tv).toFixed(1)}" r="4.5" fill="var(--navy)" stroke="var(--card)" stroke-width="2"/>`;
+  labels+=`<text x="${X(last).toFixed(1)}" y="${(Y(tv)-11).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="var(--data)">${tv}</text>`;
+  const todayDot=`<circle cx="${X(last).toFixed(1)}" cy="${Y(tv).toFixed(1)}" r="4.5" fill="var(--data)" stroke="var(--card)" stroke-width="2"/>`;
   const midI=Math.floor(last/2);
   const xlab=[[0,data[0].day.slice(5),'start'],[midI,data[midI].day.slice(5),'middle'],[last,'hoy','end']].map(([i,t,a])=>`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="${a}" font-size="12" fill="var(--muted)">${t}</text>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;" font-family="inherit">
     ${grid}
-    <path d="${area}" fill="var(--navy)" opacity="0.10"/>
-    <path d="${line}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${area}" fill="var(--data)" opacity="0.10"/>
+    <path d="${line}" fill="none" stroke="var(--data)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     ${dots}${todayDot}${labels}${xlab}
   </svg>`;
 }
