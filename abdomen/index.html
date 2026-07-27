@@ -125,8 +125,20 @@ const I18N = {
     iosDone: "Entendido",
     hubLink: "Ver todas las herramientas ›",
     fbLink: "Danos tu opinión",
+    menuTitle: "Abdomen Abierto — MIAA",
+    menuSubtitle: "Algoritmos del curso MIAA para el manejo del abdomen abierto. Toca uno.",
+    menuAll: "‹ Todos los algoritmos",
+    seeConducta: "Ver conducta según este grado ›",
+    menuAlgos: [
+      { id:"decision", title:"¿Cuándo dejar el abdomen abierto?", desc:"Decisión en pabellón: 6 preguntas + grado de Björck." },
+      { id:"conducta", title:"Conducta según grado de Björck", desc:"Del grado 1A al 4 (FEA): qué hacer, paso a paso." },
+      { id:"atb", title:"Antibióticos en abdomen abierto", desc:"Profilácticos vs empíricos, cultivos y descalamiento." },
+      { id:"nutri", title:"Nutrición en abdomen abierto", desc:"NE temprana, NP y metas de proteínas y calorías." },
+      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensión intraabdominal y síndrome compartimental (WSACS)." },
+      { id:"hiamed", title:"Manejo médico escalonado de la HIA", desc:"4 pasos × 5 dominios para reducir la PIA (WSACS)." }
+    ],
     htmlLang: "es",
-    docTitle: "¿Dejar el abdomen abierto? — EduTrauma",
+    docTitle: "Abdomen Abierto (MIAA) — EduTrauma",
     ribbon: "Herramientas Clínicas",
     title: "¿Cuándo dejar el abdomen abierto?",
     subtitle: "Cerrar siempre que sea seguro; dejar abierto solo si el cierre aumenta el riesgo o impide la estrategia terapéutica.",
@@ -216,8 +228,20 @@ const I18N = {
     iosDone: "Got it",
     hubLink: "See all tools ›",
     fbLink: "Give us feedback",
+    menuTitle: "Open Abdomen — MIAA",
+    menuSubtitle: "MIAA course algorithms for open abdomen management. Tap one. (New algorithms are in Spanish for now.)",
+    menuAll: "‹ All algorithms",
+    seeConducta: "See management for this grade ›",
+    menuAlgos: [
+      { id:"decision", title:"When to leave the abdomen open?", desc:"OR decision: 6 questions + Björck grade." },
+      { id:"conducta", title:"Management by Björck grade", desc:"From grade 1A to 4 (EAF): what to do, step by step." },
+      { id:"atb", title:"Antibiotics in the open abdomen", desc:"Prophylactic vs empirical, cultures and de-escalation." },
+      { id:"nutri", title:"Nutrition in the open abdomen", desc:"Early EN, PN and protein/calorie targets." },
+      { id:"hia", title:"IAH / ACS management", desc:"Intra-abdominal hypertension and compartment syndrome (WSACS)." },
+      { id:"hiamed", title:"Stepwise medical management of IAH", desc:"4 steps × 5 domains to reduce IAP (WSACS)." }
+    ],
     htmlLang: "en",
-    docTitle: "Leave the abdomen open? — EduTrauma",
+    docTitle: "Open Abdomen (MIAA) — EduTrauma",
     ribbon: "Clinical Tools",
     title: "When to leave the abdomen open?",
     subtitle: "Close whenever it is safe; leave open only if closure increases risk or prevents the therapeutic strategy.",
@@ -307,8 +331,20 @@ const I18N = {
     iosDone: "Entendi",
     hubLink: "Ver todas as ferramentas ›",
     fbLink: "Dê sua opinião",
+    menuTitle: "Abdome Aberto — MIAA",
+    menuSubtitle: "Algoritmos do curso MIAA para o manejo do abdome aberto. Toque em um. (Os algoritmos novos estão em espanhol por enquanto.)",
+    menuAll: "‹ Todos os algoritmos",
+    seeConducta: "Ver conduta segundo este grau ›",
+    menuAlgos: [
+      { id:"decision", title:"Quando deixar o abdome aberto?", desc:"Decisão no centro cirúrgico: 6 perguntas + grau de Björck." },
+      { id:"conducta", title:"Conduta segundo o grau de Björck", desc:"Do grau 1A ao 4 (FEA): o que fazer, passo a passo." },
+      { id:"atb", title:"Antibióticos no abdome aberto", desc:"Profiláticos vs empíricos, culturas e descalonamento." },
+      { id:"nutri", title:"Nutrição no abdome aberto", desc:"NE precoce, NP e metas de proteínas e calorias." },
+      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensão intra-abdominal e síndrome compartimental (WSACS)." },
+      { id:"hiamed", title:"Manejo médico escalonado da HIA", desc:"4 passos × 5 domínios para reduzir a PIA (WSACS)." }
+    ],
     htmlLang: "pt-BR",
-    docTitle: "Deixar o abdome aberto? — EduTrauma",
+    docTitle: "Abdome Aberto (MIAA) — EduTrauma",
     ribbon: "Ferramentas Clínicas",
     title: "Quando deixar o abdome aberto?",
     subtitle: "Fechar sempre que for seguro; deixar aberto apenas se o fechamento aumentar o risco ou impedir a estratégia terapêutica.",
@@ -421,7 +457,7 @@ function setLang(lang){
     document.getElementById('startRules').innerHTML = startRulesHTML(t);
     document.getElementById('startBtn').textContent = t.startBtn;
   } else {
-    renderStart();
+    renderMenu();
   }
 }
 
@@ -443,6 +479,396 @@ function applyStaticTexts(){
   document.getElementById('installBtn').textContent = t.installBtn;
 }
 
+/* ============ Motor de algoritmos MIAA ============
+   Mismo motor que /mip/: 'tree' (nodos encadenados, next:null = terminal → resolve(ctx))
+   y 'steps' (guía por pasos). Contenido en español (fuente: flujogramas del curso MIAA).
+   Resultado: { level:'ok|warn|alert|info', title, detail, warn?, list?, goto? }
+   =================================================== */
+const MIAA_ALGOS = {
+  /* ---- Conducta según grado de Björck ---- */
+  conducta: {
+    name:'Conducta según grado de Björck',
+    ref:'Flujograma MIAA — Conducta según grado de Björck (curso MIAA)',
+    type:'tree', start:'fija',
+    nodes:{
+      fija:{ q:'¿Hay adherencia o fijación de las vísceras a la pared?',
+        help:'Define la vía: sin fijación (grados 1) permite cierre precoz; con fijación (grados 2) exige terapia de presión negativa primero.',
+        opts:[
+          { label:'No — sin adherencia ni fijación', sub:'Grado 1', set:{g:1}, next:'estado' },
+          { label:'Sí — con adherencia o fijación', sub:'Grado 2', set:{g:2}, next:'estado' },
+          { label:'Abdomen congelado (frozen)', sub:'Grado 3', set:{g:3}, next:'estado3' },
+          { label:'Fístula enteroatmosférica (FEA)', sub:'Grado 4', set:{g:4}, next:null }
+        ]},
+      estado:{ q:'¿En qué estado está la cavidad?', opts:[
+        { label:'Limpia', sub:'A', set:{e:'A'}, next:null },
+        { label:'Contaminada', sub:'B', set:{e:'B'}, next:null },
+        { label:'Con fístula', sub:'C', set:{e:'C'}, next:null }
+      ]},
+      estado3:{ q:'¿En qué estado está la cavidad?', opts:[
+        { label:'Limpia', sub:'3A', set:{e:'A'}, next:null },
+        { label:'Contaminada', sub:'3B', set:{e:'B'}, next:null }
+      ]}
+    },
+    resolve(c){
+      const CIERRE='Cierre primario de la pared y/o reconstrucción de la pared.';
+      if(c.g===1){
+        if(c.e==='A') return { level:'ok', title:'Grado 1A · Cierre en 1 paso',
+          detail:'Sin fijación y cavidad limpia: se puede cerrar de entrada.',
+          list:['<b>Paso 1:</b> '+CIERRE] };
+        if(c.e==='B') return { level:'ok', title:'Grado 1B · ABThera® → cierre',
+          detail:'Sin fijación, cavidad contaminada. Vía SCA (cierre abdominal secuencial).',
+          list:['<b>Paso 1:</b> Terapia ABThera® (presión negativa).','<b>Paso 2:</b> '+CIERRE] };
+        return { level:'warn', title:'Grado 1C · Cirugía → ABThera® → cierre',
+          detail:'Sin fijación, con fístula. La cirugía depende del tipo de fístula.',
+          list:['<b>Paso 1:</b> Cirugía* según el tipo de fístula.','<b>Paso 2:</b> Terapia ABThera®.','<b>Paso 3:</b> '+CIERRE],
+          warn:'* La conducta quirúrgica depende del tipo de fístula.' };
+      }
+      if(c.g===2){
+        if(c.e==='A') return { level:'ok', title:'Grado 2A · Cierre en 1 paso',
+          detail:'Con adherencia pero cavidad limpia: cierre o reconstrucción de la pared.',
+          list:['<b>Paso 1:</b> '+CIERRE] };
+        if(c.e==='B') return { level:'ok', title:'Grado 2B · Terapia V.A.C.® → cierre',
+          detail:'Con adherencia y contaminación: presión negativa antes del cierre.',
+          list:['<b>Paso 1:</b> Terapia V.A.C.®','<b>Paso 2:</b> '+CIERRE] };
+        return { level:'warn', title:'Grado 2C · V.A.C.® → cirugía → cierre',
+          detail:'Con adherencia y fístula.',
+          list:['<b>Paso 1:</b> Terapia V.A.C.®','<b>Paso 2:</b> Cirugía* según el tipo de fístula.','<b>Paso 3:</b> '+CIERRE],
+          warn:'* La conducta quirúrgica depende del tipo de fístula.' };
+      }
+      if(c.g===3){
+        if(c.e==='A') return { level:'warn', title:'Grado 3A · Curaciones → cierre',
+          detail:'Abdomen congelado limpio: no se fuerza el cierre, se maneja con curaciones.',
+          list:['<b>Paso 1:</b> Curaciones (dressings).','<b>Paso 2:</b> '+CIERRE] };
+        return { level:'alert', title:'Grado 3B · Cirugía → curaciones → reconstrucción',
+          detail:'Abdomen congelado contaminado.',
+          list:['<b>Paso 1:</b> Cirugía.','<b>Paso 2:</b> Curaciones (dressings).','<b>Paso 3:</b> Reconstrucción de la pared.'] };
+      }
+      return { level:'alert', title:'Grado 4 · Fístula enteroatmosférica (FEA)',
+        detail:'El escenario más complejo: manejo dirigido de la fístula.',
+        list:['<b>Paso 1:</b> Terapia V.A.C.®','<b>Paso 2:</b> Cirugía* + manejo de la fístula (aislamiento, dispositivos, control del efluente).','<b>Paso 3:</b> Cierre primario de la pared y/o reconstrucción.'],
+        warn:'* La conducta quirúrgica depende del tipo de fístula.' };
+    }
+  },
+
+  /* ---- Antibióticos ---- */
+  atb: {
+    name:'Antibióticos en abdomen abierto',
+    ref:'Flujograma MIAA — Antibióticos en abdomen abierto (curso MIAA)',
+    type:'tree', start:'infeccioso',
+    nodes:{
+      infeccioso:{ q:'¿El abdomen abierto es inicialmente INFECCIOSO?',
+        help:'Es decir, si el origen del abdomen abierto fue un foco infeccioso (peritonitis, perforación, sepsis abdominal).',
+        opts:[
+          { label:'Sí, infeccioso', set:{inf:true}, next:'mejoria_emp' },
+          { label:'No, no infeccioso', set:{inf:false}, next:'mejoria_prof' }
+        ]},
+      mejoria_prof:{ q:'Bajo antibióticos "profilácticos" y vigilando el posible foco: ¿hay mejoría clínica?',
+        opts:[
+          { label:'Sí, mejora', set:{out:'prof_ok'}, next:null },
+          { label:'No mejora', set:{}, next:'revalorar' }
+        ]},
+      revalorar:{ q:'Revalore el foco infeccioso con estudios. ¿Qué encuentra?',
+        help:'Considere también otros factores de riesgo (por ejemplo, infección por hongos).',
+        opts:[
+          { label:'Nuevo foco infeccioso extraabdominal', set:{out:'extra'}, next:null },
+          { label:'Foco infeccioso abdominal no controlado', set:{out:'no_controlado'}, next:null }
+        ]},
+      mejoria_emp:{ q:'Iniciados los antibióticos empíricos, con control del foco y toma de cultivos, y ajustados según cultivo: ¿hay mejoría clínica?',
+        opts:[
+          { label:'Sí, mejora', set:{out:'emp_ok'}, next:null },
+          { label:'No mejora', set:{out:'emp_no'}, next:null }
+        ]}
+    },
+    resolve(c){
+      const CIERRE='Mantener las estrategias de abdomen abierto hasta lograr el CIERRE DEFINITIVO.';
+      switch(c.out){
+        case 'prof_ok': return { level:'ok', title:'Mantener la conducta',
+          detail:'Sin foco infeccioso inicial y con mejoría clínica.',
+          list:['Antibióticos "profilácticos" con vigilancia del posible foco.','Mantener estrategias de abdomen abierto.','Objetivo: '+CIERRE] };
+        case 'extra': return { level:'warn', title:'Nuevo foco infeccioso EXTRAABDOMINAL',
+          detail:'La falta de mejoría se explica fuera del abdomen: trate ese foco.',
+          list:['Trate el foco extraabdominal identificado.','Considere otros factores de riesgo (p. ej. hongos).','Mantener estrategias de abdomen abierto hasta el cierre definitivo.'] };
+        case 'no_controlado': return { level:'alert', title:'Foco abdominal NO controlado',
+          detail:'Vuelva al control del foco: reintervención, drenaje y toma de cultivos.',
+          list:['Control del foco + toma de cultivos.','Iniciar/ajustar antibióticos según cultivo.','Reevaluar la mejoría clínica.'],
+          warn:'Este es el punto crítico del algoritmo: sin control del foco, ningún antibiótico resuelve el cuadro.' };
+        case 'emp_ok': return { level:'ok', title:'Mantener ATB o descalar',
+          detail:'Con foco controlado, cultivos tomados y mejoría clínica: mantener o descalar según criterio clínico.',
+          list:['Mantener o descalar el antibiótico según criterio clínico y cultivos.','Mantener estrategias de abdomen abierto.','Objetivo: '+CIERRE] };
+        default: return { level:'alert', title:'Volver al control del foco',
+          detail:'Sin mejoría pese a antibióticos según cultivo: el foco no está controlado.',
+          list:['Reintervención para control del foco + nuevos cultivos.','Ajustar antibióticos según el nuevo cultivo.','Considere otros factores de riesgo (p. ej. hongos).'],
+          warn:'Sin control del foco, ningún esquema antibiótico resuelve el cuadro.' };
+      }
+    }
+  },
+
+  /* ---- Nutrición ---- */
+  nutri: {
+    name:'Nutrición en abdomen abierto',
+    ref:'Flujograma MIAA — Nutrición en abdomen abierto (curso MIAA)',
+    type:'tree', start:'tgi',
+    nodes:{
+      tgi:{ q:'¿Funciona el tracto gastrointestinal (TGI)? ¿Puedo usarlo?',
+        opts:[
+          { label:'Sí, funciona', sub:'→ Nutrición enteral temprana', set:{}, next:'tolera' },
+          { label:'No funciona', set:{}, next:'desnutrido' }
+        ]},
+      tolera:{ q:'Con nutrición enteral temprana: ¿tolera más del 60% de sus requerimientos después de 2 días?',
+        opts:[
+          { label:'Sí, tolera >60%', set:{np:false}, next:'oral' },
+          { label:'No tolera >60%', sub:'→ Iniciar NP suplementaria', set:{np:true}, next:'oral' }
+        ]},
+      oral:{ q:'¿El paciente es capaz de tolerar la vía oral?',
+        opts:[
+          { label:'Sí', set:{out:'oral'}, next:null },
+          { label:'No', set:{out:'sigue_np'}, next:null }
+        ]},
+      desnutrido:{ q:'¿El paciente está desnutrido o en riesgo de desnutrición?',
+        help:'NRS 2002 ≤3 · NUTRIC ≤5',
+        opts:[
+          { label:'Sí, desnutrido o en riesgo', set:{}, next:'tgi_mejoro_np' },
+          { label:'No', set:{}, next:'prob3d' }
+        ]},
+      prob3d:{ q:'¿Hay probabilidad de iniciar nutrición enteral en 3 días?',
+        opts:[
+          { label:'Sí', sub:'Evaluación diaria para iniciar NE', set:{}, next:'tgi_mejoro_ev' },
+          { label:'No', sub:'→ Iniciar nutrición parenteral', set:{}, next:'tgi_mejoro_np' }
+        ]},
+      tgi_mejoro_ev:{ q:'¿Mejoró la función del TGI?',
+        opts:[
+          { label:'Sí', set:{out:'ne_temprana'}, next:null },
+          { label:'No', set:{out:'optimizar'}, next:null }
+        ]},
+      tgi_mejoro_np:{ q:'Con nutrición parenteral iniciada: ¿mejoró la función del TGI?',
+        opts:[
+          { label:'Sí', set:{out:'destete_np'}, next:null },
+          { label:'No', set:{out:'optimizar'}, next:null }
+        ]}
+    },
+    resolve(c){
+      const METAS=['<b>Proteínas:</b> 1.5–2.5 g/kg/día, <b>+15–30 g adicionales por cada litro de exudado peritoneal</b>.','<b>Calorías:</b> 25–30 cal/kg/día.'];
+      const npNota = c.np ? ['Mantener la NP suplementaria iniciada por tolerancia <60%.'] : [];
+      switch(c.out){
+        case 'oral': return { level:'ok', title:'Iniciar dieta a tolerancia y suplementos orales',
+          detail:'El TGI funciona y el paciente tolera la vía oral.',
+          list:[...npNota,'Iniciar dieta a tolerancia + suplementos orales.',...METAS] };
+        case 'sigue_np': return { level:'warn', title:'Continuar nutrición parenteral',
+          detail:'El TGI funciona pero el paciente aún no tolera la vía oral.',
+          list:['Continuar NP mientras no tolere la vía oral.','Optimizar el soporte nutricional (proteínas, energía y micronutrientes).',...METAS] };
+        case 'ne_temprana': return { level:'ok', title:'Iniciar nutrición enteral temprana',
+          detail:'Mejoró la función del TGI: aproveche la vía enteral.',
+          list:['Iniciar NE temprana.','Reevaluar tolerancia (>60% de requerimientos a los 2 días).',...METAS] };
+        case 'destete_np': return { level:'ok', title:'Iniciar NE y destete de la NP',
+          detail:'Mejoró la función del TGI con el paciente en parenteral.',
+          list:['Iniciar nutrición enteral y destetar progresivamente la NP.',...METAS] };
+        default: return { level:'warn', title:'Optimizar el soporte nutricional',
+          detail:'El TGI no ha mejorado: asegure aporte suficiente de proteínas, energía y micronutrientes.',
+          list:['Optimizar el soporte para aportar suficientes proteínas, energía y micronutrientes.',...METAS] };
+      }
+    }
+  },
+
+  /* ---- HIA / SCA (WSACS) ---- */
+  hia: {
+    name:'Manejo de HIA / SCA',
+    ref:'WSACS — IAH/ACS Management Algorithm (Intensive Care Med 2013;7:1190-1206)',
+    type:'tree', start:'pia',
+    nodes:{
+      pia:{ q:'¿La presión intraabdominal (PIA) es ≥ 12 mmHg?',
+        help:'PIA ≥12 mmHg define hipertensión intraabdominal (HIA).',
+        opts:[
+          { label:'Sí, PIA ≥ 12 mmHg', sub:'El paciente tiene HIA', set:{}, next:'pia20' },
+          { label:'No, PIA < 12 mmHg', set:{out:'resuelta'}, next:null }
+        ]},
+      pia20:{ q:'¿PIA > 20 mmHg CON falla orgánica nueva?',
+        help:'Esa combinación define síndrome compartimental abdominal (SCA).',
+        opts:[
+          { label:'Sí', sub:'El paciente tiene SCA', set:{}, next:'primario' },
+          { label:'No', set:{out:'medico'}, next:null }
+        ]},
+      primario:{ q:'¿Es un SCA primario?',
+        help:'Primario: por lesión o enfermedad de la región abdomino-pélvica. Secundario: de origen extraabdominal. Recurrente: reaparece tras tratamiento previo.',
+        opts:[
+          { label:'Sí, SCA primario', set:{out:'descompresion'}, next:null },
+          { label:'No — secundario o recurrente', set:{}, next:'progresiva' }
+        ]},
+      progresiva:{ q:'¿PIA > 20 mmHg con falla orgánica PROGRESIVA?',
+        opts:[
+          { label:'Sí', set:{out:'descompresion'}, next:null },
+          { label:'No', set:{out:'medico'}, next:null }
+        ]}
+    },
+    resolve(c){
+      switch(c.out){
+        case 'resuelta': return { level:'ok', title:'La HIA se ha resuelto',
+          detail:'PIA < 12 mmHg de forma consistente.',
+          list:['Disminuir la frecuencia de las mediciones de PIA.','Observar al paciente por deterioro clínico.'] };
+        case 'descompresion': return { level:'alert', title:'Descompresión abdominal quirúrgica',
+          detail:'Identifique y trate la etiología subyacente del SCA.',
+          list:['Realizar o revisar la descompresión abdominal con cierre temporal según sea necesario para reducir la PIA <i>(Grado 2D)</i>.','Continuar las medidas médicas para reducir la PIA <i>(Grado 1C)</i>.','Medir la PIA al menos cada 4 h mientras el paciente esté crítico <i>(Grado 1C)</i>.','Reanimación balanceada de precarga, contractilidad y poscarga — <b>evitar la reanimación excesiva con fluidos</b> <i>(Grado 2D)</i>.'],
+          goto:{ id:'hiamed', label:'Ver manejo médico escalonado ›' } };
+        default: return { level:'warn', title:'Tratamiento médico para reducir la PIA',
+          detail:'Aún no hay indicación de descompresión quirúrgica: escale las medidas médicas.',
+          list:['Iniciar tratamiento médico para reducir la PIA <i>(Grado 1C)</i>.','<b>Evitar la reanimación excesiva con fluidos</b> y optimizar la perfusión de órganos.','Medir la PIA con mediciones seriadas al menos cada 4 h mientras el paciente esté crítico <i>(Grado 1C)</i>.','Reevaluar: si aparece PIA >20 mmHg con falla orgánica nueva, el paciente tiene SCA.'],
+          goto:{ id:'hiamed', label:'Ver manejo médico escalonado ›' } };
+      }
+    }
+  },
+
+  /* ---- Manejo médico escalonado (WSACS) ---- */
+  hiamed: {
+    name:'Manejo médico escalonado de la HIA',
+    ref:'WSACS — IAH/ACS Medical Management Algorithm (Intensive Care Med 2013;7:1190-1206)',
+    type:'steps',
+    intro:'PIA ≥ 12 mmHg: inicie el manejo médico <i>(Grado 1C)</i>. Mida la PIA al menos cada 4–6 h o de forma continua, y titule la terapia para mantener la PIA ≤ 15 mmHg <i>(Grado 1C)</i>.',
+    note:'Aplique las intervenciones de forma <b>escalonada</b>: si no hay respuesta en un paso, escale al siguiente. La elección depende de la etiología y de la situación clínica de cada paciente.',
+    steps:[
+      { n:'Paso 1', items:[
+        ['Evacuar contenido intraluminal','Sonda nasogástrica y/o rectal · Agentes gastro/colo-procinéticos <i>(Grado 2D)</i>'],
+        ['Evacuar lesiones ocupantes','Ecografía abdominal para identificar lesiones'],
+        ['Mejorar la distensibilidad de la pared','Sedación y analgesia adecuadas <i>(Grado 1D)</i> · Retirar vendajes constrictivos y escaras abdominales'],
+        ['Optimizar la administración de fluidos','Evitar la reanimación excesiva con fluidos <i>(Grado 2C)</i> · Balance hídrico cero a negativo al día 3 <i>(Grado 2C)</i>'],
+        ['Optimizar la perfusión','Reanimación guiada por objetivos']
+      ]},
+      { n:'Paso 2', items:[
+        ['Evacuar contenido intraluminal','Minimizar la nutrición enteral · Administrar enemas <i>(Grado 1D)</i>'],
+        ['Evacuar lesiones ocupantes','TC abdominal para identificar lesiones · Drenaje percutáneo con catéter <i>(Grado 2C)</i>'],
+        ['Mejorar la distensibilidad de la pared','Considerar posición de Trendelenburg invertida'],
+        ['Optimizar la administración de fluidos','Reanimar con fluidos hipertónicos o coloides · Retirar fluidos con diuresis juiciosa una vez estable'],
+        ['Optimizar la perfusión','Monitorización hemodinámica para guiar la reanimación']
+      ]},
+      { n:'Paso 3', items:[
+        ['Evacuar contenido intraluminal','Considerar descompresión colonoscópica <i>(Grado 1D)</i> · Suspender la nutrición enteral'],
+        ['Evacuar lesiones ocupantes','Considerar evacuación quirúrgica de las lesiones <i>(Grado 1D)</i>'],
+        ['Mejorar la distensibilidad de la pared','Considerar bloqueo neuromuscular <i>(Grado 1D)</i>'],
+        ['Optimizar la administración de fluidos','Considerar hemodiálisis / ultrafiltración']
+      ]},
+      { n:'Paso 4', alert:true, items:[
+        ['Refractario al manejo médico','Si la PIA > 20 mmHg y hay disfunción o falla orgánica nueva, la HIA/SCA es <b>refractaria al manejo médico</b>: considere firmemente la <b>descompresión abdominal quirúrgica</b> <i>(Grado 1D)</i>.']
+      ]}
+    ]
+  }
+};
+const MIAA_LVL = { ok:'#1F7A5C', warn:'#B7791F', alert:'#E02826', info:'#00205C' };
+let algoState = null;
+
+function renderMenu(){
+  setFlow(false);
+  const t = T();
+  document.getElementById('appTitle').textContent = t.menuTitle;
+  document.getElementById('appSubtitle').textContent = t.menuSubtitle;
+  const cards = t.menuAlgos.map(a => `
+    <button class="organ-btn" style="text-align:left;padding:15px 17px;width:100%;margin-bottom:10px;" onclick="openMiaa('${a.id}')">
+      <span style="display:block;font-weight:700;">${a.title}</span>
+      <span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${a.desc}</span>
+    </button>`).join('');
+  document.getElementById('main').innerHTML = cards +
+    (window.etToolFooter ? etToolFooter(t.hubLink, t.fbLink) : '');
+}
+
+function openMiaa(id){
+  if(id === 'decision'){ renderStart(); return; }
+  const algo = MIAA_ALGOS[id];
+  if(!algo) return;
+  const t0 = T(); // restaura la cabecera del contenedor (el algoritmo de decisión pone la suya)
+  document.getElementById('appTitle').textContent = t0.menuTitle;
+  document.getElementById('appSubtitle').textContent = t0.menuSubtitle;
+  algoState = { id, algo, nodeId:algo.start, ctx:{}, hist:[] };
+  sendEvent('miaa_open', { algo:id });
+  if(algo.type === 'steps') renderMiaaSteps(); else renderMiaaNode();
+}
+
+function miaaHeader(){
+  const t = T();
+  const back = algoState.hist.length
+    ? `<button class="back-btn" onclick="miaaBack()">${t.backLast}</button>`
+    : `<button class="back-btn" onclick="renderMenu()">${t.menuAll}</button>`;
+  return `<div class="back-row">${back}</div>
+    <div class="category-badge"><span>${algoState.algo.name}</span></div>`;
+}
+
+function renderMiaaNode(){
+  setFlow(false); window.scrollTo(0,0);
+  const node = algoState.algo.nodes[algoState.nodeId];
+  const opts = node.opts.map((o,i)=>`
+    <button class="organ-btn" style="text-align:left;padding:16px 18px;width:100%;margin-bottom:10px;" onclick="miaaPick(${i})">
+      <span style="display:block;font-weight:700;">${o.label}</span>
+      ${o.sub?`<span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${o.sub}</span>`:''}
+    </button>`).join('');
+  document.getElementById('main').innerHTML = miaaHeader() +
+    `<div class="question-text">${node.q}</div>` +
+    (node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 10px;">${node.help}</p>`:'') +
+    `<div style="margin-top:6px;">${opts}</div>`;
+}
+
+function miaaPick(i){
+  const node = algoState.algo.nodes[algoState.nodeId];
+  const o = node.opts[i];
+  algoState.hist.push({ nodeId:algoState.nodeId, ctx:Object.assign({},algoState.ctx) });
+  Object.assign(algoState.ctx, o.set||{});
+  if(o.next == null){
+    const r = algoState.algo.resolve(algoState.ctx);
+    sendEvent('miaa_result', { algo:algoState.id, level:r.level, title:r.title });
+    if(window.etFbAfterUse) etFbAfterUse();
+    renderMiaaResult(r);
+  } else {
+    algoState.nodeId = o.next;
+    renderMiaaNode();
+  }
+}
+
+function miaaBack(){
+  const prev = algoState.hist.pop();
+  if(!prev){ renderMenu(); return; }
+  algoState.nodeId = prev.nodeId; algoState.ctx = prev.ctx;
+  renderMiaaNode();
+}
+
+function renderMiaaResult(r){
+  window.scrollTo(0,0);
+  const t = T();
+  const color = MIAA_LVL[r.level] || '#00205C';
+  const list = r.list ? `<div style="text-align:left;margin-top:14px;">` + r.list.map(x=>
+    `<div class="rule-item"><div class="rule-dot"></div><div>${x}</div></div>`).join('') + `</div>` : '';
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderMiaaNode()">${t.backLast}</button></div>
+    <div class="result-card bjorck" style="justify-content:center;text-align:center;">
+      <div class="result-eyebrow">${algoState.algo.name}</div>
+      <div class="question-text" style="font-size:1.45rem;line-height:1.25;margin:8px 0 4px;color:${color};">${r.title}</div>
+      <div class="result-detail" style="margin-top:8px;">${r.detail}</div>
+      ${list}
+      ${r.warn?`<div class="calc-alert">${r.warn}</div>`:''}
+      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openMiaa('${r.goto.id}')">${r.goto.label}</button>`:''}
+      <div class="calc-formula"><b>Referencia:</b> ${algoState.algo.ref}</div>
+    </div>
+    <button class="restart-btn" onclick="renderMenu()">${t.menuAll}</button>
+  `;
+}
+
+function renderMiaaSteps(){
+  setFlow(false); window.scrollTo(0,0);
+  const t = T(); const a = algoState.algo;
+  const blocks = a.steps.map(s=>`
+    <div class="region-block">
+      <div class="region-title" ${s.alert?'style="color:#E02826"':''}>${s.n}</div>
+      ${s.items.map(([h,d])=>`<div class="pet" style="background:var(--et-bg);border:1px solid var(--et-line);border-radius:11px;padding:12px 14px;margin-bottom:8px;">
+        <div style="font-weight:700;font-size:0.92rem;">${h}</div>
+        <div style="font-size:0.86rem;color:var(--et-muted);margin-top:3px;line-height:1.5;">${d}</div></div>`).join('')}
+    </div>`).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderMenu()">${t.menuAll}</button></div>
+    <div class="category-badge"><span>${a.name}</span></div>
+    <p style="font-size:0.9rem;line-height:1.55;margin:6px 0 4px;">${a.intro}</p>
+    <p style="font-size:0.86rem;color:var(--et-muted);line-height:1.5;margin:0 0 14px;">${a.note}</p>
+    ${blocks}
+    <div class="calc-formula" style="margin-top:6px;"><b>Referencia:</b> ${a.ref}</div>
+    <button class="restart-btn" onclick="renderMenu()">${t.menuAll}</button>
+  `;
+  sendEvent('miaa_result', { algo:algoState.id, level:'info' });
+  if(window.etFbAfterUse) etFbAfterUse();
+}
+
 /* ============ Estado ============ */
 let currentIndex = 0;
 let history = [];
@@ -460,8 +886,12 @@ function setFlow(on){
 function renderStart(){
   setFlow(false);
   const t = T();
+  // Restaura el título propio de este algoritmo (el menú lo sobreescribe)
+  document.getElementById('appTitle').textContent = t.title;
+  document.getElementById('appSubtitle').textContent = t.subtitle;
   const main = document.getElementById('main');
   main.innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderMenu()">${t.menuAll}</button></div>
     <div class="start-rules" id="startRules">${startRulesHTML(t)}</div>
     <div class="anim-pop"><button class="start-btn" id="startBtn" onclick="startFlow()">${t.startBtn}</button></div>
     ${window.etToolFooter ? etToolFooter(t.hubLink, t.fbLink) : ''}
@@ -692,6 +1122,7 @@ function renderBjorckResult(grade){
       <div class="result-title" style="font-size:1.05rem;">${grade.label}</div>
       <div class="result-detail">${grade.detail}</div>
       <div class="caution-box">${t.caution}</div>
+      <button class="calc-btn" style="margin-top:16px;" onclick="openMiaa('conducta')">${t.seeConducta}</button>
     </div>
     <div class="anim-pop"><button class="restart-btn" onclick="restart()">${t.restartBtn}</button></div>
   `;
@@ -732,7 +1163,7 @@ function restart(){
 
 if(window.etFbInit) etFbInit('abdomen','Abdomen Abierto');
 applyStaticTexts();
-renderStart();
+renderMenu();
 sendEvent('app_open');
 
 /* ============ Instalación: prompt nativo (Android) / guía visual (iOS) ============ */

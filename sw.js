@@ -1,6 +1,6 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'et-tools-hub-v18';
+const CACHE = 'et-tools-hub-v19';
 const ASSETS = [
   './',
   './index.html',
