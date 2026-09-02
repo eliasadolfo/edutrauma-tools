@@ -420,8 +420,11 @@ header p{
   align-items:center;
   justify-content:center;
 }
-.result-card.open{ background: var(--et-danger-soft); border-color: var(--et-danger-line); }
-.result-card.closed{ background: var(--et-success-soft); border-color: var(--et-success-line); }
+/* Dejar abierto vs cerrar NO son acierto/error: ambas son conductas válidas.
+   Se usan tonos neutros de marca (no rojo/verde de estado) — la distinción
+   la llevan el ícono descriptivo y el título. */
+.result-card.open{ background: var(--et-bg); border-color: var(--et-navy); }
+.result-card.closed{ background: #fff; border-color: var(--et-navy); }
 .result-card.bjorck{ background: #fff; border-color: var(--et-navy); }
 
 .result-icon{ width:56px; height:56px; margin-bottom: 14px; }
@@ -430,8 +433,8 @@ header p{
   letter-spacing:0.08em; text-transform:uppercase;
   margin-bottom: 8px;
 }
-.result-card.open .result-eyebrow{ color: var(--et-danger); }
-.result-card.closed .result-eyebrow{ color: var(--et-success); }
+.result-card.open .result-eyebrow{ color: var(--et-navy); }
+.result-card.closed .result-eyebrow{ color: var(--et-navy); }
 .result-card.bjorck .result-eyebrow{ color: var(--et-navy); }
 
 .result-title{
@@ -439,8 +442,8 @@ header p{
   line-height:1.3; margin: 0 0 10px;
   text-wrap: balance;
 }
-.result-card.open .result-title{ color: var(--et-danger); }
-.result-card.closed .result-title{ color: var(--et-success); }
+.result-card.open .result-title{ color: var(--et-navy); }
+.result-card.closed .result-title{ color: var(--et-navy); }
 .result-card.bjorck .result-title{ color: var(--et-navy); }
 
 .grade-pill{
@@ -1142,3 +1145,6 @@ footer{
 .tool-foot a:active, .tool-foot button:active{
   background: var(--et-bg); color: var(--et-navy); transform: scale(0.97);
 }
+
+/* Nota neutral: aclara que no hay respuesta correcta/incorrecta */
+.result-neutral{ font-size:0.8rem; color:var(--et-muted); line-height:1.5; margin-top:12px; padding-top:11px; border-top:1px solid var(--et-line); }
