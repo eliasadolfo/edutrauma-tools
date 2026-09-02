@@ -100,6 +100,22 @@ lg 18 (tarjetas) · md 14 (botones respuesta) · sm 12 (acciones) · xs 10 (caja
 Estas reglas nacieron de errores reales. Romperlas produce el "Frankenstein":
 tools que se ven y se comportan distinto entre sí.
 
+### Color: rojo/verde SOLO para estados, nunca para conductas
+
+Los colores de estado (`--et-danger`, `--et-success`) están **reservados** para
+estados reales: alerta, riesgo, valor fuera de rango. **Nunca** para distinguir
+dos conductas clínicas válidas entre sí.
+
+> **Error real (jul-2026):** en MIAA, "dejar el abdomen abierto" salía en rojo con
+> una ✗ y "cerrar" en verde con un ✓. Dos usuarios reportaron que la herramienta
+> parecía decir que habían respondido mal. Ambas conductas son igualmente válidas.
+
+- Dos conductas alternativas → **mismo tono neutro de marca**; la distinción la
+  llevan el **ícono descriptivo** y el **título**, no el color.
+- Si el resultado puede leerse como "acierto/error", agregar una **nota neutral**
+  que lo desmienta explícitamente.
+- Íconos: describen la conducta (incisión abierta / suturada), nunca ✓ o ✗.
+
 ### Dónde vive cada cosa
 
 | Elemento | Vive en | NO va en |
