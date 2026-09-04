@@ -9,7 +9,7 @@
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { createHash } from 'crypto';
 
-const TOOLS = ['abdomen', 'aast', 'calculadoras', 'mip'];
+const TOOLS = ['abdomen', 'aast', 'calculadoras', 'mip', 'teg'];
 const problemas = [];
 const ok = [];
 
@@ -68,7 +68,7 @@ const hub = leer('index.html');
 check(hub.includes('lang-switch'), 'hub: conserva el selector de idioma',
   '⚠ hub: perdió el selector de idioma (es el único lugar donde debe estar)');
 for (const t of TOOLS) {
-  const href = t === 'calculadoras' ? 'calculadoras/' : `${t}/`;
+  const href = `${t}/`;
   check(hub.includes(`href:"${href}"`), `hub: enlaza ${t}`,
     `⚠ hub: no enlaza la tool ${t} → nadie la encontrará`);
 }

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>TEG6s — Tromboelastografía · EduTrauma</title>
+<meta name="theme-color" content="#00205C">
+<meta name="description" content="Interpreta el panel viscoelástico TEG6s: factores de coagulación, plaquetas, fibrinógeno y fibrinólisis, con sugerencias de manejo. Gratis, sin conexión, en español.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TEG6s">
+<link rel="stylesheet" href="design/edutrauma-ui.css">
+<script src="design/feedback.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="brand-strip">
+    <a href="../" aria-label="Volver a EduTrauma Tools"><img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo"></a>
+  </div>
+  <div class="brand-ribbon">Herramientas Clínicas</div>
+
+  <header id="appHeader">
+    <h1 id="appTitle">TEG6s — Tromboelastografía</h1>
+    <p id="appSubtitle">Ingresa los valores del panel viscoelástico y obtén la interpretación por componente con sugerencias de manejo.</p>
+  </header>
+
+  <main id="main"></main>
+  <footer id="appFooter"></footer>
+</div>
+
+<script>
+/* ============ Analytics + cola offline ============ */
+const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+function etEnqueue(p){ try{ const q=JSON.parse(localStorage.getItem('et_queue')||'[]'); q.push(p); while(q.length>200)q.shift(); localStorage.setItem('et_queue',JSON.stringify(q)); }catch(e){} }
+function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(r=>{if(!r.ok)throw 0;}); }
+function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
+window.addEventListener('online', etFlush); etFlush();
+function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'teg',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+
+/* ============ Definición del panel TEG6s ============
+   Fuente: Anexo Módulo TEG (Dr. Pablo R. Ottolino, EduTrauma, 2026),
+   rangos del panel TEG6s Global Hemostasis, Guía europea del trauma 6.ª ed. y CRASH-2.
+   ==================================================== */
+const TEG = {
+  name:'TEG6s — Tromboelastografía',
+  ref:'Anexo Módulo TEG (Dr. Pablo R. Ottolino, EduTrauma, 2026) · Rangos panel TEG6s Global Hemostasis · Guía europea del trauma 6.ª ed. (Crit Care 2023;27:80) · CRASH-2',
+  /* Umbral configurable (§4.1 del anexo): 0 = comparación simple (tabla original).
+     Cambiar a 2 para exigir CK-R mayor que CKH-R por ≥ 2 minutos. */
+  heparinMinDiff: 0,
+  fields:[
+    { id:'hep', t:'seg', label:'¿El paciente recibió heparina?', options:[{v:'no',label:'No'},{v:'si',label:'Sí'}] },
+    { id:'ckr',  t:'num', label:'CK · R', unit:'min', plaus:[0,30], help:'Factores de coagulación (sin neutralizar heparina)' },
+    { id:'ckhr', t:'num', label:'CKH · R', unit:'min', plaus:[0,30], onlyIfHep:true, help:'Factores neutralizando heparina (heparinasa)' },
+    { id:'crta10', t:'num', label:'CRT · A10', unit:'mm', plaus:[0,100], help:'Plaquetas — lectura temprana (10 min)' },
+    { id:'crtma',  t:'num', label:'CRT · MA',  unit:'mm', plaus:[0,100], help:'Plaquetas — amplitud máxima' },
+    { id:'cffa10', t:'num', label:'CFF · A10', unit:'mm', plaus:[0,100], help:'Fibrinógeno — lectura temprana (10 min)' },
+    { id:'cffma',  t:'num', label:'CFF · MA',  unit:'mm', plaus:[0,100], help:'Fibrinógeno — amplitud máxima funcional' },
+    { id:'ly30',   t:'num', label:'CRT · LY30', unit:'%', plaus:[0,100], help:'Fibrinólisis a los 30 min post-MA' }
+  ],
+  compute(v){
+    const comp = [], alerts = [];
+    const hep = v.hep === 'si';
+
+    /* Paso 1 — efecto de heparina */
+    if(hep){
+      const d = v.ckr - v.ckhr;
+      if(v.ckr < v.ckhr){
+        alerts.push({ level:'warn', title:'Resultado inconsistente (N/A)',
+          text:'CK-R es menor que CKH-R, lo que no es fisiológicamente esperable. <b>Revisar manualmente</b> la muestra y los valores ingresados.' });
+      } else if(d > this.heparinMinDiff){
+        alerts.push({ level:'alert', title:'Efecto de heparina presente',
+          text:'CK-R ('+v.ckr+' min) es mayor que CKH-R ('+v.ckhr+' min). Considerar reversión con <b>protamina</b> según protocolo institucional y la dosis/tiempo de heparina recibida.' });
+      } else {
+        alerts.push({ level:'ok', title:'Sin efecto de heparina',
+          text:'CK-R y CKH-R son equivalentes: no se detecta efecto residual de heparina.' });
+      }
+    }
+
+    /* Paso 2 — factores de coagulación */
+    const rVal = hep ? v.ckhr : v.ckr;
+    const rName = hep ? 'CKH-R' : 'CK-R';
+    const rLo = hep ? 4.3 : 4.6, rHi = hep ? 8.3 : 9.1;
+    if(rVal > rHi) comp.push({ name:'Factores de coagulación', level:'alert',
+      value:rName+' '+rVal+' min (R prolongado · normal '+rLo+'–'+rHi+')',
+      finding:'Déficit de factores de coagulación.',
+      sug:'Considerar <b>plasma fresco congelado (PFC)</b>. Si hay INR/TTPA disponibles, usarlos para confirmar antes de indicar. <i>(Guía europea del trauma 6.ª ed., Rec. 27–28, Grado 1C)</i>' });
+    else if(rVal < rLo) comp.push({ name:'Factores de coagulación', level:'warn',
+      value:rName+' '+rVal+' min (R acortado · normal '+rLo+'–'+rHi+')',
+      finding:'Factores elevados — patrón protrombótico.',
+      sug:'<b>No</b> se sugieren hemoderivados. Considerar evaluación de riesgo de <b>TVP/TEP</b> según el contexto clínico.' });
+    else comp.push({ name:'Factores de coagulación', level:'ok',
+      value:rName+' '+rVal+' min (normal '+rLo+'–'+rHi+')',
+      finding:'Sin déficit relevante de factores.', sug:'' });
+
+    /* Paso 3 — plaquetas (MA prima sobre A10) */
+    const pl = (v.crtma < 52) || (v.crtma >= 52 && v.crtma <= 70 && v.crta10 < 44);
+    const plAlta = v.crtma > 70;
+    if(pl) comp.push({ name:'Plaquetas', level:'alert',
+      value:'CRT-A10 '+v.crta10+' mm (44–67) · CRT-MA '+v.crtma+' mm (52–70)',
+      finding:'Función plaquetaria baja.',
+      sug:'Considerar <b>transfusión de plaquetas</b>. <i>(Guía europea del trauma 6.ª ed., Rec. 25, Grado 2B)</i>' });
+    else if(plAlta) comp.push({ name:'Plaquetas', level:'warn',
+      value:'CRT-A10 '+v.crta10+' mm (44–67) · CRT-MA '+v.crtma+' mm (52–70)',
+      finding:'Función plaquetaria alta.', sug:'No requiere transfusión. Interpretar en el contexto clínico.' });
+    else comp.push({ name:'Plaquetas', level:'ok',
+      value:'CRT-A10 '+v.crta10+' mm · CRT-MA '+v.crtma+' mm',
+      finding:'Función plaquetaria normal.', sug:'' });
+
+    /* Paso 4 — fibrinógeno (MA prima sobre A10) */
+    const fb = (v.cffma < 15) || (v.cffma >= 15 && v.cffma <= 32 && v.cffa10 < 15);
+    const fbAlto = v.cffma > 32;
+    if(fb) comp.push({ name:'Fibrinógeno', level:'alert',
+      value:'CFF-A10 '+v.cffa10+' mm (15–30) · CFF-MA '+v.cffma+' mm (15–32)',
+      finding:'Fibrinógeno bajo.',
+      sug:'Considerar <b>crioprecipitado o concentrado de fibrinógeno</b>. Evitar corregir solo con PFC si hay crioprecipitado/concentrado disponible. <i>(Guía europea del trauma 6.ª ed., Rec. 25 y 27, Grado 1C)</i>' });
+    else if(fbAlto) comp.push({ name:'Fibrinógeno', level:'warn',
+      value:'CFF-A10 '+v.cffa10+' mm (15–30) · CFF-MA '+v.cffma+' mm (15–32)',
+      finding:'Fibrinógeno alto.', sug:'No requiere aporte. Interpretar en el contexto clínico.' });
+    else comp.push({ name:'Fibrinógeno', level:'ok',
+      value:'CFF-A10 '+v.cffa10+' mm · CFF-MA '+v.cffma+' mm',
+      finding:'Fibrinógeno normal.', sug:'' });
+
+    /* Paso 5 — fibrinólisis */
+    if(v.ly30 > 2.2) comp.push({ name:'Fibrinólisis', level:'alert',
+      value:'CRT-LY30 '+v.ly30+'% (normal 0–2.2%)',
+      finding:'Hiperfibrinólisis.',
+      sug:'Sugerir/reforzar <b>ácido tranexámico (TXA)</b>: 1 g IV en 10 min + 1 g IV en 8 h, idealmente dentro de las 3 h del trauma. Si el paciente ya recibió TXA empírico, esto <b>refuerza la indicación</b>; no implica una segunda dosis automática. <i>(Guía europea del trauma 6.ª ed., Rec. 23, Grado 1A; CRASH-2)</i>' });
+    else comp.push({ name:'Fibrinólisis', level:'ok',
+      value:'CRT-LY30 '+v.ly30+'% (normal 0–2.2%)',
+      finding:'Sin hiperfibrinólisis.', sug:'' });
+
+    return { comp, alerts };
+  }
+};
+const LVL = { ok:'#1F7A5C', warn:'#B7791F', alert:'#E02826', info:'#00205C' };
+let vals = { hep:'no' };
+
+function setHeader(show){ document.getElementById('appHeader').style.display = show ? '' : 'none'; }
+function activeFields(){ return TEG.fields.filter(f => !f.onlyIfHep || vals.hep === 'si'); }
+function isReady(){ return activeFields().every(f => f.t==='seg' ? vals[f.id]!==undefined : (vals[f.id]!==undefined && !isNaN(vals[f.id]))); }
+
+function renderForm(){
+  setHeader(true); window.scrollTo(0,0);
+  const fields = activeFields().map(f=>{
+    if(f.t === 'seg'){
+      const opts = f.options.map(o=>`<button class="${vals[f.id]===o.v?'on':''}" onclick="setSeg('${f.id}','${o.v}')">${o.label}</button>`).join('');
+      return `<div class="calc-field"><label>${f.label}</label><div class="seg">${opts}</div></div>`;
+    }
+    const bad = vals[f.id]!==undefined && !isNaN(vals[f.id]) && (vals[f.id]<f.plaus[0] || vals[f.id]>f.plaus[1]);
+    return `<div class="calc-field"><label>${f.label}</label>
+      <div class="row"><input type="number" inputmode="decimal" step="0.1" id="in_${f.id}"
+        oninput="setNum('${f.id}',this.value)" value="${vals[f.id]??''}"><div class="unit">${f.unit}</div></div>
+      <div style="font-size:0.78rem;color:var(--et-muted);margin-top:4px;">${f.help}</div>
+      ${bad?`<div style="font-size:0.78rem;color:#B7791F;margin-top:4px;">⚠ Valor fuera del rango habitual — revise que no sea un error de digitación.</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('main').innerHTML =
+    fields +
+    `<button class="calc-btn" id="goBtn" onclick="interpretar()" ${isReady()?'':'disabled'}>Interpretar ›</button>` +
+    (window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : '');
+}
+function setSeg(id,val){ vals[id]=val; if(id==='hep'&&val==='no') delete vals.ckhr; renderForm(); }
+function setNum(id,val){ vals[id] = val==='' ? undefined : parseFloat(val); const b=document.getElementById('goBtn'); if(b) b.disabled=!isReady(); }
+
+function interpretar(){
+  if(!isReady()) return;
+  const r = TEG.compute(vals);
+  sendEvent('teg_result', { level:(r.comp.some(c=>c.level==='alert')?'alert':'ok') });
+  if(window.etFbAfterUse) etFbAfterUse();
+  renderResumen(r);
+}
+
+function renderResumen(r){
+  setHeader(false); window.scrollTo(0,0);
+  const alertHTML = r.alerts.map(al=>`
+    <div style="border:1px solid ${LVL[al.level]};background:${al.level==='ok'?'#eef7f3':al.level==='warn'?'#fdf6e7':'#fdecea'};
+      border-radius:11px;padding:12px 14px;margin-bottom:10px;text-align:left;">
+      <div style="font-weight:800;font-size:0.9rem;color:${LVL[al.level]};">${al.title}</div>
+      <div style="font-size:0.86rem;line-height:1.5;margin-top:3px;">${al.text}</div></div>`).join('');
+  const compHTML = r.comp.map(c=>`
+    <div style="border:1px solid var(--et-line);border-left:4px solid ${LVL[c.level]};background:var(--et-bg);
+      border-radius:11px;padding:12px 14px;margin-bottom:10px;text-align:left;">
+      <div style="font-weight:800;font-size:0.95rem;color:${LVL[c.level]};">${c.name} — ${c.finding}</div>
+      <div style="font-size:0.8rem;color:var(--et-muted);margin-top:3px;">${c.value}</div>
+      ${c.sug?`<div style="font-size:0.86rem;line-height:1.55;margin-top:7px;">${c.sug}</div>`:''}
+    </div>`).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="renderForm()">‹ Corregir valores</button></div>
+    <div class="result-eyebrow" style="margin:4px 0 10px;">Interpretación del panel</div>
+    ${alertHTML}${compHTML}
+    <div class="caution-box">Apoyo a la decisión clínica: las sugerencias deben ser confirmadas por el médico responsable y contrastadas con el protocolo institucional. No constituyen una indicación terapéutica automática.</div>
+    <div class="calc-formula"><b>Referencia:</b> ${TEG.ref}</div>
+    <button class="restart-btn" onclick="nuevoCaso()">Evaluar otro caso</button>
+    ${window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : ''}
+  `;
+}
+function nuevoCaso(){ vals = { hep:'no' }; renderForm(); }
+
+/* ---------- Gate de especialidad (compartido) ---------- */
+function needSpec(){ try{ return !JSON.parse(localStorage.getItem('et_profile')||'{}').specialty; }catch(e){ return true; } }
+const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Medicina interna","Medicina general","Enfermería","Estudiante de medicina","Otra"];
+function renderSpecGate(){
+  setHeader(false);
+  const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${s}</button>`).join('');
+  document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+    <p class="spec-sub">Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.</p>
+    <div class="spec-grid">${chips}</div></div>`;
+}
+function pickSpec(s){
+  if(s===SPECS[SPECS.length-1]){
+    document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
+      <input class="spec-input" id="so" maxlength="60" placeholder="Escríbela aquí… (ej: Veterinaria)" oninput="document.getElementById('sg').disabled=!this.value.trim()">
+      <button class="spec-continue" id="sg" disabled onclick="saveSpec(document.getElementById('so').value.trim())">Continuar ›</button></div>`;
+    setTimeout(()=>document.getElementById('so').focus(),100); return;
+  }
+  saveSpec(s);
+}
+function saveSpec(s){ if(!s)return; let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} p.specialty=s.slice(0,60); localStorage.setItem('et_profile',JSON.stringify(p)); sendEvent('profile_saved',{specialty:p.specialty}); renderForm(); }
+
+/* ---------- Instalación PWA ---------- */
+let deferredPrompt=null;
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document);
+const IS_STANDALONE=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+function ensureBanner(){ if(document.getElementById('installBanner'))return; const b=document.createElement('div'); b.className='install-banner'; b.id='installBanner'; b.innerHTML='<span id="installText"></span><button id="installBtn"></button><button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>'; document.querySelector('.brand-ribbon').after(b); }
+function refreshInstallBanner(){ ensureBanner(); const banner=document.getElementById('installBanner'); if(IS_STANDALONE||localStorage.getItem('installDismissed')==='1'){ banner.classList.remove('show'); return; } const btn=document.getElementById('installBtn'); if(IS_IOS){ document.getElementById('installText').innerHTML='Guárdala en tu pantalla de inicio — funciona sin conexión.'; btn.style.display=''; btn.textContent='¿Cómo?'; btn.onclick=showIOSGuide; banner.classList.add('show'); } else if(deferredPrompt){ document.getElementById('installText').innerHTML='Instala esta app en tu pantalla de inicio, incluso sin conexión.'; btn.style.display=''; btn.textContent='Instalar'; btn.onclick=promptInstall; banner.classList.add('show'); } else { banner.classList.remove('show'); } }
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; refreshInstallBanner(); });
+window.addEventListener('appinstalled',()=>{ sendEvent('pwa_installed'); const b=document.getElementById('installBanner'); if(b)b.classList.remove('show'); });
+function promptInstall(){ if(!deferredPrompt)return; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; refreshInstallBanner(); }); }
+function dismissInstall(){ try{localStorage.setItem('installDismissed','1');}catch(e){} document.getElementById('installBanner').classList.remove('show'); }
+function showIOSGuide(){ let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} const steps=['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>']; ov.innerHTML=`<div class="sheet"><h2>Instalar en tu iPhone</h2>${steps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">Entendido</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
+
+/* ---------- Footer + init ---------- */
+document.getElementById('appFooter').innerHTML='Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>';
+if(window.etFbInit) etFbInit('teg','TEG6s');
+if(needSpec()){ renderSpecGate(); } else { renderForm(); }
+sendEvent('app_open');
+refreshInstallBanner();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  const hadController=!!navigator.serviceWorker.controller; let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(refreshing||!hadController)return; refreshing=true; location.reload(); });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').then(reg=>{ reg.update(); setInterval(()=>reg.update(),60000); }).catch(()=>{}); });
+}
+</script>
+</body>
+</html>

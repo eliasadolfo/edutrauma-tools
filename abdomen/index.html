@@ -134,8 +134,7 @@ const I18N = {
       { id:"conducta", title:"Conducta según grado de Björck", desc:"Del grado 1A al 4 (FEA): qué hacer, paso a paso." },
       { id:"atb", title:"Antibióticos en abdomen abierto", desc:"Profilácticos vs empíricos, cultivos y descalamiento." },
       { id:"nutri", title:"Nutrición en abdomen abierto", desc:"NE temprana, NP y metas de proteínas y calorías." },
-      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensión intraabdominal y síndrome compartimental (WSACS)." },
-      { id:"teg", title:"TEG6s — Tromboelastografía", desc:"Interpreta el panel viscoelástico y sugiere hemoderivados y TXA." }
+      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensión intraabdominal y síndrome compartimental (WSACS)." }
     ],
     htmlLang: "es",
     docTitle: "Abdomen Abierto (MIAA) — EduTrauma",
@@ -238,8 +237,7 @@ const I18N = {
       { id:"conducta", title:"Management by Björck grade", desc:"From grade 1A to 4 (EAF): what to do, step by step." },
       { id:"atb", title:"Antibiotics in the open abdomen", desc:"Prophylactic vs empirical, cultures and de-escalation." },
       { id:"nutri", title:"Nutrition in the open abdomen", desc:"Early EN, PN and protein/calorie targets." },
-      { id:"hia", title:"IAH / ACS management", desc:"Intra-abdominal hypertension and compartment syndrome (WSACS)." },
-      { id:"teg", title:"TEG6s — Thromboelastography", desc:"Interprets the viscoelastic panel and suggests blood products and TXA." }
+      { id:"hia", title:"IAH / ACS management", desc:"Intra-abdominal hypertension and compartment syndrome (WSACS)." }
     ],
     htmlLang: "en",
     docTitle: "Open Abdomen (MIAA) — EduTrauma",
@@ -342,8 +340,7 @@ const I18N = {
       { id:"conducta", title:"Conduta segundo o grau de Björck", desc:"Do grau 1A ao 4 (FEA): o que fazer, passo a passo." },
       { id:"atb", title:"Antibióticos no abdome aberto", desc:"Profiláticos vs empíricos, culturas e descalonamento." },
       { id:"nutri", title:"Nutrição no abdome aberto", desc:"NE precoce, NP e metas de proteínas e calorias." },
-      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensão intra-abdominal e síndrome compartimental (WSACS)." },
-      { id:"teg", title:"TEG6s — Tromboelastografia", desc:"Interpreta o painel viscoelástico e sugere hemoderivados e TXA." }
+      { id:"hia", title:"Manejo de HIA / SCA", desc:"Hipertensão intra-abdominal e síndrome compartimental (WSACS)." }
     ],
     htmlLang: "pt-BR",
     docTitle: "Abdome Aberto (MIAA) — EduTrauma",
@@ -715,101 +712,6 @@ const MIAA_ALGOS = {
           list:['Iniciar tratamiento médico para reducir la PIA <i>(Grado 1C)</i>.','<b>Evitar la reanimación excesiva con fluidos</b> y optimizar la perfusión de órganos.','Medir la PIA con mediciones seriadas al menos cada 4 h mientras el paciente esté crítico <i>(Grado 1C)</i>.','Reevaluar: si aparece PIA >20 mmHg con falla orgánica nueva, el paciente tiene SCA.'] };
       }
     }
-  },
-
-  /* ---- TEG6s — Tromboelastografía ---- */
-  teg: {
-    name:'TEG6s — Tromboelastografía',
-    ref:'Anexo Módulo TEG (Dr. Pablo R. Ottolino, EduTrauma, 2026) · Rangos panel TEG6s Global Hemostasis · Guía europea del trauma 6.ª ed. (Crit Care 2023;27:80) · CRASH-2',
-    type:'form',
-    intro:'Ingrese los valores del panel TEG6s. La app interpreta cada componente de la hemostasia y sugiere conducta.',
-    /* Umbral configurable (§4.1 del anexo): 0 = comparación simple (tabla original).
-       Cambiar a 2 para exigir CK-R mayor que CKH-R por ≥ 2 minutos. */
-    heparinMinDiff: 0,
-    fields:[
-      { id:'hep', t:'seg', label:'¿El paciente recibió heparina?', options:[{v:'no',label:'No'},{v:'si',label:'Sí'}] },
-      { id:'ckr',  t:'num', label:'CK · R', unit:'min', plaus:[0,30], help:'Factores de coagulación (sin neutralizar heparina)' },
-      { id:'ckhr', t:'num', label:'CKH · R', unit:'min', plaus:[0,30], onlyIfHep:true, help:'Factores neutralizando heparina (heparinasa)' },
-      { id:'crta10', t:'num', label:'CRT · A10', unit:'mm', plaus:[0,100], help:'Plaquetas — lectura temprana (10 min)' },
-      { id:'crtma',  t:'num', label:'CRT · MA',  unit:'mm', plaus:[0,100], help:'Plaquetas — amplitud máxima' },
-      { id:'cffa10', t:'num', label:'CFF · A10', unit:'mm', plaus:[0,100], help:'Fibrinógeno — lectura temprana (10 min)' },
-      { id:'cffma',  t:'num', label:'CFF · MA',  unit:'mm', plaus:[0,100], help:'Fibrinógeno — amplitud máxima funcional' },
-      { id:'ly30',   t:'num', label:'CRT · LY30', unit:'%', plaus:[0,100], help:'Fibrinólisis a los 30 min post-MA' }
-    ],
-    compute(v){
-      const comp = [], alerts = [];
-      const hep = v.hep === 'si';
-
-      /* Paso 1 — efecto de heparina */
-      if(hep){
-        const d = v.ckr - v.ckhr;
-        if(v.ckr < v.ckhr){
-          alerts.push({ level:'warn', title:'Resultado inconsistente (N/A)',
-            text:'CK-R es menor que CKH-R, lo que no es fisiológicamente esperable. <b>Revisar manualmente</b> la muestra y los valores ingresados.' });
-        } else if(d > this.heparinMinDiff){
-          alerts.push({ level:'alert', title:'Efecto de heparina presente',
-            text:'CK-R ('+v.ckr+' min) es mayor que CKH-R ('+v.ckhr+' min). Considerar reversión con <b>protamina</b> según protocolo institucional y la dosis/tiempo de heparina recibida.' });
-        } else {
-          alerts.push({ level:'ok', title:'Sin efecto de heparina',
-            text:'CK-R y CKH-R son equivalentes: no se detecta efecto residual de heparina.' });
-        }
-      }
-
-      /* Paso 2 — factores de coagulación */
-      const rVal = hep ? v.ckhr : v.ckr;
-      const rName = hep ? 'CKH-R' : 'CK-R';
-      const rLo = hep ? 4.3 : 4.6, rHi = hep ? 8.3 : 9.1;
-      if(rVal > rHi) comp.push({ name:'Factores de coagulación', level:'alert',
-        value:rName+' '+rVal+' min (R prolongado · normal '+rLo+'–'+rHi+')',
-        finding:'Déficit de factores de coagulación.',
-        sug:'Considerar <b>plasma fresco congelado (PFC)</b>. Si hay INR/TTPA disponibles, usarlos para confirmar antes de indicar. <i>(Guía europea del trauma 6.ª ed., Rec. 27–28, Grado 1C)</i>' });
-      else if(rVal < rLo) comp.push({ name:'Factores de coagulación', level:'warn',
-        value:rName+' '+rVal+' min (R acortado · normal '+rLo+'–'+rHi+')',
-        finding:'Factores elevados — patrón protrombótico.',
-        sug:'<b>No</b> se sugieren hemoderivados. Considerar evaluación de riesgo de <b>TVP/TEP</b> según el contexto clínico.' });
-      else comp.push({ name:'Factores de coagulación', level:'ok',
-        value:rName+' '+rVal+' min (normal '+rLo+'–'+rHi+')',
-        finding:'Sin déficit relevante de factores.', sug:'' });
-
-      /* Paso 3 — plaquetas (MA prima sobre A10) */
-      const pl = (v.crtma < 52) || (v.crtma >= 52 && v.crtma <= 70 && v.crta10 < 44);
-      const plAlta = v.crtma > 70;
-      if(pl) comp.push({ name:'Plaquetas', level:'alert',
-        value:'CRT-A10 '+v.crta10+' mm (44–67) · CRT-MA '+v.crtma+' mm (52–70)',
-        finding:'Función plaquetaria baja.',
-        sug:'Considerar <b>transfusión de plaquetas</b>. <i>(Guía europea del trauma 6.ª ed., Rec. 25, Grado 2B)</i>' });
-      else if(plAlta) comp.push({ name:'Plaquetas', level:'warn',
-        value:'CRT-A10 '+v.crta10+' mm (44–67) · CRT-MA '+v.crtma+' mm (52–70)',
-        finding:'Función plaquetaria alta.', sug:'No requiere transfusión. Interpretar en el contexto clínico.' });
-      else comp.push({ name:'Plaquetas', level:'ok',
-        value:'CRT-A10 '+v.crta10+' mm · CRT-MA '+v.crtma+' mm',
-        finding:'Función plaquetaria normal.', sug:'' });
-
-      /* Paso 4 — fibrinógeno (MA prima sobre A10) */
-      const fb = (v.cffma < 15) || (v.cffma >= 15 && v.cffma <= 32 && v.cffa10 < 15);
-      const fbAlto = v.cffma > 32;
-      if(fb) comp.push({ name:'Fibrinógeno', level:'alert',
-        value:'CFF-A10 '+v.cffa10+' mm (15–30) · CFF-MA '+v.cffma+' mm (15–32)',
-        finding:'Fibrinógeno bajo.',
-        sug:'Considerar <b>crioprecipitado o concentrado de fibrinógeno</b>. Evitar corregir solo con PFC si hay crioprecipitado/concentrado disponible. <i>(Guía europea del trauma 6.ª ed., Rec. 25 y 27, Grado 1C)</i>' });
-      else if(fbAlto) comp.push({ name:'Fibrinógeno', level:'warn',
-        value:'CFF-A10 '+v.cffa10+' mm (15–30) · CFF-MA '+v.cffma+' mm (15–32)',
-        finding:'Fibrinógeno alto.', sug:'No requiere aporte. Interpretar en el contexto clínico.' });
-      else comp.push({ name:'Fibrinógeno', level:'ok',
-        value:'CFF-A10 '+v.cffa10+' mm · CFF-MA '+v.cffma+' mm',
-        finding:'Fibrinógeno normal.', sug:'' });
-
-      /* Paso 5 — fibrinólisis */
-      if(v.ly30 > 2.2) comp.push({ name:'Fibrinólisis', level:'alert',
-        value:'CRT-LY30 '+v.ly30+'% (normal 0–2.2%)',
-        finding:'Hiperfibrinólisis.',
-        sug:'Sugerir/reforzar <b>ácido tranexámico (TXA)</b>: 1 g IV en 10 min + 1 g IV en 8 h, idealmente dentro de las 3 h del trauma. Si el paciente ya recibió TXA empírico, esto <b>refuerza la indicación</b>; no implica una segunda dosis automática. <i>(Guía europea del trauma 6.ª ed., Rec. 23, Grado 1A; CRASH-2)</i>' });
-      else comp.push({ name:'Fibrinólisis', level:'ok',
-        value:'CRT-LY30 '+v.ly30+'% (normal 0–2.2%)',
-        finding:'Sin hiperfibrinólisis.', sug:'' });
-
-      return { comp, alerts };
-    }
   }
 };
 const MIAA_LVL = { ok:'#1F7A5C', warn:'#B7791F', alert:'#E02826', info:'#00205C' };
@@ -836,10 +738,9 @@ function openMiaa(id){
   const t0 = T(); // restaura la cabecera del contenedor (el algoritmo de decisión pone la suya)
   document.getElementById('appTitle').textContent = t0.menuTitle;
   document.getElementById('appSubtitle').textContent = t0.menuSubtitle;
-  algoState = { id, algo, nodeId:algo.start, ctx:{}, hist:[], vals:{ hep:'no' } };
+  algoState = { id, algo, nodeId:algo.start, ctx:{}, hist:[] };
   sendEvent('miaa_open', { algo:id });
   if(algo.type === 'steps') renderMiaaSteps();
-  else if(algo.type === 'form') renderMiaaForm();
   else renderMiaaNode();
 }
 
@@ -906,66 +807,6 @@ function renderMiaaResult(r){
       ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openMiaa('${r.goto.id}')">${r.goto.label}</button>`:''}
       <div class="calc-formula"><b>Referencia:</b> ${algoState.algo.ref}</div>
     </div>
-    <button class="restart-btn" onclick="renderMenu()">${t.menuAll}</button>
-  `;
-}
-
-/* ---------- Formulario (TEG) ---------- */
-function tegFields(){
-  return algoState.algo.fields.filter(f => !f.onlyIfHep || algoState.vals.hep === 'si');
-}
-function renderMiaaForm(){
-  setFlow(false); window.scrollTo(0,0);
-  const t = T(), a = algoState.algo, v = algoState.vals;
-  const fields = tegFields().map(f=>{
-    if(f.t === 'seg'){
-      const opts = f.options.map(o=>`<button class="${v[f.id]===o.v?'on':''}" onclick="tegSeg('${f.id}','${o.v}')">${o.label}</button>`).join('');
-      return `<div class="calc-field"><label>${f.label}</label><div class="seg">${opts}</div></div>`;
-    }
-    const bad = v[f.id]!==undefined && !isNaN(v[f.id]) && (v[f.id]<f.plaus[0] || v[f.id]>f.plaus[1]);
-    return `<div class="calc-field"><label>${f.label}</label>
-      <div class="row"><input type="number" inputmode="decimal" step="0.1" id="teg_${f.id}"
-        oninput="tegNum('${f.id}',this.value)" value="${v[f.id]??''}"><div class="unit">${f.unit}</div></div>
-      <div style="font-size:0.78rem;color:var(--et-muted);margin-top:4px;">${f.help}</div>
-      ${bad?`<div style="font-size:0.78rem;color:#B7791F;margin-top:4px;">⚠ Valor fuera del rango habitual — revise que no sea un error de digitación.</div>`:''}
-    </div>`;
-  }).join('');
-  const ready = tegFields().every(f => f.t==='seg' ? v[f.id]!==undefined : (v[f.id]!==undefined && !isNaN(v[f.id])));
-  document.getElementById('main').innerHTML = miaaHeader() +
-    `<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 14px;">${a.intro}</p>` +
-    fields +
-    `<button class="calc-btn" onclick="tegGo()" ${ready?'':'disabled'}>Interpretar ›</button>`;
-}
-function tegSeg(id,val){ algoState.vals[id]=val; if(id==='hep'&&val==='no') delete algoState.vals.ckhr; renderMiaaForm(); }
-function tegNum(id,val){ algoState.vals[id] = val==='' ? undefined : parseFloat(val); const b=document.querySelector('.calc-btn'); if(b){ const v=algoState.vals; b.disabled = !tegFields().every(f=> f.t==='seg' ? v[f.id]!==undefined : (v[f.id]!==undefined && !isNaN(v[f.id]))); } }
-function tegGo(){
-  const r = algoState.algo.compute(algoState.vals);
-  sendEvent('miaa_result', { algo:algoState.id, level:(r.comp.some(c=>c.level==='alert')?'alert':'ok') });
-  if(window.etFbAfterUse) etFbAfterUse();
-  renderTegSummary(r);
-}
-function renderTegSummary(r){
-  window.scrollTo(0,0);
-  const t = T(), a = algoState.algo;
-  const alertHTML = r.alerts.map(al=>`
-    <div style="border:1px solid ${MIAA_LVL[al.level]};background:${al.level==='ok'?'#eef7f3':al.level==='warn'?'#fdf6e7':'#fdecea'};
-      border-radius:11px;padding:12px 14px;margin-bottom:10px;text-align:left;">
-      <div style="font-weight:800;font-size:0.9rem;color:${MIAA_LVL[al.level]};">${al.title}</div>
-      <div style="font-size:0.86rem;line-height:1.5;margin-top:3px;">${al.text}</div></div>`).join('');
-  const compHTML = r.comp.map(c=>`
-    <div style="border:1px solid var(--et-line);border-left:4px solid ${MIAA_LVL[c.level]};background:var(--et-bg);
-      border-radius:11px;padding:12px 14px;margin-bottom:10px;text-align:left;">
-      <div style="font-weight:800;font-size:0.95rem;color:${MIAA_LVL[c.level]};">${c.name} — ${c.finding}</div>
-      <div style="font-size:0.8rem;color:var(--et-muted);margin-top:3px;">${c.value}</div>
-      ${c.sug?`<div style="font-size:0.86rem;line-height:1.55;margin-top:7px;">${c.sug}</div>`:''}
-    </div>`).join('');
-  document.getElementById('main').innerHTML = `
-    <div class="back-row"><button class="back-btn" onclick="renderMiaaForm()">‹ Corregir valores</button></div>
-    <div class="category-badge"><span>${a.name}</span></div>
-    <div class="result-eyebrow" style="margin:10px 0 8px;">Interpretación del panel</div>
-    ${alertHTML}${compHTML}
-    <div class="caution-box">Apoyo a la decisión clínica: las sugerencias deben ser confirmadas por el médico responsable y contrastadas con el protocolo institucional. No constituyen una indicación terapéutica automática.</div>
-    <div class="calc-formula"><b>Referencia:</b> ${a.ref}</div>
     <button class="restart-btn" onclick="renderMenu()">${t.menuAll}</button>
   `;
 }
