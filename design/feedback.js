@@ -28,8 +28,15 @@
 
   window.etFbInit = function(tool, name){ TOOL = tool; TOOL_NAME = name; };
 
+  /* Contador de usos reales (resultados entregados), compartido entre tools.
+     Sirve para NO ofrecer la instalación antes de que la persona vea el valor:
+     ofrecerla al entrar espanta; ofrecerla tras el primer resultado convierte. */
+  window.etUseCount = function(){ try{ return parseInt(localStorage.getItem('et_uses') || '0', 10) || 0; }catch(e){ return 0; } };
+  window.etShouldOfferInstall = function(){ return window.etUseCount() >= 1; };
+
   /* Llamar tras mostrar un resultado. Pregunta solo si nunca respondió esta tool. */
   window.etFbAfterUse = function(){
+    try{ localStorage.setItem('et_uses', String(window.etUseCount() + 1)); }catch(e){}
     const s = st();
     if (s[TOOL] && s[TOOL].done) return;   // ya opinó de esta herramienta
     if (shownThisSession) return;

@@ -1147,6 +1147,8 @@ function refreshInstallBanner(){
     banner.classList.remove('show');
     return;
   }
+  // No ofrecer instalar antes del primer resultado útil (ver design/feedback.js)
+  if (window.etShouldOfferInstall && !window.etShouldOfferInstall()){ banner.classList.remove('show'); return; }
   const btn = document.getElementById('installBtn');
   if (IS_IOS){
     document.getElementById('installText').innerHTML = t.installIOSShort;

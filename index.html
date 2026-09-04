@@ -447,6 +447,39 @@ function maybeAskProfile(){
   }catch(e){}
 }
 
+/* ============ Aviso de novedades ============
+   Para anunciar herramientas nuevas SIN depender de notificaciones push
+   (que en iPhone solo llegan a quien tiene la app instalada).
+   Se muestra a quien no haya visto ESTE aviso y se descarta para siempre.
+   Para anunciar algo nuevo: cambiar `id` y los textos. Nada más. */
+const NEWS = {
+  id: 'teg-mip-2026-09',
+  href: 'teg/',
+  es: { txt: '🆕 <b>Dos herramientas nuevas:</b> TEG6s (tromboelastografía) y MIP (manejo integral del politraumatizado). MIAA también suma 5 algoritmos.', cta: 'Ver TEG6s ›' },
+  en: { txt: '🆕 <b>Two new tools:</b> TEG6s (thromboelastography) and MIP (polytrauma management). MIAA also adds 5 algorithms.', cta: 'Open TEG6s ›' },
+  pt: { txt: '🆕 <b>Duas ferramentas novas:</b> TEG6s (tromboelastografia) e MIP (manejo do politraumatizado). O MIAA também ganhou 5 algoritmos.', cta: 'Ver TEG6s ›' }
+};
+function newsSeen(){ try{ return localStorage.getItem('et_news') === NEWS.id; }catch(e){ return true; } }
+function markNewsSeen(){ try{ localStorage.setItem('et_news', NEWS.id); }catch(e){} }
+function newsHTML(){
+  if (newsSeen()) return '';
+  const n = NEWS[LANG] || NEWS.es;
+  return `<div class="news" id="newsBox">
+    <div class="news-body">
+      <div class="news-txt">${n.txt}</div>
+      <a class="news-cta" href="${NEWS.href}" onclick="newsClick()">${n.cta}</a>
+    </div>
+    <button class="news-x" onclick="newsDismiss()" aria-label="Cerrar">✕</button>
+  </div>`;
+}
+function newsClick(){ markNewsSeen(); sendEvent('news_click', { news: NEWS.id }); }
+function newsDismiss(){
+  markNewsSeen();
+  sendEvent('news_dismiss', { news: NEWS.id });
+  const b = document.getElementById('newsBox');
+  if (b) b.remove();
+}
+
 function render(){
   applyStaticTexts();
   const langBtns = LANGS.map(l =>
@@ -461,9 +494,11 @@ function render(){
         ${langBtns}
       </div>
     </div>
+    ${newsHTML()}
     <div class="tool-grid" id="toolGrid">${toolGridHTML()}</div>
     <div id="profileZone">${profileHTML()}</div>
   `;
+  if (!newsSeen()) sendEvent('news_shown', { news: NEWS.id });
 }
 
 render();
@@ -483,6 +518,10 @@ function refreshInstallBanner(){
     banner.classList.remove('show');
     return;
   }
+  // No ofrecer instalar antes de que la persona use una herramienta (mismo criterio
+  // que design/feedback.js → etShouldOfferInstall; el hub no carga ese módulo).
+  let usos = 0; try{ usos = parseInt(localStorage.getItem('et_uses') || '0', 10) || 0; }catch(e){}
+  if (usos < 1){ banner.classList.remove('show'); return; }
   const btn = document.getElementById('installBtn');
   if (IS_IOS){
     document.getElementById('installText').innerHTML = t.installIOSShort;
