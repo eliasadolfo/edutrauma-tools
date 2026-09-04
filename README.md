@@ -8,6 +8,10 @@ Kit de herramientas clínicas de EduTrauma. Hub trilingüe (ES/EN/PT) + apps de 
 /                      Hub: selector de idioma, grid de herramientas, mini-perfil
 /abdomen/              Tool: ¿Cuándo dejar el abdomen abierto? (curso MIAA)
 /aast/                Tool: Escalas AAST de lesiones de órganos (curso DQT) — DB + aast-trans.js (ES/EN/PT)
+/mip/                  Tool: MIP — Manejo Integral del Politraumatizado (motor de algoritmos por configuración)
+/teg/                  Tool: TEG6s — Tromboelastografía (interpretación del panel viscoelástico)
+/calculadoras/         Tool: Calculadoras médicas (16)
+/panel/                Panel interno con clave (lee el endpoint JSON de n8n)
 /design/               Sistema de diseño EduTrauma UI (css + DESIGN.md) — canónico
 CNAME                  tools.edutrauma.net (GitHub Pages)
 ```
@@ -44,7 +48,7 @@ CNAME                  tools.edutrauma.net (GitHub Pages)
 ## Antes de cada deploy — auditoría de coherencia
 
 ```bash
-node design/auditar.mjs     # ~37 reglas, 1 segundo, debe pasar
+node design/auditar.mjs     # ~59 reglas, 1 segundo, debe pasar
 ```
 Verifica que las tools no diverjan: archivos compartidos idénticos, pie unificado,
 idioma solo en el hub, disclaimers, SW network-first. Reglas completas y checklist
