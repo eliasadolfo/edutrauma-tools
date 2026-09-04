@@ -41,7 +41,8 @@ function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,hea
 function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
 window.addEventListener('online', etFlush); etFlush();
 function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
-function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'mip',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+function etLang(){ try{ const l=localStorage.getItem('lang'); return ['es','en','pt'].includes(l)?l:'es'; }catch(e){ return 'es'; } }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'mip',lang:etLang(),country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
 
 /* ============ Motor genérico de algoritmos MIP ============
    type:'tree'      → nodos de decisión encadenados; cada opción tiene set?/next(id|null).
@@ -180,6 +181,17 @@ const LVL_COLOR = { ok:'#1F7A5C', warn:'#c99a12', alert:'#E02826', info:'#00205C
 let state=null; // {algo, nodeId, ctx, history:[], checks:{}}
 function recents(){ try{ return JSON.parse(localStorage.getItem('mip_recent')||'[]'); }catch(e){ return []; } }
 function pushRecent(id){ let r=recents().filter(x=>x!==id); r.unshift(id); r=r.slice(0,4); localStorage.setItem('mip_recent', JSON.stringify(r)); }
+/* Aviso honesto: estas herramientas aún no están traducidas. Se muestra solo
+   si la persona eligió otro idioma en el hub (reportado por usuarios). */
+function etSoloEspanolHTML(){
+  const l = etLang();
+  if(l === 'es') return '';
+  const t = l === 'pt'
+    ? '⚠ Esta ferramenta ainda está <b>disponível apenas em espanhol</b>. O conteúdo clínico não foi traduzido.'
+    : '⚠ This tool is <b>currently available in Spanish only</b>. The clinical content has not been translated yet.';
+  return `<div class="calc-alert" style="background:#fdf6e7;border-color:#B7791F;color:#7a5c00;text-align:left;">${t}</div>`;
+}
+
 function setHeader(show){ document.getElementById('appHeader').style.display=show?'':'none'; }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -188,7 +200,7 @@ function renderHome(filter){
   setHeader(true); state=null;
   filter=(filter||'').trim().toLowerCase();
   const match = a => !filter || a.name.toLowerCase().includes(filter) || a.short.toLowerCase().includes(filter) || a.kw.some(k=>k.includes(filter)) || a.region.toLowerCase().includes(filter);
-  let html = `<input class="aast-search" id="mipSearch" placeholder="Buscar algoritmo…" value="${esc(filter)}" oninput="renderHome(this.value); focusSearch();">`;
+  let html = etSoloEspanolHTML() + `<input class="aast-search" id="mipSearch" placeholder="Buscar algoritmo…" value="${esc(filter)}" oninput="renderHome(this.value); focusSearch();">`;
   const rec = recents().map(id=>ALGO_BY_ID[id]).filter(Boolean);
   if(!filter && rec.length){
     html += `<div class="region-block"><div class="region-title">★ Recientes</div><div class="organ-grid">` +

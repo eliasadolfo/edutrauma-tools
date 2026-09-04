@@ -40,7 +40,8 @@ function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,hea
 function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
 window.addEventListener('online', etFlush); etFlush();
 function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
-function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'teg',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+function etLang(){ try{ const l=localStorage.getItem('lang'); return ['es','en','pt'].includes(l)?l:'es'; }catch(e){ return 'es'; } }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'teg',lang:etLang(),country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
 
 /* ============ Definición del panel TEG6s ============
    Fuente: Anexo Módulo TEG (Dr. Pablo R. Ottolino, EduTrauma, 2026),
@@ -140,6 +141,17 @@ const TEG = {
 const LVL = { ok:'#1F7A5C', warn:'#B7791F', alert:'#E02826', info:'#00205C' };
 let vals = { hep:'no' };
 
+/* Aviso honesto: estas herramientas aún no están traducidas. Se muestra solo
+   si la persona eligió otro idioma en el hub (reportado por usuarios). */
+function etSoloEspanolHTML(){
+  const l = etLang();
+  if(l === 'es') return '';
+  const t = l === 'pt'
+    ? '⚠ Esta ferramenta ainda está <b>disponível apenas em espanhol</b>. O conteúdo clínico não foi traduzido.'
+    : '⚠ This tool is <b>currently available in Spanish only</b>. The clinical content has not been translated yet.';
+  return `<div class="calc-alert" style="background:#fdf6e7;border-color:#B7791F;color:#7a5c00;text-align:left;">${t}</div>`;
+}
+
 function setHeader(show){ document.getElementById('appHeader').style.display = show ? '' : 'none'; }
 function activeFields(){ return TEG.fields.filter(f => !f.onlyIfHep || vals.hep === 'si'); }
 function isReady(){ return activeFields().every(f => f.t==='seg' ? vals[f.id]!==undefined : (vals[f.id]!==undefined && !isNaN(vals[f.id]))); }
@@ -153,19 +165,29 @@ function renderForm(){
     }
     const bad = vals[f.id]!==undefined && !isNaN(vals[f.id]) && (vals[f.id]<f.plaus[0] || vals[f.id]>f.plaus[1]);
     return `<div class="calc-field"><label>${f.label}</label>
-      <div class="row"><input type="number" inputmode="decimal" step="0.1" id="in_${f.id}"
+      <div class="row"><input type="text" inputmode="decimal" autocomplete="off" id="in_${f.id}"
         oninput="setNum('${f.id}',this.value)" value="${vals[f.id]??''}"><div class="unit">${f.unit}</div></div>
       <div style="font-size:0.78rem;color:var(--et-muted);margin-top:4px;">${f.help}</div>
       ${bad?`<div style="font-size:0.78rem;color:#B7791F;margin-top:4px;">⚠ Valor fuera del rango habitual — revise que no sea un error de digitación.</div>`:''}
     </div>`;
   }).join('');
   document.getElementById('main').innerHTML =
+    etSoloEspanolHTML() +
     fields +
     `<button class="calc-btn" id="goBtn" onclick="interpretar()" ${isReady()?'':'disabled'}>Interpretar ›</button>` +
     (window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : '');
 }
 function setSeg(id,val){ vals[id]=val; if(id==='hep'&&val==='no') delete vals.ckhr; renderForm(); }
-function setNum(id,val){ vals[id] = val==='' ? undefined : parseFloat(val); const b=document.getElementById('goBtn'); if(b) b.disabled=!isReady(); }
+/* Acepta coma o punto: en los teclados en español el separador decimal es ","
+   y <input type=number> devolvía vacío ("no me agarra el punto"). */
+function etParseNum(val){
+  if(val==null) return undefined;
+  const s=String(val).trim().replace(/\s/g,'').replace(',','.');
+  if(s==='') return undefined;
+  const n=parseFloat(s);
+  return isNaN(n) ? undefined : n;
+}
+function setNum(id,val){ vals[id] = etParseNum(val); const b=document.getElementById('goBtn'); if(b) b.disabled=!isReady(); }
 
 function interpretar(){
   if(!isReady()) return;

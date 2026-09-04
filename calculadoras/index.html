@@ -40,7 +40,8 @@ function etPost(p){ return fetch(ET_EVENTS_URL,{method:'POST',keepalive:true,hea
 function etFlush(){ let q=[]; try{q=JSON.parse(localStorage.getItem('et_queue')||'[]');}catch(e){} if(!q.length)return; try{localStorage.setItem('et_queue','[]');}catch(e){} q.forEach(p=>etPost(p).catch(()=>etEnqueue(p))); }
 window.addEventListener('online', etFlush); etFlush();
 function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
-function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'calc',lang:'es',country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+function etLang(){ try{ const l=localStorage.getItem('lang'); return ['es','en','pt'].includes(l)?l:'es'; }catch(e){ return 'es'; } }
+function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'calc',lang:etLang(),country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
 
 /* ============ Definición de calculadoras ============
    Cada compute(v) recibe los valores de entrada y devuelve:
@@ -440,13 +441,13 @@ function renderCalc(){
 function renderInput(inp){
   if(inp.t==='number'){
     return `<div class="calc-field"><label>${inp.label}</label><div class="row">
-      <input type="number" inputmode="decimal" id="in_${inp.id}" min="${inp.min}" max="${inp.max}" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
+      <input type="text" inputmode="decimal" autocomplete="off" id="in_${inp.id}" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
       <div class="unit">${inp.unit}</div></div></div>`;
   }
   if(inp.t==='numberunit'){
     const units=inp.units.map(u=>`<button class="${vals[inp.id+'_unit']===u.v?'on':''}" onclick="setUnit('${inp.id}','${u.v}')">${u.label}</button>`).join('');
     return `<div class="calc-field"><label>${inp.label}</label><div class="row">
-      <input type="number" inputmode="decimal" id="in_${inp.id}" step="0.01" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
+      <input type="text" inputmode="decimal" autocomplete="off" id="in_${inp.id}" oninput="setNum('${inp.id}',this.value)" value="${vals[inp.id]??''}">
       </div><div class="seg" style="margin-top:8px;">${units}</div></div>`;
   }
   if(inp.t==='seg' || inp.t==='segv'){
@@ -463,7 +464,16 @@ function renderInput(inp){
   }
   return '';
 }
-function setNum(id,val){ vals[id]= val===''?undefined:parseFloat(val); updateValidity(); }
+/* Acepta coma o punto: en los teclados en español el separador decimal es ","
+   y <input type=number> devolvía vacío ("no me agarra el punto"). */
+function etParseNum(val){
+  if(val==null) return undefined;
+  const s=String(val).trim().replace(/\s/g,'').replace(',','.');
+  if(s==='') return undefined;
+  const n=parseFloat(s);
+  return isNaN(n) ? undefined : n;
+}
+function setNum(id,val){ vals[id]= etParseNum(val); updateValidity(); }
 function setUnit(id,u){ vals[id+'_unit']=u; renderCalc(); }
 function setSeg(id,v){ vals[id]=v; renderCalc(); }
 function setTgl(id){ vals[id]=!vals[id]; renderCalc(); }
