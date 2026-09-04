@@ -241,6 +241,7 @@ function render(d){
       ${kpi('Vuelven otro día', d.retention+'%', `<b>${d.returned}</b> personas · la métrica que decide`, retPill)}
       ${kpi('Llegan a un resultado', d.activation+'%', 'de los que entran usan la app de verdad', actPill)}
       ${kpi('Países', d.countries, 'se está esparciendo')}
+      ${kpi('La instalaron', d.instalados ?? 0, `${d.users?Math.round((d.instalados||0)*100/d.users):0}% · <b>${d.iosIntento||0}</b> abrieron la guía de iPhone. Solo a los instalados se les puede mandar un aviso.`)}
     </div>
 
     <div class="grid2" style="margin-top:14px;">
