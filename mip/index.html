@@ -15,6 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="MIP">
 <link rel="stylesheet" href="design/edutrauma-ui.css">
 <script src="design/feedback.js"></script>
+<script src="mip-trans.js"></script>
 </head>
 <body>
 <div class="app">
@@ -43,6 +44,14 @@ window.addEventListener('online', etFlush); etFlush();
 function etAnonId(){ let id=localStorage.getItem('et_anon'); if(!id){ id=(crypto.randomUUID?crypto.randomUUID():'a-'+Date.now()+'-'+Math.random().toString(36).slice(2)); localStorage.setItem('et_anon',id);} return id; }
 function etLang(){ try{ const l=localStorage.getItem('lang'); return ['es','en','pt'].includes(l)?l:'es'; }catch(e){ return 'es'; } }
 function sendEvent(event, extra){ try{ let p={}; try{p=JSON.parse(localStorage.getItem('et_profile')||'{}');}catch(e){} const __p={ts:new Date().toISOString(),anon_id:etAnonId(),event,tool:'mip',lang:etLang(),country:p.country||'',specialty:p.specialty||'',tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),ua:navigator.userAgent.slice(0,180),extra:extra||{}}; etPost(__p).catch(()=>etEnqueue(__p)); }catch(e){} }
+
+/* ============ Traducción (ES canónico → EN/PT) ============ */
+function tr(s){
+  if(s==null) return s;
+  const l = etLang(); if(l==='es') return s;
+  const d = (window.MIP_TRANS && window.MIP_TRANS[l]) || {};
+  return d[s] !== undefined ? d[s] : s;
+}
 
 /* ============ Motor genérico de algoritmos MIP ============
    type:'tree'      → nodos de decisión encadenados; cada opción tiene set?/next(id|null).
@@ -122,7 +131,7 @@ const ALGOS = [
     ],
     resolve(n){
       if(n>=1) return { level:'ok', title:'Mantener / colocar la inmovilización cervical',
-        detail:n+' de 5 criterios presentes. Con al menos uno positivo, la columna NO puede liberarse; mantenga la inmovilización.' };
+        detail:tr('{n} de 5 criterios presentes. Con al menos uno positivo, la columna NO puede liberarse; mantenga la inmovilización.').replace('{n}', n) };
       return { level:'info', title:'Se puede liberar el collarín',
         detail:'0 de 5 criterios presentes: ningún criterio positivo, la columna cervical puede liberarse.' };
     }
@@ -181,17 +190,6 @@ const LVL_COLOR = { ok:'#1F7A5C', warn:'#c99a12', alert:'#E02826', info:'#00205C
 let state=null; // {algo, nodeId, ctx, history:[], checks:{}}
 function recents(){ try{ return JSON.parse(localStorage.getItem('mip_recent')||'[]'); }catch(e){ return []; } }
 function pushRecent(id){ let r=recents().filter(x=>x!==id); r.unshift(id); r=r.slice(0,4); localStorage.setItem('mip_recent', JSON.stringify(r)); }
-/* Aviso honesto: estas herramientas aún no están traducidas. Se muestra solo
-   si la persona eligió otro idioma en el hub (reportado por usuarios). */
-function etSoloEspanolHTML(){
-  const l = etLang();
-  if(l === 'es') return '';
-  const t = l === 'pt'
-    ? '⚠ Esta ferramenta ainda está <b>disponível apenas em espanhol</b>. O conteúdo clínico não foi traduzido.'
-    : '⚠ This tool is <b>currently available in Spanish only</b>. The clinical content has not been translated yet.';
-  return `<div class="calc-alert" style="background:#fdf6e7;border-color:#B7791F;color:#7a5c00;text-align:left;">${t}</div>`;
-}
-
 function setHeader(show){ document.getElementById('appHeader').style.display=show?'':'none'; }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -199,22 +197,22 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 function renderHome(filter){
   setHeader(true); state=null;
   filter=(filter||'').trim().toLowerCase();
-  const match = a => !filter || a.name.toLowerCase().includes(filter) || a.short.toLowerCase().includes(filter) || a.kw.some(k=>k.includes(filter)) || a.region.toLowerCase().includes(filter);
-  let html = etSoloEspanolHTML() + `<input class="aast-search" id="mipSearch" placeholder="Buscar algoritmo…" value="${esc(filter)}" oninput="renderHome(this.value); focusSearch();">`;
+  const match = a => !filter || tr(a.name).toLowerCase().includes(filter) || tr(a.short).toLowerCase().includes(filter) || a.name.toLowerCase().includes(filter) || a.kw.some(k=>k.includes(filter)) || tr(a.region).toLowerCase().includes(filter);
+  let html = `<input class="aast-search" id="mipSearch" placeholder="${tr('Buscar algoritmo…')}" value="${esc(filter)}" oninput="renderHome(this.value); focusSearch();">`;
   const rec = recents().map(id=>ALGO_BY_ID[id]).filter(Boolean);
   if(!filter && rec.length){
-    html += `<div class="region-block"><div class="region-title">★ Recientes</div><div class="organ-grid">` +
-      rec.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(a.name)}</button>`).join('') + `</div></div>`;
+    html += `<div class="region-block"><div class="region-title">${tr('★ Recientes')}</div><div class="organ-grid">` +
+      rec.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(tr(a.name))}</button>`).join('') + `</div></div>`;
   }
   let any=false;
   REGIONS.forEach(region=>{
     const list=ALGOS.filter(a=>a.region===region && match(a));
     if(!list.length) return; any=true;
-    html += `<div class="region-block"><div class="region-title">${esc(region)}</div><div class="organ-grid">` +
-      list.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(a.name)}${a.validado===false?' <span style="color:#c99a12">•</span>':''}</button>`).join('') + `</div></div>`;
+    html += `<div class="region-block"><div class="region-title">${esc(tr(region))}</div><div class="organ-grid">` +
+      list.map(a=>`<button class="organ-btn" onclick="openAlgo('${a.id}')">${esc(tr(a.name))}${a.validado===false?' <span style="color:#c99a12">•</span>':''}</button>`).join('') + `</div></div>`;
   });
-  if(!any) html += `<p style="text-align:center;color:var(--et-muted);padding:30px 0;">Sin resultados</p>`;
-  html += (window.etToolFooter ? etToolFooter('Ver todas las herramientas ›','Danos tu opinión') : '');
+  if(!any) html += `<p style="text-align:center;color:var(--et-muted);padding:30px 0;">${tr('Sin resultados')}</p>`;
+  html += (window.etToolFooter ? etToolFooter(tr('Ver todas las herramientas ›'), tr('Danos tu opinión')) : '');
   document.getElementById('main').innerHTML = html;
 }
 function focusSearch(){ const el=document.getElementById('mipSearch'); if(el){ const v=el.value; el.focus(); el.setSelectionRange(v.length,v.length);} }
@@ -232,19 +230,19 @@ function renderNode(){
   setHeader(false); window.scrollTo(0,0);
   const algo=state.algo, node=algo.nodes[state.nodeId];
   const back = state.history.length
-    ? `<button class="back-btn" onclick="nodeBack()">‹ Atrás</button>`
-    : `<button class="back-btn" onclick="renderHome('')">‹ Todos los algoritmos</button>`;
+    ? `<button class="back-btn" onclick="nodeBack()">${tr('‹ Atrás')}</button>`
+    : `<button class="back-btn" onclick="renderHome('')">${tr('‹ Todos los algoritmos')}</button>`;
   const opts = node.opts.map((o,i)=>`
     <button class="organ-btn" style="text-align:left;padding:16px 18px;" onclick="pickOpt(${i})">
-      <span style="display:block;font-weight:700;">${esc(o.label)}</span>
-      ${o.sub?`<span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${esc(o.sub)}</span>`:''}
+      <span style="display:block;font-weight:700;">${esc(tr(o.label))}</span>
+      ${o.sub?`<span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${esc(tr(o.sub))}</span>`:''}
     </button>`).join('');
   document.getElementById('main').innerHTML = `
     <div class="back-row">${back}</div>
-    <div class="category-badge"><span>${esc(algo.name)}</span></div>
+    <div class="category-badge"><span>${esc(tr(algo.name))}</span></div>
     ${algo.validado===false?validarBanner():''}
-    <div class="question-text">${esc(node.q)}</div>
-    ${node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(node.help)}</p>`:''}
+    <div class="question-text">${esc(tr(node.q))}</div>
+    ${node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(tr(node.help))}</p>`:''}
     <div class="organ-grid" style="grid-template-columns:1fr;margin-top:6px;">${opts}</div>
   `;
 }
@@ -275,15 +273,15 @@ function renderChecklist(){
   const algo=state.algo;
   const items=algo.criteria.map(c=>`
     <div class="adjust-toggle ${state.checks[c.id]?'on':''}" onclick="toggleCheck('${c.id}')" style="margin-bottom:10px;">
-      <div class="at-label">${esc(c.label)}</div><div class="at-switch"></div></div>`).join('');
+      <div class="at-label">${esc(tr(c.label))}</div><div class="at-switch"></div></div>`).join('');
   document.getElementById('main').innerHTML = `
-    <div class="back-row"><button class="back-btn" onclick="renderHome('')">‹ Todos los algoritmos</button></div>
-    <div class="category-badge"><span>${esc(algo.name)}</span></div>
+    <div class="back-row"><button class="back-btn" onclick="renderHome('')">${tr('‹ Todos los algoritmos')}</button></div>
+    <div class="category-badge"><span>${esc(tr(algo.name))}</span></div>
     ${algo.validado===false?validarBanner():''}
     <div class="question-text" style="margin-bottom:6px;">${esc(algo.name)}</div>
-    <p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(algo.intro)}</p>
+    <p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 6px;">${esc(tr(algo.intro))}</p>
     ${items}
-    <button class="calc-btn" onclick="finishChecklist()">Ver resultado ›</button>
+    <button class="calc-btn" onclick="finishChecklist()">${tr('Ver resultado ›')}</button>
   `;
 }
 function toggleCheck(id){ state.checks[id]=!state.checks[id]; renderChecklist(); }
@@ -306,37 +304,37 @@ function renderResult(r){
   const algo=state.algo;
   const color=LVL_COLOR[r.level]||'#00205C';
   const backBtn = algo.type==='checklist'
-    ? `<button class="back-btn" onclick="renderChecklist()">‹ Corregir</button>`
-    : `<button class="back-btn" onclick="renderNode()">‹ Corregir</button>`;
+    ? `<button class="back-btn" onclick="renderChecklist()">${tr('‹ Atrás')}</button>`
+    : `<button class="back-btn" onclick="renderNode()">${tr('‹ Atrás')}</button>`;
   document.getElementById('main').innerHTML = `
     <div class="back-row">${backBtn}</div>
     <div class="result-card bjorck" style="justify-content:center;text-align:center;">
-      <div class="result-eyebrow">${esc(algo.name)}</div>
-      <div class="question-text" style="font-size:1.5rem;line-height:1.25;margin:8px 0 4px;color:${color};">${esc(r.title)}</div>
-      <div class="result-detail" style="margin-top:10px;">${esc(r.detail)}</div>
-      ${r.warn?`<div class="calc-alert">${esc(r.warn)}</div>`:''}
-      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openAlgo('${r.goto.id}')">${esc(r.goto.label)}</button>`:''}
-      <div class="calc-formula"><b>Referencia:</b> ${esc(algo.ref)}</div>
+      <div class="result-eyebrow">${esc(tr(algo.name))}</div>
+      <div class="question-text" style="font-size:1.5rem;line-height:1.25;margin:8px 0 4px;color:${color};">${esc(tr(r.title))}</div>
+      <div class="result-detail" style="margin-top:10px;">${esc(tr(r.detail))}</div>
+      ${r.warn?`<div class="calc-alert">${esc(tr(r.warn))}</div>`:''}
+      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openAlgo('${r.goto.id}')">${esc(tr(r.goto.label))}</button>`:''}
+      <div class="calc-formula"><b>${tr('Referencia')}:</b> ${esc(tr(algo.ref))}</div>
     </div>
-    <button class="restart-btn" onclick="renderHome('')">Otro algoritmo</button>
+    <button class="restart-btn" onclick="renderHome('')">${tr('Otro algoritmo')}</button>
   `;
 }
 
 /* ---------- Gate de especialidad (compartido) ---------- */
 function needSpec(){ try{ return !JSON.parse(localStorage.getItem('et_profile')||'{}').specialty; }catch(e){ return true; } }
-const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Medicina interna","Medicina general","Enfermería","Estudiante de medicina","Otra"];
+const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"];
 function renderSpecGate(){
   setHeader(false);
-  const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${s}</button>`).join('');
-  document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
-    <p class="spec-sub">Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.</p>
+  const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${tr(s)}</button>`).join('');
+  document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">${tr('¿Cuál es tu especialidad?')}</div>
+    <p class="spec-sub">${tr('Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.')}</p>
     <div class="spec-grid">${chips}</div></div>`;
 }
 function pickSpec(s){
-  if(s===SPECS[SPECS.length-1]){
-    document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">¿Cuál es tu especialidad?</div>
-      <input class="spec-input" id="so" maxlength="60" placeholder="Escríbela aquí… (ej: Veterinaria)" oninput="document.getElementById('sg').disabled=!this.value.trim()">
-      <button class="spec-continue" id="sg" disabled onclick="saveSpec(document.getElementById('so').value.trim())">Continuar ›</button></div>`;
+  if(s===tr(SPECS[SPECS.length-1])||s===SPECS[SPECS.length-1]){
+    document.getElementById('main').innerHTML=`<div class="card"><div class="question-text">${tr('¿Cuál es tu especialidad?')}</div>
+      <input class="spec-input" id="so" maxlength="60" placeholder="${tr('Escríbela aquí… (ej: Veterinaria)')}" oninput="document.getElementById('sg').disabled=!this.value.trim()">
+      <button class="spec-continue" id="sg" disabled onclick="saveSpec(document.getElementById('so').value.trim())">${tr('Continuar ›')}</button></div>`;
     setTimeout(()=>document.getElementById('so').focus(),100); return;
   }
   saveSpec(s);
@@ -350,15 +348,24 @@ const IS_STANDALONE=(window.matchMedia&&window.matchMedia('(display-mode: standa
 function ensureBanner(){ if(document.getElementById('installBanner'))return; const b=document.createElement('div'); b.className='install-banner'; b.id='installBanner'; b.innerHTML='<span id="installText"></span><button id="installBtn"></button><button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>'; document.querySelector('.brand-ribbon').after(b); }
 function refreshInstallBanner(){ ensureBanner(); const banner=document.getElementById('installBanner'); if(IS_STANDALONE||localStorage.getItem('installDismissed')==='1'){ banner.classList.remove('show'); return; }
 // No ofrecer instalar antes del primer resultado útil (ver design/feedback.js)
-  if (window.etShouldOfferInstall && !window.etShouldOfferInstall()){ banner.classList.remove('show'); return; } const btn=document.getElementById('installBtn'); if(IS_IOS){ document.getElementById('installText').innerHTML='Guárdala en tu pantalla de inicio — funciona sin conexión.'; btn.style.display=''; btn.textContent='¿Cómo?'; btn.onclick=showIOSGuide; banner.classList.add('show'); } else if(deferredPrompt){ document.getElementById('installText').innerHTML='Instala esta app en tu pantalla de inicio, incluso sin conexión.'; btn.style.display=''; btn.textContent='Instalar'; btn.onclick=promptInstall; banner.classList.add('show'); } else { banner.classList.remove('show'); } }
+  if (window.etShouldOfferInstall && !window.etShouldOfferInstall()){ banner.classList.remove('show'); return; } const btn=document.getElementById('installBtn'); if(IS_IOS){ document.getElementById('installText').innerHTML=tr('Guárdala en tu pantalla de inicio — funciona sin conexión.'); btn.style.display=''; btn.textContent=tr('¿Cómo?'); btn.onclick=showIOSGuide; banner.classList.add('show'); } else if(deferredPrompt){ document.getElementById('installText').innerHTML=tr('Instala esta app en tu pantalla de inicio, incluso sin conexión.'); btn.style.display=''; btn.textContent=tr('Instalar'); btn.onclick=promptInstall; banner.classList.add('show'); } else { banner.classList.remove('show'); } }
 window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; refreshInstallBanner(); });
 window.addEventListener('appinstalled',()=>{ sendEvent('pwa_installed'); const b=document.getElementById('installBanner'); if(b)b.classList.remove('show'); });
 function promptInstall(){ if(!deferredPrompt)return; deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; refreshInstallBanner(); }); }
 function dismissInstall(){ try{localStorage.setItem('installDismissed','1');}catch(e){} document.getElementById('installBanner').classList.remove('show'); }
-function showIOSGuide(){ let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} const steps=['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>']; ov.innerHTML=`<div class="sheet"><h2>Instalar en tu iPhone</h2>${steps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">Entendido</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
+function showIOSGuide(){ let ov=document.getElementById('iosOverlay'); if(!ov){ ov=document.createElement('div'); ov.id='iosOverlay'; ov.className='overlay'; ov.onclick=(e)=>{if(e.target===ov)ov.classList.remove('show');}; document.body.appendChild(ov);} const steps=['Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en Safari','Elige <b>“Agregar a pantalla de inicio”</b>','Toca <b>Agregar</b>'].map(tr); ov.innerHTML=`<div class="sheet"><h2>${tr('Instalar en tu iPhone')}</h2>${steps.map((s,i)=>`<div class="rule-item"><div class="rule-dot"></div><div><b>${i+1}.</b> ${s}</div></div>`).join('')}<button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">${tr('Entendido')}</button></div>`; ov.classList.add('show'); sendEvent('ios_guide_open'); }
 
 /* ---------- Footer + init ---------- */
-document.getElementById('appFooter').innerHTML='Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>';
+const FOOTER_ES='Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>';
+function applyStaticTexts(){
+  document.documentElement.lang = etLang()==='pt' ? 'pt-BR' : etLang();
+  document.title = tr('MIP — Manejo Integral del Politraumatizado · EduTrauma');
+  document.querySelector('.brand-ribbon').textContent = tr('Herramientas Clínicas');
+  document.getElementById('appTitle').textContent = tr('MIP — Manejo Integral del Politraumatizado');
+  document.getElementById('appSubtitle').textContent = tr('Algoritmos de decisión del abordaje primario (ABCDE). Toca un algoritmo.');
+  document.getElementById('appFooter').innerHTML = tr(FOOTER_ES);
+}
+applyStaticTexts();
 if(window.etFbInit) etFbInit('mip','MIP');
 if(needSpec()){ renderSpecGate(); } else { renderHome(''); }
 sendEvent('app_open');

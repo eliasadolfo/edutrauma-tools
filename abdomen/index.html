@@ -18,6 +18,7 @@
 
 <link rel="stylesheet" href="design/edutrauma-ui.css">
 <script src="design/feedback.js"></script>
+<script src="miaa-trans.js"></script>
 </head>
 <body>
 <div class="app">
@@ -229,7 +230,7 @@ const I18N = {
     hubLink: "See all tools ›",
     fbLink: "Give us feedback",
     menuTitle: "Open Abdomen — MIAA",
-    menuSubtitle: "MIAA course algorithms for open abdomen management. Tap one. (New algorithms are in Spanish for now.)",
+    menuSubtitle: "MIAA course algorithms for open abdomen management. Tap one.",
     menuAll: "‹ All algorithms",
     seeConducta: "See management for this grade ›",
     menuAlgos: [
@@ -332,7 +333,7 @@ const I18N = {
     hubLink: "Ver todas as ferramentas ›",
     fbLink: "Dê sua opinião",
     menuTitle: "Abdome Aberto — MIAA",
-    menuSubtitle: "Algoritmos do curso MIAA para o manejo do abdome aberto. Toque em um. (Os algoritmos novos estão em espanhol por enquanto.)",
+    menuSubtitle: "Algoritmos do curso MIAA para o manejo do abdome aberto. Toque em um.",
     menuAll: "‹ Todos os algoritmos",
     seeConducta: "Ver conduta segundo este grau ›",
     menuAlgos: [
@@ -477,6 +478,14 @@ function applyStaticTexts(){
   document.getElementById('appFooter').innerHTML = t.footer;
   document.getElementById('installText').innerHTML = t.installText;
   document.getElementById('installBtn').textContent = t.installBtn;
+}
+
+/* ============ Traducción de los algoritmos nuevos (ES canónico → EN/PT) ============ */
+function trM(s){
+  if(s==null) return s;
+  const l = LANG; if(l==='es') return s;
+  const d = (window.MIAA_TRANS && window.MIAA_TRANS[l]) || {};
+  return d[s] !== undefined ? d[s] : s;
 }
 
 /* ============ Motor de algoritmos MIAA ============
@@ -750,7 +759,7 @@ function miaaHeader(){
     ? `<button class="back-btn" onclick="miaaBack()">${t.backLast}</button>`
     : `<button class="back-btn" onclick="renderMenu()">${t.menuAll}</button>`;
   return `<div class="back-row">${back}</div>
-    <div class="category-badge"><span>${algoState.algo.name}</span></div>`;
+    <div class="category-badge"><span>${trM(algoState.algo.name)}</span></div>`;
 }
 
 function renderMiaaNode(){
@@ -762,8 +771,8 @@ function renderMiaaNode(){
       ${o.sub?`<span style="display:block;font-size:0.82rem;font-weight:400;opacity:0.68;margin-top:3px;">${o.sub}</span>`:''}
     </button>`).join('');
   document.getElementById('main').innerHTML = miaaHeader() +
-    `<div class="question-text">${node.q}</div>` +
-    (node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 10px;">${node.help}</p>`:'') +
+    `<div class="question-text">${trM(node.q)}</div>` +
+    (node.help?`<p style="font-size:0.88rem;color:var(--et-muted);line-height:1.5;margin:2px 0 10px;">${trM(node.help)}</p>`:'') +
     `<div style="margin-top:6px;">${opts}</div>`;
 }
 
@@ -795,17 +804,17 @@ function renderMiaaResult(r){
   const t = T();
   const color = MIAA_LVL[r.level] || '#00205C';
   const list = r.list ? `<div style="text-align:left;margin-top:14px;">` + r.list.map(x=>
-    `<div class="rule-item"><div class="rule-dot"></div><div>${x}</div></div>`).join('') + `</div>` : '';
+    `<div class="rule-item"><div class="rule-dot"></div><div>${trM(x)}</div></div>`).join('') + `</div>` : '';
   document.getElementById('main').innerHTML = `
     <div class="back-row"><button class="back-btn" onclick="renderMiaaNode()">${t.backLast}</button></div>
     <div class="result-card bjorck" style="justify-content:center;text-align:center;">
-      <div class="result-eyebrow">${algoState.algo.name}</div>
-      <div class="question-text" style="font-size:1.45rem;line-height:1.25;margin:8px 0 4px;color:${color};">${r.title}</div>
-      <div class="result-detail" style="margin-top:8px;">${r.detail}</div>
+      <div class="result-eyebrow">${trM(algoState.algo.name)}</div>
+      <div class="question-text" style="font-size:1.45rem;line-height:1.25;margin:8px 0 4px;color:${color};">${trM(r.title)}</div>
+      <div class="result-detail" style="margin-top:8px;">${trM(r.detail)}</div>
       ${list}
-      ${r.warn?`<div class="calc-alert">${r.warn}</div>`:''}
-      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openMiaa('${r.goto.id}')">${r.goto.label}</button>`:''}
-      <div class="calc-formula"><b>Referencia:</b> ${algoState.algo.ref}</div>
+      ${r.warn?`<div class="calc-alert">${trM(r.warn)}</div>`:''}
+      ${r.goto?`<button class="calc-btn" style="margin-top:16px;" onclick="openMiaa('${r.goto.id}')">${trM(r.goto.label)}</button>`:''}
+      <div class="calc-formula"><b>${trM('Referencia')}:</b> ${trM(algoState.algo.ref)}</div>
     </div>
     <button class="restart-btn" onclick="renderMenu()">${t.menuAll}</button>
   `;
@@ -823,7 +832,7 @@ function renderMiaaSteps(){
     </div>`).join('');
   document.getElementById('main').innerHTML = `
     <div class="back-row"><button class="back-btn" onclick="renderMenu()">${t.menuAll}</button></div>
-    <div class="category-badge"><span>${a.name}</span></div>
+    <div class="category-badge"><span>${trM(a.name)}</span></div>
     <p style="font-size:0.9rem;line-height:1.55;margin:6px 0 4px;">${a.intro}</p>
     <p style="font-size:0.86rem;color:var(--et-muted);line-height:1.5;margin:0 0 14px;">${a.note}</p>
     ${blocks}

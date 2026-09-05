@@ -1,6 +1,6 @@
 // Service Worker — MIP · NETWORK-FIRST + auto-actualización
-const CACHE = 'mip-v7';
-const ASSETS = ['./','./index.html','./manifest.json','./design/edutrauma-ui.css',
+const CACHE = 'mip-v8';
+const ASSETS = ['./','./index.html','./mip-trans.js','./manifest.json','./design/edutrauma-ui.css',
   './design/feedback.js','./logo-blanco-trim.png','./logo-mip.png','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));

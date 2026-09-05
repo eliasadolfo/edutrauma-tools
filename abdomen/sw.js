@@ -1,9 +1,10 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'abdomen-abierto-v28';
+const CACHE = 'abdomen-abierto-v29';
 const ASSETS = [
   './',
   './index.html',
+  './miaa-trans.js',
   './manifest.json',
   './design/edutrauma-ui.css',
   './design/feedback.js',
