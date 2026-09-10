@@ -374,8 +374,39 @@ function diagnostico(e){
   const m = String(e && (e.message||e));
   if(/abort|timeout/i.test(m)) return 'El servidor <b>tardó demasiado</b> en responder. Vuelve a intentar en un minuto.';
   if(/failed to fetch|networkerror|load failed/i.test(m))
-    return 'No se pudo contactar al servidor. Suele ser una <b>caída momentánea de red</b> o una <b>extensión del navegador</b> (bloqueador de anuncios/VPN) bloqueando la petición. Prueba a recargar, o abrir el panel en una ventana de incógnito.';
+    return 'No se pudo contactar al servidor. Estoy revisando exactamente por qué…';
   return 'Detalle técnico: ' + esc(m);
+}
+
+/* Diagnóstico automático: distingue las tres causas posibles sin que el usuario
+   tenga que saber nada técnico. Se ejecuta solo cuando la carga falla. */
+async function autodiagnostico(){
+  const caja = document.getElementById('diag');
+  if(!caja) return;
+  const prueba = async (fn) => { try{ await fn(); return true; }catch(e){ return false; } };
+
+  // 1) ¿Llega la red desde este navegador? (mismo origen, siempre disponible)
+  const red = await prueba(()=>fetch('./index.html?d='+Date.now(), {cache:'no-store'}));
+  // 2) ¿Se alcanza el servidor? no-cors: si el dominio está bloqueado, falla igual;
+  //    si solo fuese un problema de permisos CORS, esta sí pasa.
+  const host = await prueba(()=>fetch(URL_BASE, {mode:'no-cors', cache:'no-store'}));
+
+  let veredicto, guia;
+  if(!red){
+    veredicto = 'Tu conexión a internet no está respondiendo.';
+    guia = 'Revisa el wifi o los datos y vuelve a intentar.';
+  } else if(!host){
+    veredicto = 'Tu navegador NO logra alcanzar el servidor de datos.';
+    guia = 'La red o el navegador está bloqueando <code>devn8n.tuescuelademarcas.cl</code>. '+
+           'Prueba en <b>ventana de incógnito</b> (ahí las extensiones están apagadas); si ahí funciona, '+
+           'es una extensión de Chrome. Si tampoco funciona, es la red que estás usando (wifi del hospital, VPN o antivirus).';
+  } else {
+    veredicto = 'El servidor responde, pero rechazó esta petición.';
+    guia = 'Suele ser un problema momentáneo del servidor. Espera un minuto y reintenta; si sigue, avísame.';
+  }
+  caja.innerHTML = `<div style="margin-top:14px;padding:13px 15px;border:1px solid var(--line);border-radius:var(--r-sm);
+    background:var(--wash);text-align:left;font-size:.88rem;line-height:1.55;color:var(--ink);">
+    <b>Diagnóstico:</b> ${veredicto}<br>${guia}</div>`;
 }
 
 function load(){
@@ -392,7 +423,9 @@ function load(){
     .catch(e=>{
       document.getElementById('app').innerHTML =
         `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>${diagnostico(e)}
-         <br><br><button class="refresh" onclick="load()">↻ Reintentar</button></div>`;
+         <div id="diag"></div>
+         <br><button class="refresh" onclick="load()">↻ Reintentar</button></div>`;
+      autodiagnostico();
     });
 }
 load();
