@@ -346,19 +346,54 @@ function doLogin(){
 }
 function logout(){ localStorage.removeItem(KEY_STORE); showLogin(''); }
 
+/* El panel lee TODA la tabla de eventos, así que la respuesta tarda unos segundos
+   y crece con el tiempo. Damos margen (30 s) y reintentamos: un corte de red
+   momentáneo no debe dejar la pantalla en error. */
+const FETCH_TIMEOUT_MS = 30000;
+const REINTENTOS = 2;
+
+function pedirDatos(key, intento){
+  const ctrl = new AbortController();
+  const to = setTimeout(()=>ctrl.abort('timeout'), FETCH_TIMEOUT_MS);
+  return fetch(URL_BASE+'?k='+encodeURIComponent(key), {cache:'no-store', signal:ctrl.signal})
+    .then(r=>{ clearTimeout(to); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .catch(err=>{
+      clearTimeout(to);
+      if(intento < REINTENTOS){
+        const espera = 1500 * (intento + 1);
+        const el = document.getElementById('app');
+        if(el) el.innerHTML = `<div class="loading">Reintentando… (${intento+1}/${REINTENTOS})</div>`;
+        return new Promise(res=>setTimeout(res, espera)).then(()=>pedirDatos(key, intento+1));
+      }
+      throw err;
+    });
+}
+
+function diagnostico(e){
+  if(!navigator.onLine) return 'Tu dispositivo aparece <b>sin conexión a internet</b>.';
+  const m = String(e && (e.message||e));
+  if(/abort|timeout/i.test(m)) return 'El servidor <b>tardó demasiado</b> en responder. Vuelve a intentar en un minuto.';
+  if(/failed to fetch|networkerror|load failed/i.test(m))
+    return 'No se pudo contactar al servidor. Suele ser una <b>caída momentánea de red</b> o una <b>extensión del navegador</b> (bloqueador de anuncios/VPN) bloqueando la petición. Prueba a recargar, o abrir el panel en una ventana de incógnito.';
+  return 'Detalle técnico: ' + esc(m);
+}
+
 function load(){
   const key = localStorage.getItem(KEY_STORE);
   if(!key){ showLogin(''); return; }
   document.getElementById('app').innerHTML = '<div class="loading">Cargando datos…</div>';
-  fetch(URL_BASE+'?k='+encodeURIComponent(key), {cache:'no-store'})
-    .then(r=>r.json())
+  pedirDatos(key, 0)
     .then(d=>{
       if(d.error==='no-auth'){ localStorage.removeItem(KEY_STORE); showLogin('Clave incorrecta. Intenta de nuevo.'); return; }
       if(d.error) throw new Error(d.error);
       document.getElementById('btnSalir').style.display='';
       render(d);
     })
-    .catch(e=>{ document.getElementById('app').innerHTML = `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>Revisa que el servidor n8n esté activo.<br><small>${esc(e.message)}</small></div>`; });
+    .catch(e=>{
+      document.getElementById('app').innerHTML =
+        `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>${diagnostico(e)}
+         <br><br><button class="refresh" onclick="load()">↻ Reintentar</button></div>`;
+    });
 }
 load();
 setInterval(load, 5*60*1000); // auto-refresca cada 5 min
