@@ -409,10 +409,65 @@ async function autodiagnostico(){
     <b>Diagnóstico:</b> ${veredicto}<br>${guia}</div>`;
 }
 
+/* ---------- Foto local cifrada (mismo dominio) ----------
+   Se lee ANTES que el servidor: al venir del mismo dominio, ninguna extensión
+   de privacidad la bloquea (ese fue el fallo real) y además carga al instante.
+   El archivo es público pero está cifrado con la clave del equipo. */
+async function leerFotoLocal(clave){
+  let p;
+  try{
+    const r = await fetch('./data.json?ts=' + Date.now(), { cache:'no-store' });
+    if(!r.ok) throw 0;
+    p = await r.json();
+    if(!p || !p.data) throw 0;
+  }catch(e){ throw new Error('sin-foto'); }
+  try{
+    return await descifrar(p, clave);
+  }catch(e){ throw new Error('clave-mala'); } // el archivo está bien: la clave no
+}
+async function descifrar(p, clave){
+  const enc = new TextEncoder();
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey('raw', enc.encode(clave), 'PBKDF2', false, ['deriveKey']);
+  const k = await crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt:b64(p.salt), iterations:p.iter, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+  const plano = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b64(p.iv) }, k, b64(p.data));
+  return JSON.parse(new TextDecoder().decode(plano));
+}
+
+function haceCuanto(iso){
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/60000));
+  if(min < 1) return 'recién actualizado';
+  if(min < 60) return 'actualizado hace ' + min + ' min';
+  const h = Math.round(min/60);
+  return 'actualizado hace ' + h + (h===1 ? ' hora' : ' horas');
+}
+
 function load(){
   const key = localStorage.getItem(KEY_STORE);
   if(!key){ showLogin(''); return; }
   document.getElementById('app').innerHTML = '<div class="loading">Cargando datos…</div>';
+  // 1º la foto local; si no existe o la clave no sirve, se consulta al servidor.
+  leerFotoLocal(key)
+    .then(d=>{
+      document.getElementById('btnSalir').style.display='';
+      render(d);
+      const s = document.getElementById('sub');
+      if(s) s.textContent += ' · ' + haceCuanto(d.generated);
+    })
+    .catch(err=>{
+      // La foto existe pero no abre con esta clave → la clave está mal.
+      if(String(err.message)==='clave-mala'){
+        localStorage.removeItem(KEY_STORE);
+        showLogin('Clave incorrecta. Intenta de nuevo.');
+        return;
+      }
+      return cargarDesdeServidor(key); // aún no hay foto publicada: se pide al servidor
+    });
+}
+
+function cargarDesdeServidor(key){
   pedirDatos(key, 0)
     .then(d=>{
       if(d.error==='no-auth'){ localStorage.removeItem(KEY_STORE); showLogin('Clave incorrecta. Intenta de nuevo.'); return; }
