@@ -141,7 +141,7 @@
     </div>
   </header>
   <div id="app"><div class="loading">Cargando datos…</div></div>
-  <div class="foot">Panel interno · datos anónimos y agregados · no compartir el enlace.</div>
+  <div class="foot">Panel interno · datos anónimos y agregados · no compartir el enlace. · <span id="ver">panel v4</span></div>
 </div>
 
 <script>
@@ -463,6 +463,7 @@ function load(){
         showLogin('Clave incorrecta. Intenta de nuevo.');
         return;
       }
+      window.__origenFallo = 'sin foto local (' + String(err.message) + ')';
       return cargarDesdeServidor(key); // aún no hay foto publicada: se pide al servidor
     });
 }
@@ -477,7 +478,7 @@ function cargarDesdeServidor(key){
     })
     .catch(e=>{
       document.getElementById('app').innerHTML =
-        `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>${diagnostico(e)}
+        `<div class="errbox"><b>No se pudieron cargar los datos.</b><br>${diagnostico(e)}<br><small style="opacity:.7">origen: ${esc(window.__origenFallo||'servidor')} · panel v4</small>
          <div id="diag"></div>
          <br><button class="refresh" onclick="load()">↻ Reintentar</button></div>`;
       autodiagnostico();
