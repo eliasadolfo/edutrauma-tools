@@ -43,7 +43,7 @@ lg 18 (tarjetas) · md 14 (botones respuesta) · sm 12 (acciones) · xs 10 (caja
 | Componente | Clase | Notas |
 |---|---|---|
 | **Header doble logo** | `.brand-strip` + `.brand-logo` + `.brand-chip` | EduTrauma blanco a la izq; logo de curso a color dentro de chip blanco a la der. Sin texto adicional en la franja. |
-| **Cinta de ecosistema** | `.brand-ribbon` | Va SIEMPRE bajo la franja, con el texto fijo "HERRAMIENTAS CLÍNICAS" (decisión de marca 2026-07). Navy profundo + filete rojo superior (evoca la línea divisoria del logo EduTrauma). Es la firma que une todas las apps de la serie. |
+| **Cinta de ecosistema** | `.brand-ribbon` | Va SIEMPRE bajo la franja, con el texto fijo "EduTrauma Tools" — el nombre del producto (decisión de marca 2026-09; antes "Herramientas Clínicas"). NO se traduce: es nombre propio, idéntico en es/en/pt. Navy profundo + filete rojo superior (evoca la línea divisoria del logo EduTrauma). Es la firma que une todas las apps de la serie. |
 | Cabecera de página | `header > h1 + p` | Título + bajada italic. `text-wrap: balance`. |
 | Botón info iOS | `.rule-link` | Texto + ícono ⓘ fino, tinte teal, bajo la bajada. Abre el bottom sheet. |
 | Progreso | `.progress-wrap/track/fill/label` | Gradiente navy→rojo. Label "PREGUNTA X DE N". |
@@ -61,7 +61,7 @@ lg 18 (tarjetas) · md 14 (botones respuesta) · sm 12 (acciones) · xs 10 (caja
 ```
 .app
  ├─ .brand-strip          ← doble logo
- ├─ .brand-ribbon         ← "HERRAMIENTAS CLÍNICAS" (fijo en toda la serie)
+ ├─ .brand-ribbon         ← "EduTrauma Tools" (fijo en toda la serie, sin traducir)
  ├─ header                ← h1 + bajada + .rule-link (opcional)
  ├─ .progress-wrap        ← si hay flujo por pasos
  ├─ main                  ← pregunta | resultado (render por JS)
@@ -99,6 +99,22 @@ lg 18 (tarjetas) · md 14 (botones respuesta) · sm 12 (acciones) · xs 10 (caja
 
 Estas reglas nacieron de errores reales. Romperlas produce el "Frankenstein":
 tools que se ven y se comportan distinto entre sí.
+
+### Color: rojo/verde SOLO para estados, nunca para conductas
+
+Los colores de estado (`--et-danger`, `--et-success`) están **reservados** para
+estados reales: alerta, riesgo, valor fuera de rango. **Nunca** para distinguir
+dos conductas clínicas válidas entre sí.
+
+> **Error real (jul-2026):** en MIAA, "dejar el abdomen abierto" salía en rojo con
+> una ✗ y "cerrar" en verde con un ✓. Dos usuarios reportaron que la herramienta
+> parecía decir que habían respondido mal. Ambas conductas son igualmente válidas.
+
+- Dos conductas alternativas → **mismo tono neutro de marca**; la distinción la
+  llevan el **ícono descriptivo** y el **título**, no el color.
+- Si el resultado puede leerse como "acierto/error", agregar una **nota neutral**
+  que lo desmienta explícitamente.
+- Íconos: describen la conducta (incisión abierta / suturada), nunca ✓ o ✗.
 
 ### Dónde vive cada cosa
 

@@ -112,7 +112,7 @@ main{ flex:1; display:flex; flex-direction:column; }
   flex-shrink:0;
 }
 .brand-chip img{ height: 30px; width:auto; display:block; }
-/* Cinta de ecosistema: "HERRAMIENTAS CLÍNICAS" — idéntica en todas las apps.
+/* Cinta de ecosistema: "EduTrauma Tools" (nombre del producto, sin traducir) — idéntica en todas las apps.
    El filete rojo superior evoca la línea divisoria del logo EduTrauma. */
 .brand-ribbon{
   margin: 0 -16px 14px;
