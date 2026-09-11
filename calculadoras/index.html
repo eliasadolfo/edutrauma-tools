@@ -521,7 +521,11 @@ function renderResult(r){
 
 /* ---------- Gate de especialidad (compartido) ---------- */
 function needSpec(){ try{ return !JSON.parse(localStorage.getItem('et_profile')||'{}').specialty; }catch(e){ return true; } }
-const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Medicina interna","Medicina general","Enfermería","Estudiante de medicina","Otra"];
+/* Lista canónica de la serie: las mismas 7 opciones que el hub, ni una más.
+   Si aquí aparecen opciones que el hub no ofrece, el conteo de profesiones del
+   panel se parte y hay que volver a normalizarlo a mano. design/auditar.mjs
+   comprueba que estas listas no diverjan. */
+const SPECS=["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"];
 function renderSpecGate(){
   setHeader(false);
   const chips=SPECS.map(s=>`<button onclick="pickSpec(this.textContent)">${s}</button>`).join('');

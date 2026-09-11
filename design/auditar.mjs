@@ -80,6 +80,57 @@ const faltantes = claves.filter(c => !css.includes('.' + c));
 check(faltantes.length === 0, 'CSS: todos los componentes clave definidos',
   `⚠ CSS: faltan componentes: ${faltantes.join(', ')}`);
 
+/* 5. Una sola lista de especialidades en toda la serie.
+   El hub es la fuente de verdad. Si una tool ofrece una opción que el hub no
+   tiene, el panel cuenta esa profesión aparte y los números dejan de cuadrar. */
+const ANCLAS = { es: 'Cirugía general', en: 'General surgery', pt: 'Cirurgia geral' };
+
+/* Encuentra todas las listas de especialidades de un archivo, sea cual sea su
+   forma (I18N.specialties, const SPECS, const SPECIALTIES…): busca los arrays
+   que contengan la primera opción canónica de cada idioma. */
+function listasEspecialidad(src) {
+  const out = {};
+  for (const [lang, ancla] of Object.entries(ANCLAS)) {
+    const re = new RegExp(`\\[[^\\[\\]]*"${ancla}"[^\\[\\]]*\\]`, 'g');
+    const listas = [...src.matchAll(re)]
+      .map(m => { try { return JSON.parse(m[0]); } catch { return null; } })
+      .filter(Array.isArray);
+    if (listas.length) out[lang] = listas;
+  }
+  return out;
+}
+
+const canon = listasEspecialidad(hub);
+check(Object.keys(canon).length === 3,
+  'hub: define las especialidades en los tres idiomas',
+  '⚠ hub: no encuentro las 3 listas de especialidades (es/en/pt) → es la fuente de verdad');
+
+for (const [lang, listas] of Object.entries(canon)) {
+  const ref = JSON.stringify(listas[0]);
+  check(listas.every(l => JSON.stringify(l) === ref),
+    `hub: la lista de especialidades (${lang}) es única`,
+    `⚠ hub: tiene ${listas.length} listas de especialidades distintas en ${lang}`);
+}
+
+for (const t of TOOLS) {
+  const encontradas = listasEspecialidad(leer(`${t}/index.html`));
+  const diverge = [];
+  for (const [lang, listas] of Object.entries(encontradas)) {
+    const ref = canon[lang] && JSON.stringify(canon[lang][0]);
+    for (const l of listas) {
+      if (JSON.stringify(l) !== ref) {
+        const extra = l.filter(s => !(canon[lang] || [[]])[0].includes(s));
+        const falta = ((canon[lang] || [[]])[0]).filter(s => !l.includes(s));
+        diverge.push(`${lang}${extra.length ? ` sobra: ${extra.join(', ')}` : ''}` +
+                     `${falta.length ? ` falta: ${falta.join(', ')}` : ''}`);
+      }
+    }
+  }
+  check(diverge.length === 0,
+    `${t}: especialidades idénticas a las del hub`,
+    `⚠ ${t}: su lista de especialidades DIVERGE del hub (${diverge.join(' · ')}) → el panel contará profesiones de más`);
+}
+
 /* ---------- Reporte ---------- */
 console.log('\n=== AUDITORÍA DE COHERENCIA — EduTrauma Tools ===\n');
 console.log(`✅ ${ok.length} comprobaciones OK`);
