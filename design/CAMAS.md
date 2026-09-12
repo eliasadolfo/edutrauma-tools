@@ -14,14 +14,29 @@ que él ya conversó, y con un grupo pequeño.
 
 ## El modelo
 
+La analogía que lo ordenó, de Elías: **es como tomar pedidos en un restaurante**.
+Y de ahí sale la regla que casi se nos escapa — la comanda es de los comensales,
+no de la mesa. Si los cambias de mesa, la comanda se va con ellos.
+
 ```
 UNIDAD  (tiene un código que reparte el organizador)
-  └─ CAMA        "Box 3"  · permanece
-       └─ ESTADÍA          · un paciente ocupando esa cama durante un período
-            └─ NOTA        · firmada, con hora, SOLO SE AÑADE
+  ├─ CAMA         "Box 3"  · el lugar, permanece
+  └─ PACIENTE              · entra, se mueve, se va
+       ├─ ASIGNACIÓN       · en qué cama está, y en cuáles estuvo
+       ├─ EVOLUCIÓN        · lo que PASÓ. Firmada, con hora. SOLO SE AÑADE.
+       └─ INDICACIÓN       · lo que FALTA por hacer. Alguien la marca.
 ```
 
-Los pacientes rotan: la cama es el lugar, la estadía es quién está ahí ahora.
+**La evolución cuelga del paciente, no de la cama.** Si cuelga de la cama, al
+mover a alguien de Box 3 a Cama 12 su historia se parte en dos y quien llegue
+después no ve lo anterior — justo lo contrario de para qué sirve una evolución.
+
+**Evolución e indicación son cosas distintas.** Una cuenta lo que pasó y se lee;
+la otra es un pendiente que alguien tiene que ejecutar y marcar. "Control de
+hematocrito a las 6" no es una nota.
+
+Índices únicos parciales impiden dos imposibles físicos: que una cama tenga dos
+pacientes a la vez, y que un paciente esté en dos camas a la vez.
 
 ## Las decisiones que no son negociables
 
@@ -31,16 +46,22 @@ salen del teléfono. Camas sí sale. Si alguien se confunde de pantalla,
 rompimos la promesa aunque técnicamente no la rompimos. Tienen que verse
 distintas y decir en la cabecera quién más está mirando.
 
-**2. Las notas solo se añaden.**
+**2. La evolución solo se añade.**
 Elías y Pablo pidieron "que gane el dato más actual". Eso vale para los datos
 editables de la estadía (alias, egreso), donde perder una edición no borra
-información. Para las notas **no**: si dos residentes escriben sin señal y al
-sincronizar gana el último, la nota del otro desaparece sin que nadie se
+información. Para la evolución **no**: si dos residentes escriben sin señal y al
+sincronizar gana el último, la línea del otro desaparece sin que nadie se
 entere. Añadiendo, las dos entran con su hora y su autor, y el conflicto deja
 de existir en vez de resolverse. No hay política de UPDATE ni de DELETE sobre
-`nota`, a propósito.
+`evolucion`, a propósito.
 
-**3. Cada nota lleva quién y cuándo.**
+Y no es una precaución de programador: una evolución clínica nunca se borra.
+Si te equivocaste, escribes una que rectifica. Así es en papel desde siempre.
+
+La indicación sí se puede marcar como hecha —eso es un update— pero un trigger
+impide que se cambie su texto o su autor.
+
+**3. Cada línea lleva quién y cuándo.**
 Una cama compartida sin autor es un rumor, no un registro. `autor_nombre` se
 guarda copiado: si alguien deja el equipo, su firma permanece en lo que
 escribió.
@@ -65,7 +86,7 @@ nadie puede llamarlas desde fuera para preguntar quién pertenece a qué.
 
 ## Lo que falta
 
-- Interfaz: unidad, camas, estadía, notas.
+- Interfaz: unidad, camas, pacientes, evolución e indicaciones.
 - Autenticación por correo.
 - Cola de sincronización y qué se ve cuando no hay señal.
 - Que un resultado de herramienta se pueda guardar en una cama, no solo en un
