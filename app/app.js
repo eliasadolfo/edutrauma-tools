@@ -200,7 +200,10 @@ function onbAdvance(){
     S.onb.i = 'done';
     render();
     sendEvent('onboarding_done');
-    setTimeout(() => { S.onb = null; S.dir = 0; render(); }, 1400);
+    setTimeout(() => {
+      S.onb = null; S.dir = 0; render();
+      if(typeof openDeepLink === 'function') openDeepLink();
+    }, 1400);
     return;
   }
   render();
@@ -657,6 +660,22 @@ function migrateLegacyProfile(){
   }catch(e){}
 }
 
+/* ---------- Enlaces profundos ----------
+   tools.edutrauma.net/app/#aast abre directamente esa herramienta. Es lo que
+   permite que los QR y los enlaces que ya circulan sigan llevando al sitio
+   correcto cuando las paginas viejas redirijan aqui. */
+const DEEP_TABS = ['casos','guias','perfil'];
+function openDeepLink(){
+  const h = (location.hash || '').replace('#','').split('?')[0].trim();
+  if(!h) return;
+  if(DEEP_TABS.includes(h)){ setTab(h); return; }
+  const alias = { calculadoras:'calc', abdomen:'abdomen', miaa:'abdomen',
+                  aast:'aast', mip:'mip', teg:'teg', teg6s:'teg', calc:'calc' };
+  const id = alias[h];
+  if(!id || typeof TOOLS === 'undefined' || !TOOLS[id]) return;
+  if(DIRECT[id]) openToolDirect(id); else openTool(id);
+}
+
 (function boot(){
   migrateLegacyProfile();
   etFlushQueue();
@@ -664,6 +683,10 @@ function migrateLegacyProfile(){
   if(typeof window.etFbInit === 'function') window.etFbInit('hub', 'EduTrauma Tools');
   startOnboarding();
   render();
+  /* El enlace profundo espera a que termine el primer arranque: los tres
+     datos son obligatorios y no se saltan por llegar con un #. */
+  if(!S.onb) openDeepLink();
+  window.addEventListener('hashchange', () => { if(!S.onb) openDeepLink(); });
   sendEvent('app_open');
 
   /* Service worker de la serie (ámbito raíz): es el que da el uso sin conexión
