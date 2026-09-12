@@ -125,6 +125,12 @@ interpretación + rango de referencia + referencia bibliográfica.
 
 Mismo bug de la coma decimal: aplica a las 16.
 
+Aviso: esta es la ÚNICA herramienta que hoy está solo en español — no tiene
+archivo de traducción, así que un usuario en portugués ve las 16 calculadoras
+en español. Vamos a traducirla, así que diseña contando con los tres idiomas
+desde el principio (los nombres de las calculadoras y sus unidades son los que
+más crecen al traducirse).
+
 ────────────────────────────────────────
 REQUISITOS TRANSVERSALES (aplican a las cuatro)
 ────────────────────────────────────────
