@@ -126,7 +126,10 @@ es: {
     favorites: "Favoritos",
     yourTools: "Tus herramientas",
     disclaimer: "Apoyo a la decisión clínica — no reemplazan el juicio quirúrgico.",
-    feedback: "Danos tu opinión"
+    feedback: "Danos tu opinión",
+    askCountry: "Nos falta un dato: ¿en qué país ejerces? Nos sirve para saber dónde construir.",
+    askChannel: "¿Cómo nos conociste? Es la única forma de saber qué canal funciona.",
+    askNow: "Responder", askLater: "Ahora no"
   },
 
   tools: [
@@ -330,7 +333,10 @@ en: {
     favorites: "Favourites",
     yourTools: "Your tools",
     disclaimer: "Clinical decision support — it does not replace surgical judgement.",
-    feedback: "Give us your feedback"
+    feedback: "Give us your feedback",
+    askCountry: "One thing missing: which country do you practise in? It tells us where to build.",
+    askChannel: "How did you hear about us? It is the only way we know which channel works.",
+    askNow: "Answer", askLater: "Not now"
   },
 
   tools: [
@@ -534,7 +540,10 @@ pt: {
     favorites: "Favoritos",
     yourTools: "Suas ferramentas",
     disclaimer: "Apoio à decisão clínica — não substitui o julgamento cirúrgico.",
-    feedback: "Dê sua opinião"
+    feedback: "Dê sua opinião",
+    askCountry: "Falta um dado: em que país você atua? Serve para sabermos onde construir.",
+    askChannel: "Como você nos conheceu? É a única forma de saber qual canal funciona.",
+    askNow: "Responder", askLater: "Agora não"
   },
 
   tools: [

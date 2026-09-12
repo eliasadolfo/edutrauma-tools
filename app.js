@@ -173,9 +173,11 @@ const S = {
 };
 
 /* ============ Primer arranque ============ */
-/* Se pregunta SOLO lo que falta: un usuario antiguo que ya declaró su
-   especialidad no vuelve a responderla, pero sí completa el país, que el hub
-   dejó de preguntar en algún momento y por eso el panel se quedó sin datos. */
+/* El arranque a pantalla completa es SOLO para quien llega por primera vez.
+   A quien ya usa la app no se le bloquea el paso por un dato que nos falta a
+   nosotros: puede estar abriéndola con un paciente delante. A esa persona se
+   le pide en el Kit, con un aviso que se puede posponer. */
+function isNewUser(){ return !etProfile().specialty; }
 function pendingSteps(){
   const p = etProfile();
   const steps = [];
@@ -185,13 +187,10 @@ function pendingSteps(){
   return steps;
 }
 function startOnboarding(){
+  if(!isNewUser()) return false;        /* a los que ya están, en el Kit */
   const steps = pendingSteps();
   if(!steps.length) return false;
-  /* La bienvenida ("Tres toques y estás dentro") es para quien llega por
-     primera vez. A quien ya usa la app y solo le falta un dato se le pregunta
-     directamente: presentarle la app de nuevo sería absurdo. */
-  const nuevo = steps.length === 3;
-  S.onb = { steps, i: nuevo ? -1 : 0 };
+  S.onb = { steps, i: -1 };
   return true;
 }
 function onbAdvance(){
@@ -441,6 +440,7 @@ function kitHTML(){
       ${coverCaseHTML()}
     </div>
     <div class="et-pad">
+      ${missingDataHTML()}
       ${favCarouselHTML()}
       <div class="et-section">${esc(k.yourTools)}</div>
       <div class="et-group">${tools}</div>
@@ -453,6 +453,26 @@ function kitHTML(){
         </button>
       </div>
     </div>`;
+}
+
+/* Aviso para quien ya usaba la app y le falta un dato del perfil.
+   Se puede posponer y no vuelve en esa sesión. */
+function askLater(){ try{ sessionStorage.setItem('et_ask_later','1'); }catch(e){} render(); }
+function missingDataHTML(){
+  if(isNewUser()) return '';
+  try{ if(sessionStorage.getItem('et_ask_later')) return ''; }catch(e){}
+  const falta = pendingSteps();
+  if(!falta.length) return '';
+  const t = T();
+  const campo = falta[0];
+  const txt = campo === 'country' ? t.kit.askCountry : t.kit.askChannel;
+  return `<div class="et-ask">
+    <p>${esc(txt)}</p>
+    <div class="et-ask-actions">
+      <button onclick="openSheet('${campo === 'country' ? 'country' : 'channel'}')">${esc(t.kit.askNow)}</button>
+      <button class="ghost" onclick="askLater()">${esc(t.kit.askLater)}</button>
+    </div>
+  </div>`;
 }
 
 /* Favoritos: se ocultan del todo si no hay ninguno. */

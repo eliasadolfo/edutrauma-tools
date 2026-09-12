@@ -969,3 +969,21 @@ button.et-cover-row:active{ opacity:.55; }
 .et-code{ min-width:62px; height:26px; padding:0 8px; font:700 12px/1 var(--et-font); }
 /* El tile navy necesita su icono en blanco: .et-tile-sm svg lo pinta navy. */
 .et-tile-on svg{ color:#fff; }
+
+/* ---------- Aviso de dato pendiente (no bloqueante) ---------- */
+.et-ask{
+  background:var(--app-surface); border-radius:14px; padding:14px;
+  box-shadow:var(--app-shadow-card);
+  border-left:3px solid var(--app-teal);
+  margin-top:18px;
+}
+.et-ask p{ margin:0 0 12px; font:400 14px/1.5 var(--et-font); color:var(--app-navy); }
+.et-ask-actions{ display:flex; gap:8px; }
+.et-ask-actions button{
+  min-height:40px; padding:0 16px; border:0; border-radius:10px; cursor:pointer;
+  background:var(--app-navy); color:#fff;
+  font:600 14px/1 var(--et-font);
+  transition:transform .3s var(--app-spring);
+}
+.et-ask-actions button:active{ transform:scale(.96); }
+.et-ask-actions button.ghost{ background:none; color:var(--app-slate); }
