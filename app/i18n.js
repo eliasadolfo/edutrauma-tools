@@ -61,6 +61,38 @@ es: {
     doneText: "Las cinco herramientas ya están en tu teléfono y funcionan sin conexión."
   },
 
+  aast: {
+    search: "Buscar órgano o región…",
+    emptyText: "Prueba con «bazo», «hígado» o «tórax».",
+    grade: "Grado", upTo: "hasta grado", organs: "Órganos",
+    adjust: "Ajustes",
+    upOne: "Sube 1 grado.", downOne: "Baja 1 grado.",
+    aastGrade: "Grado AAST",
+    save: "Guardar",
+    saved: "Guardado: {v}",
+    ref: "Gradación de lesiones de órganos — Moore et al. (AAST) · curso DQT, EduTrauma."
+  },
+  teg: {
+    heparin: "Heparina", heparinQ: "¿El paciente recibió heparina?",
+    values: "Valores del panel", valuesShort: "Valores",
+    outRange: "Valor fuera del rango habitual — revisa que no sea un error de digitación.",
+    interpret: "Interpretar", complete: "Completa los {n} valores",
+    foot: "Acepta coma o punto decimal. Ningún valor fuera de rango bloquea la interpretación.",
+    panel: "Interpretación del panel",
+    pill: { ok:"Normal", warn:"Vigilar", alert:"Actuar", info:"Normal" },
+    fix: "Corregir un valor", newCase: "Evaluar otro caso"
+  },
+  calc: {
+    search: "Buscar calculadora…",
+    emptyText: "Prueba con «Glasgow», «shock» o «sepsis».",
+    recent: "Recientes", data: "Datos",
+    run: "Calcular", complete: "Completa los datos",
+    outRange: "Valor fuera del rango habitual — revisa que no sea un error de digitación.",
+    formula: "Fórmula:",
+    fix: "Corregir datos", another: "Otra calculadora",
+    error: "Revisa los datos: hay un valor incoherente."
+  },
+
   tool: {
     search: "Buscar algoritmo…",
     stepOf: "Paso {n} de {t}",
@@ -194,6 +226,38 @@ en: {
     doneText: "All five tools are on your phone now, and they work offline."
   },
 
+  aast: {
+    search: "Search organ or region…",
+    emptyText: "Try “spleen”, “liver” or “chest”.",
+    grade: "Grade", upTo: "up to grade", organs: "Organs",
+    adjust: "Adjustments",
+    upOne: "Raises 1 grade.", downOne: "Lowers 1 grade.",
+    aastGrade: "AAST grade",
+    save: "Save",
+    saved: "Saved: {v}",
+    ref: "Organ injury scaling — Moore et al. (AAST) · DQT course, EduTrauma."
+  },
+  teg: {
+    heparin: "Heparin", heparinQ: "Did the patient receive heparin?",
+    values: "Panel values", valuesShort: "Values",
+    outRange: "Value outside the usual range — check it isn't a typing error.",
+    interpret: "Interpret", complete: "Fill in the {n} values",
+    foot: "Accepts comma or decimal point. No out-of-range value blocks the interpretation.",
+    panel: "Panel interpretation",
+    pill: { ok:"Normal", warn:"Watch", alert:"Act", info:"Normal" },
+    fix: "Correct a value", newCase: "Assess another case"
+  },
+  calc: {
+    search: "Search calculator…",
+    emptyText: "Try “Glasgow”, “shock” or “sepsis”.",
+    recent: "Recent", data: "Data",
+    run: "Calculate", complete: "Fill in the data",
+    outRange: "Value outside the usual range — check it isn't a typing error.",
+    formula: "Formula:",
+    fix: "Correct data", another: "Another calculator",
+    error: "Check the data: there is an inconsistent value."
+  },
+
   tool: {
     search: "Search algorithm…",
     stepOf: "Step {n} of {t}",
@@ -325,6 +389,38 @@ pt: {
     q3: "Como você nos conheceu?", w3: "É a única forma de saber qual canal funciona.",
     doneTitle: "Pronto",
     doneText: "As cinco ferramentas já estão no seu telefone e funcionam sem conexão."
+  },
+
+  aast: {
+    search: "Buscar órgão ou região…",
+    emptyText: "Tente «baço», «fígado» ou «tórax».",
+    grade: "Grau", upTo: "até grau", organs: "Órgãos",
+    adjust: "Ajustes",
+    upOne: "Sobe 1 grau.", downOne: "Baixa 1 grau.",
+    aastGrade: "Grau AAST",
+    save: "Salvar",
+    saved: "Salvo: {v}",
+    ref: "Graduação de lesões de órgãos — Moore et al. (AAST) · curso DQT, EduTrauma."
+  },
+  teg: {
+    heparin: "Heparina", heparinQ: "O paciente recebeu heparina?",
+    values: "Valores do painel", valuesShort: "Valores",
+    outRange: "Valor fora da faixa habitual — confira se não é erro de digitação.",
+    interpret: "Interpretar", complete: "Complete os {n} valores",
+    foot: "Aceita vírgula ou ponto decimal. Nenhum valor fora da faixa bloqueia a interpretação.",
+    panel: "Interpretação do painel",
+    pill: { ok:"Normal", warn:"Vigiar", alert:"Agir", info:"Normal" },
+    fix: "Corrigir um valor", newCase: "Avaliar outro caso"
+  },
+  calc: {
+    search: "Buscar calculadora…",
+    emptyText: "Tente «Glasgow», «choque» ou «sepse».",
+    recent: "Recentes", data: "Dados",
+    run: "Calcular", complete: "Complete os dados",
+    outRange: "Valor fora da faixa habitual — confira se não é erro de digitação.",
+    formula: "Fórmula:",
+    fix: "Corrigir dados", another: "Outra calculadora",
+    error: "Revise os dados: há um valor incoerente."
   },
 
   tool: {

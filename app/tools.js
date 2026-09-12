@@ -78,6 +78,17 @@ function openTool(id){
   if(typeof window.etFbInit === 'function') window.etFbInit(id, TOOLS[id].name);
   push({ kind:'tool', toolId:id });
 }
+/* Las tres herramientas nuevas no son contenedores de algoritmos: cada una
+   entra directamente en su pantalla propia. */
+const DIRECT = { aast:'aast', teg:'teg', calc:'calcList' };
+function openToolDirect(id){
+  sendEvent('tool_open', { tool_id: id });
+  S.filter = '';
+  if(typeof window.etFbInit === 'function') window.etFbInit(id, TOOLS[id].name);
+  if(id === 'teg') push({ kind:'teg', toolId:'teg', v:{ hep:'no' } });
+  else push({ kind: DIRECT[id], toolId: id });
+}
+
 function openAlgo(toolId, algoId){
   const a = algoById(toolId, algoId);
   sendEvent('algo_open', { tool_id: toolId, algo: algoId });
@@ -369,7 +380,14 @@ function stackScreenHTML(scr){
     yesno: yesnoScreenHTML,
     checklist: checklistScreenHTML,
     bjorck: bjorckScreenHTML,
-    result: resultScreenHTML
+    result: resultScreenHTML,
+    aast: aastScreenHTML,
+    organ: organScreenHTML,
+    teg: tegScreenHTML,
+    tegResult: tegResultHTML,
+    calcList: calcListHTML,
+    calc: calcFormHTML,
+    calcResult: calcResultHTML
   }[scr.kind](scr);
 }
 /* Título y etiqueta de "atrás" de cada nivel. */
@@ -378,10 +396,21 @@ function stackNav(scr, prev){
   const tool = TOOLS[scr.toolId];
   const backLabel = !prev ? t.tabs.kit
     : prev.kind === 'tool' ? tool.name
+    : prev.kind === 'aast' ? t.aast.organs
+    : prev.kind === 'calcList' ? tool.name
+    : prev.kind === 'teg' ? t.teg.valuesShort
+    : prev.kind === 'calc' ? t.calc.data
     : t.tool.back;
   const title = {
     tool: () => tool.name,
     bjorck: () => 'Björck',
+    aast: () => tool.name,
+    organ: () => AASTDB.organs[scr.organ].name,
+    teg: () => tool.name,
+    tegResult: () => tool.name,
+    calcList: () => tool.name,
+    calc: () => trC(D.CALCS.find(c => c.id === scr.calcId).short),
+    calcResult: () => trC(D.CALCS.find(c => c.id === scr.calcId).short),
     result: () => trC(algoById(scr.toolId, scr.algoId).tag || algoById(scr.toolId, scr.algoId).name),
     tree: () => trC(algoById(scr.toolId, scr.algoId).tag || algoById(scr.toolId, scr.algoId).name),
     yesno: () => trC(algoById(scr.toolId, scr.algoId).tag || algoById(scr.toolId, scr.algoId).name),

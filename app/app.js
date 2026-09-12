@@ -404,9 +404,12 @@ function kitHTML(){
   const tools = t.tools.map(tool => {
     /* Las portadas ya viven dentro del app; las demás siguen abriendo su
        página actual hasta que se porten. */
-    const inside = !!(window.TOOLS && TOOLS[tool.id]);
+    /* TOOLS y DIRECT se declaran con const en tools.js, así que NO cuelgan de
+       window: hay que preguntar por el identificador, no por la propiedad. */
+    const inside = typeof TOOLS !== 'undefined' && !!TOOLS[tool.id];
+    const direct = inside && typeof DIRECT !== 'undefined' && !!DIRECT[tool.id];
     const open = inside
-      ? `<button class="et-row" onclick="openTool('${tool.id}')">`
+      ? `<button class="et-row" onclick="${direct ? 'openToolDirect' : 'openTool'}('${tool.id}')">`
       : `<a class="et-row" href="${tool.href}" onclick="sendEvent('tool_open',{tool_id:'${tool.id}'})">`;
     return `${open}
       <span class="et-tile" style="background:${tool.tile}">
@@ -450,7 +453,7 @@ function kitHTML(){
 
 /* Favoritos: se ocultan del todo si no hay ninguno. */
 function favCarouselHTML(){
-  if(typeof favs !== 'function') return '';
+  if(typeof favs !== 'function' || typeof TOOLS === 'undefined') return '';
   const list = favs();
   if(!list.length) return '';
   const cards = list.map(key => {
@@ -575,8 +578,11 @@ function setTab(id){
 }
 
 function renderLayers(){
+  /* Capas que flotan sobre la app: hojas, barra de grado de AAST y toast.
+     Van todas aquí porque este nodo se reescribe entero en cada render. */
+  const bar = typeof gradeBarHTML === 'function' ? gradeBarHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    sheetHTML() + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
 }
 
 function render(){
