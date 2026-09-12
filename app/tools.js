@@ -360,6 +360,13 @@ function resultScreenHTML(scr){
       </div>
     </div>
 
+    ${saveRowHTML({
+      tool: TOOLS[scr.toolId].name + ' · ' + trC(a.tag || a.name),
+      title: trC(r.title),
+      level: isConduct ? 'info' : r.level,
+      trace: scr.trace.join(' · ')
+    })}
+
     <button class="et-btn et-btn-ghost" style="margin-top:18px" onclick="backToTool()">
       ${esc(t.tool.another)}
     </button>
@@ -387,12 +394,18 @@ function stackScreenHTML(scr){
     tegResult: tegResultHTML,
     calcList: calcListHTML,
     calc: calcFormHTML,
-    calcResult: calcResultHTML
+    calcResult: calcResultHTML,
+    caseDetail: caseDetailHTML
   }[scr.kind](scr);
 }
 /* Título y etiqueta de "atrás" de cada nivel. */
 function stackNav(scr, prev){
   const t = T();
+  /* El detalle de caso vive en la pestaña Casos, no cuelga de una herramienta. */
+  if(scr.kind === 'caseDetail'){
+    const c = caseById(scr.caseId);
+    return { backLabel: t.casos.title, title: c ? c.label : '', chip: null };
+  }
   const tool = TOOLS[scr.toolId];
   const backLabel = !prev ? t.tabs.kit
     : prev.kind === 'tool' ? tool.name

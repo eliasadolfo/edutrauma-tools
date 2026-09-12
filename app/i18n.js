@@ -80,7 +80,8 @@ es: {
     foot: "Acepta coma o punto decimal. Ningún valor fuera de rango bloquea la interpretación.",
     panel: "Interpretación del panel",
     pill: { ok:"Normal", warn:"Vigilar", alert:"Actuar", info:"Normal" },
-    fix: "Corregir un valor", newCase: "Evaluar otro caso"
+    fix: "Corregir un valor", newCase: "Evaluar otro caso",
+    altered: "{v} alterados", normal: "Panel sin alteraciones"
   },
   calc: {
     search: "Buscar calculadora…",
@@ -149,8 +150,31 @@ es: {
   casos: {
     title: "Tus casos",
     lede: "Los cálculos quedan agrupados por paciente, solo en tu teléfono y sin identificadores.",
+    new: "Nuevo",
+    newTitle: "Nuevo caso",
+    newSub: "Ponle un nombre que reconozcas. Nunca uses el nombre del paciente.",
+    namePh: "Politrauma · Box 3",
+    create: "Crear caso",
+    defaultName: "Caso {n}",
+    active: "Activo",
+    today: "Hoy",
+    one: "1 registro", many: "{n} registros",
+    log: "Registro",
     emptyTitle: "Todavía no hay casos",
-    emptyText: "Cuando guardes el resultado de una herramienta, aparecerá aquí agrupado por paciente."
+    emptyText: "Crea uno y los resultados que guardes quedarán agrupados ahí.",
+    noEntriesTitle: "Caso sin registros",
+    noEntriesText: "Los resultados que guardes aparecerán aquí en orden cronológico.",
+    addAlgo: "Añadir un algoritmo",
+    makeActive: "Hacer este el caso activo",
+    nowActive: "Caso activo: {v}",
+    delete: "Eliminar este caso",
+    confirmDelete: "¿Eliminar «{v}» y sus registros?",
+    gone: "Este caso ya no existe",
+    saveIn: "Guardar en «{v}»",
+    savedIn: "Guardado en «{v}»",
+    saveNew: "Guardar en un caso nuevo",
+    toast: "Guardado en «{v}»",
+    privacy: "Los casos viven solo en este teléfono. No se envían a ningún servidor."
   },
 
   guias: {
@@ -245,7 +269,8 @@ en: {
     foot: "Accepts comma or decimal point. No out-of-range value blocks the interpretation.",
     panel: "Panel interpretation",
     pill: { ok:"Normal", warn:"Watch", alert:"Act", info:"Normal" },
-    fix: "Correct a value", newCase: "Assess another case"
+    fix: "Correct a value", newCase: "Assess another case",
+    altered: "{v} altered", normal: "Panel with no abnormalities"
   },
   calc: {
     search: "Search calculator…",
@@ -314,8 +339,31 @@ en: {
   casos: {
     title: "Your cases",
     lede: "Calculations are grouped by patient, only on your phone and with no identifiers.",
+    new: "New",
+    newTitle: "New case",
+    newSub: "Give it a name you'll recognise. Never use the patient's name.",
+    namePh: "Polytrauma · Bay 3",
+    create: "Create case",
+    defaultName: "Case {n}",
+    active: "Active",
+    today: "Today",
+    one: "1 entry", many: "{n} entries",
+    log: "Log",
     emptyTitle: "No cases yet",
-    emptyText: "When you save a tool's result, it will show up here grouped by patient."
+    emptyText: "Create one and the results you save will be grouped there.",
+    noEntriesTitle: "Case with no entries",
+    noEntriesText: "The results you save will appear here in chronological order.",
+    addAlgo: "Add an algorithm",
+    makeActive: "Make this the active case",
+    nowActive: "Active case: {v}",
+    delete: "Delete this case",
+    confirmDelete: "Delete “{v}” and its entries?",
+    gone: "This case no longer exists",
+    saveIn: "Save to “{v}”",
+    savedIn: "Saved to “{v}”",
+    saveNew: "Save to a new case",
+    toast: "Saved to “{v}”",
+    privacy: "Cases live only on this phone. They are never sent to any server."
   },
 
   guias: {
@@ -410,7 +458,8 @@ pt: {
     foot: "Aceita vírgula ou ponto decimal. Nenhum valor fora da faixa bloqueia a interpretação.",
     panel: "Interpretação do painel",
     pill: { ok:"Normal", warn:"Vigiar", alert:"Agir", info:"Normal" },
-    fix: "Corrigir um valor", newCase: "Avaliar outro caso"
+    fix: "Corrigir um valor", newCase: "Avaliar outro caso",
+    altered: "{v} alterados", normal: "Painel sem alterações"
   },
   calc: {
     search: "Buscar calculadora…",
@@ -479,8 +528,31 @@ pt: {
   casos: {
     title: "Seus casos",
     lede: "Os cálculos ficam agrupados por paciente, só no seu telefone e sem identificadores.",
+    new: "Novo",
+    newTitle: "Novo caso",
+    newSub: "Dê um nome que você reconheça. Nunca use o nome do paciente.",
+    namePh: "Politrauma · Box 3",
+    create: "Criar caso",
+    defaultName: "Caso {n}",
+    active: "Ativo",
+    today: "Hoje",
+    one: "1 registro", many: "{n} registros",
+    log: "Registro",
     emptyTitle: "Ainda não há casos",
-    emptyText: "Quando você salvar o resultado de uma ferramenta, ele aparecerá aqui agrupado por paciente."
+    emptyText: "Crie um e os resultados que você salvar ficarão agrupados ali.",
+    noEntriesTitle: "Caso sem registros",
+    noEntriesText: "Os resultados que você salvar aparecerão aqui em ordem cronológica.",
+    addAlgo: "Adicionar um algoritmo",
+    makeActive: "Tornar este o caso ativo",
+    nowActive: "Caso ativo: {v}",
+    delete: "Excluir este caso",
+    confirmDelete: "Excluir «{v}» e seus registros?",
+    gone: "Este caso não existe mais",
+    saveIn: "Salvar em «{v}»",
+    savedIn: "Salvo em «{v}»",
+    saveNew: "Salvar em um caso novo",
+    toast: "Salvo em «{v}»",
+    privacy: "Os casos vivem só neste telefone. Nunca são enviados a nenhum servidor."
   },
 
   guias: {

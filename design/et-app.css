@@ -925,3 +925,37 @@ button.et-cover-row:active{ opacity:.55; }
   transition:transform .3s var(--app-spring);
 }
 .et-recent button:active{ transform:scale(.95); }
+
+/* ---------- Casos ---------- */
+.et-case-top{ display:flex; align-items:center; gap:8px; }
+.et-pill-active{
+  flex-shrink:0; padding:2px 8px; border-radius:999px;
+  background:#fdecea; color:var(--app-red);
+  font:700 10px/1.4 var(--et-font); text-transform:uppercase; letter-spacing:.08em;
+}
+.et-case-prev{
+  display:block; margin-top:4px;
+  font:400 13px/1.4 var(--et-font); color:var(--app-navy);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.et-dot{
+  width:9px; height:9px; border-radius:999px; flex-shrink:0; margin-top:7px;
+}
+.et-entry-tool{
+  flex:1; font:700 11px/1.3 var(--et-font);
+  text-transform:uppercase; letter-spacing:.12em; color:var(--app-slate);
+}
+.et-entry-time{
+  flex-shrink:0; font:400 12px/1.3 var(--et-font); color:var(--app-slate);
+  font-variant-numeric:tabular-nums;
+}
+.et-entry-title{ display:block; margin-top:3px; font:600 16px/1.3 var(--et-font); }
+.et-input{
+  width:100%; box-sizing:border-box;
+  background:var(--app-surface); border:0; border-radius:12px;
+  padding:14px 15px; outline:none;
+  font:400 17px/1.3 var(--et-font); color:var(--app-navy);
+  box-shadow:var(--app-shadow-card);
+}
+.et-input::placeholder{ color:rgba(0,32,92,.35); }
+.et-row[disabled]{ cursor:default; }

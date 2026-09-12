@@ -147,6 +147,7 @@ const ICON = {
   /* Bifurcación: el símbolo de una conducta. Nunca un ✓ ni una ✗ — una
      conducta válida no es una respuesta correcta. */
   branch: SVG('<circle cx="6" cy="4.5" r="2.2"/><circle cx="17.5" cy="13" r="2.2"/><circle cx="6" cy="19.5" r="2.2"/><path d="M6 6.7v10.6"/><path d="M8.2 5.5h4.3a3 3 0 0 1 3 3v2.3"/>'),
+  save:   SVG('<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h7V3"/><rect x="8" y="13" width="8" height="6"/>'),
   grid:   SVG('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 4v16"/>'),
   /* Canales */
   correo:    SVG('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2.5 6.5l9.5 6.5 9.5-6.5"/>'),
@@ -160,11 +161,13 @@ const ICON = {
 /* ============ Estado ============ */
 const S = {
   tab: 'kit',
-  stack: [],       /* pila de pantallas dentro de la pestaña Kit */
+  stack: [],       /* pila de la pestaña activa */
+  stacks: { kit:[], casos:[], guias:[], perfil:[] },  /* una pila por pestaña */
   dir: 0,          /* 1 push · -1 pop · 0 cambio de pestaña */
   sheet: null,     /* 'country' | 'channel' */
   filter: '',
   onb: null,       /* { steps:[...], i:0 } mientras el arranque está activo */
+  confirm: null,   /* {text, ok, run} de la hoja de confirmación */
   toast: null,
   toastTimer: null
 };
@@ -335,6 +338,7 @@ function closeSheet(){ S.sheet = null; S.filter = ''; render(); }
 
 function sheetHTML(){
   const t = T();
+  if(S.sheet === 'newcase') return newCaseSheetHTML();
   if(S.sheet === 'country'){
     const c = t.countrySheet;
     return `<div class="et-overlay" onclick="if(event.target===this)closeSheet()">
@@ -431,10 +435,7 @@ function kitHTML(){
       <h1>${esc(k.coverTitle)}</h1>
       <p>${esc(k.coverSub)}</p>
       <div class="et-cover-sep"></div>
-      <div class="et-cover-row">
-        <span class="et-cover-tile" style="background:rgba(255,255,255,.12)">${ICON.pulse}</span>
-        <span class="et-row-main"><span class="et-cover-text">${esc(k.noCase)}</span></span>
-      </div>
+      ${coverCaseHTML()}
     </div>
     <div class="et-pad">
       ${favCarouselHTML()}
@@ -572,7 +573,12 @@ function tabsHTML(){
 }
 function setTab(id){
   if(S.tab === id) return;
-  S.tab = id; S.dir = 0; S.filter = '';
+  /* Cada pestaña conserva dónde estabas: volver a Kit no te devuelve al
+     principio si estabas dentro de una herramienta. */
+  S.stacks[S.tab] = S.stack;
+  S.tab = id;
+  S.stack = S.stacks[id] || [];
+  S.dir = 0; S.filter = '';
   render();
   document.getElementById('scroll').scrollTop = 0;
 }
@@ -581,8 +587,9 @@ function renderLayers(){
   /* Capas que flotan sobre la app: hojas, barra de grado de AAST y toast.
      Van todas aquí porque este nodo se reescribe entero en cada render. */
   const bar = typeof gradeBarHTML === 'function' ? gradeBarHTML() : '';
+  const conf = typeof confirmHTML === 'function' ? confirmHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    sheetHTML() + conf + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
 }
 
 function render(){
@@ -600,12 +607,11 @@ function render(){
   }
   document.getElementById('tabs').style.display = '';
 
-  /* La pila solo existe dentro del Kit. */
-  const scr = (S.tab === 'kit' && S.stack.length) ? S.stack[S.stack.length - 1] : null;
+  const scr = S.stack.length ? S.stack[S.stack.length - 1] : null;
 
   const screen = scr ? stackScreenHTML(scr) : {
     kit:    kitHTML,
-    casos:  () => emptyScreenHTML(t.casos),
+    casos:  casosScreenHTML,
     guias:  () => emptyScreenHTML(t.guias),
     perfil: perfilHTML
   }[S.tab]();

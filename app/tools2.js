@@ -195,8 +195,14 @@ function saveAast(){
   const scr = topScreen();
   const o = AASTDB.organs[scr.organ];
   const g = adjustedGrade(o, scr);
+  const t = T();
   sendEvent('aast_result', { organ:o.name, grade:g.grade });
-  showToast(T().aast.saved.replace('{v}', o.name + ' · ' + T().aast.grade + ' ' + ROMAN[g.grade]));
+  doSave({
+    tool: 'AAST · ' + o.name,
+    title: t.aast.grade + ' ' + ROMAN[g.grade],
+    level: 'info',
+    trace: [o.name, g.label, g.note].filter(Boolean).join(' · ')
+  });
   if(typeof window.etFbAfterUse === 'function') window.etFbAfterUse();
 }
 
@@ -303,6 +309,13 @@ function tegResultHTML(scr){
     <div class="et-group"><div class="et-row" style="cursor:default">
       <span class="et-trace-val"><b>${esc(t.tool.ref)}</b> ${esc(D.TEG_REF)}</span>
     </div></div>
+    ${saveRowHTML({
+      tool: 'TEG6s',
+      title: tegSummary(out),
+      level: tegLevel(out),
+      trace: tegTrace(scr)
+    })}
+
     <button class="et-btn et-btn-ghost" style="margin-top:18px" onclick="goBack()">${esc(t.teg.fix)}</button>
     <button class="et-btn-text" onclick="tegReset()">${esc(t.teg.newCase)}</button>
   </div>`;
@@ -521,8 +534,53 @@ function calcResultHTML(scr){
         <span class="et-trace-val"><b>${esc(t.tool.ref)}</b> ${esc(o.ref)}</span></div>` : ''}
     </div>
 
+    ${saveRowHTML({
+      tool: trC(c.short),
+      title: o.display + (o.unit ? ' ' + o.unit : '') + (o.cat ? ' · ' + trC(o.cat) : ''),
+      level: o.level,
+      trace: calcTrace(c, scr)
+    })}
+
     <button class="et-btn et-btn-ghost" style="margin-top:18px" onclick="goBack()">${esc(t.calc.fix)}</button>
     <button class="et-btn-text" onclick="backToTool()">${esc(t.calc.another)}</button>
     <p class="et-note" style="text-align:center">${esc(t.kit.disclaimer)}</p>
   </div>`;
+}
+
+
+/* ---------- Resumen de un resultado para el registro del caso ---------- */
+function tegSummary(out){
+  const bad = out.comp.filter(c => c.level !== 'ok').map(c => trC(c.name));
+  return bad.length ? T().teg.altered.replace('{v}', bad.join(', ')) : T().teg.normal;
+}
+function tegLevel(out){
+  if(out.comp.some(c => c.level === 'alert')) return 'alert';
+  if(out.comp.some(c => c.level === 'warn')) return 'warn';
+  return 'ok';
+}
+function tegTrace(scr){
+  /* El formulario esta un nivel por debajo del resultado en la pila. */
+  const form = S.stack.find(s => s.kind === 'teg');
+  if(!form) return '';
+  const v = form.v;
+  const t = T();
+  const hep = t.teg.heparin + ': ' + (v.hep === 'si' ? t.tool.yes : t.tool.no);
+  const vals = D.TEG_FIELDS
+    .filter(f => !f.onlyIfHep || v.hep === 'si')
+    .map(f => f.label + ' ' + v[f.id] + ' ' + f.unit);
+  return [hep].concat(vals).join(' · ');
+}
+function calcTrace(c, scr){
+  const form = S.stack.find(s => s.kind === 'calc' && s.calcId === c.id);
+  if(!form) return '';
+  const v = form.v, t = T();
+  return c.inputs.map(i => {
+    const val = v[i.id];
+    if(i.t === 'toggle') return trC(i.label) + ': ' + (val ? t.tool.yes : t.tool.no);
+    if(i.t === 'seg' || i.t === 'segv'){
+      const o = i.options.find(o => o.v === val);
+      return trC(i.label) + ': ' + (o ? trC(o.label) : '—');
+    }
+    return trC(i.label) + ': ' + val + (i.unit ? ' ' + i.unit : '');
+  }).join(' · ');
 }
