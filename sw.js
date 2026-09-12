@@ -1,11 +1,24 @@
 // Service Worker — estrategia NETWORK-FIRST (siempre la última versión cuando hay señal;
 // caché solo como respaldo offline). Se auto-activa y limpia versiones viejas.
-const CACHE = 'et-tools-hub-v23';
+const CACHE = 'et-tools-app-v1';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './design/edutrauma-ui.css',
+  './design/et-app.css',
+  './design/feedback.js',
+  './i18n.js',
+  './et-data.js',
+  './aast-data.js',
+  './mip-data.js',
+  './tools.js',
+  './tools2.js',
+  './cases.js',
+  './guias.js',
+  './app.js',
+  './abdomen/miaa-trans.js',
+  './mip/mip-trans.js',
   './logo-blanco-trim.png',
   './logo-miaa.png',
   './logo-dqt.png',
@@ -15,7 +28,13 @@ const ASSETS = [
   './apple-touch-icon.png'
 ];
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // addAll falla entero si un solo archivo falla; se cachea uno a uno para que
+  // un recurso ausente no deje la app sin caché offline.
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => Promise.all(ASSETS.map((a) => c.add(a).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(

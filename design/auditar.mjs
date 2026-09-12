@@ -3,91 +3,116 @@
    EduTrauma Tools — Auditoría de coherencia
    Uso:  node design/auditar.mjs      (desde ~/Desktop/EduTrauma_Tools)
 
-   Detecta mecánicamente que las tools no diverjan. Sin opiniones:
-   o cumplen la regla o no. Correr ANTES de cada deploy.
+   Detecta mecánicamente que la app no se rompa ni se desalinee. Sin
+   opiniones: o cumple la regla o no. Correr ANTES de cada deploy.
+
+   v2 (2026-09): el producto dejó de ser cinco páginas sueltas y pasó a ser
+   una sola app con pestañas. Lo que antes se comprobaba por tool ahora se
+   comprueba sobre la app; las carpetas de herramienta quedaron como
+   redirecciones y se auditan como tales.
    ============================================================ */
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { createHash } from 'crypto';
 
-const TOOLS = ['abdomen', 'aast', 'calculadoras', 'mip', 'teg'];
+/* Carpetas que conservan su URL y ahora solo redirigen a la app. */
+const REDIRECTS = {
+  abdomen: 'abdomen', aast: 'aast', mip: 'mip', teg: 'teg', calculadoras: 'calc'
+};
+/* Los archivos que componen la app. */
+const APP_JS = ['i18n.js','et-data.js','aast-data.js','mip-data.js',
+                'tools.js','tools2.js','cases.js','guias.js','app.js'];
+
 const problemas = [];
 const ok = [];
-
 const md5 = (p) => createHash('md5').update(readFileSync(p)).digest('hex');
 const leer = (p) => (existsSync(p) ? readFileSync(p, 'utf8') : '');
 const check = (cond, bien, mal) => (cond ? ok.push(bien) : problemas.push(mal));
 
-/* 1. Los archivos compartidos deben ser IDÉNTICOS en todas las copias */
-for (const shared of ['edutrauma-ui.css', 'feedback.js']) {
-  const base = `design/${shared}`;
-  if (!existsSync(base)) { problemas.push(`Falta el canónico design/${shared}`); continue; }
-  const hBase = md5(base);
-  const desincronizadas = TOOLS.filter(t => {
-    const p = `${t}/design/${shared}`;
-    return !existsSync(p) || md5(p) !== hBase;
-  });
-  check(desincronizadas.length === 0,
-    `${shared}: idéntico en las ${TOOLS.length} tools`,
-    `⚠ ${shared} DESINCRONIZADO en: ${desincronizadas.join(', ')} → copiar design/${shared} a cada tool`);
+/* 1. El sistema de diseño canónico debe existir y estar completo */
+for (const shared of ['edutrauma-ui.css', 'et-app.css', 'feedback.js', 'DESIGN.md']) {
+  check(existsSync(`design/${shared}`),
+    `design/${shared} presente`,
+    `⚠ Falta design/${shared}`);
+}
+/* Las copias que quedan dentro de las carpetas de herramienta ya no se usan,
+   pero si existen no deben divergir: alguien las leerá creyendo que mandan. */
+for (const t of Object.keys(REDIRECTS)) {
+  const p = `${t}/design/edutrauma-ui.css`;
+  if (!existsSync(p)) continue;
+  check(md5(p) === md5('design/edutrauma-ui.css'),
+    `${t}: su copia del CSS coincide con la canónica`,
+    `⚠ ${t}/design/edutrauma-ui.css DIVERGE de la canónica → copiarla o borrarla`);
 }
 
-/* 2. Reglas de coherencia por tool */
-for (const t of TOOLS) {
-  const h = leer(`${t}/index.html`);
-  const sw = leer(`${t}/sw.js`);
-  if (!h) { problemas.push(`${t}: falta index.html`); continue; }
-
-  check(h.includes('etToolFooter'), `${t}: usa el pie compartido`,
-    `⚠ ${t}: NO usa etToolFooter() → tendrá un pie distinto al resto`);
-  check(!h.includes('lang-switch'), `${t}: sin selector de idioma (correcto)`,
-    `⚠ ${t}: tiene selector de idioma → el idioma vive SOLO en el hub`);
-  check(!h.includes('class="hub-link" href="../"'), `${t}: sin link suelto al hub`,
-    `⚠ ${t}: tiene un <a class="hub-link"> suelto → debe ir dentro del pie compartido`);
-  check(h.includes('etFbInit'), `${t}: feedback configurado`,
-    `⚠ ${t}: no llama etFbInit() → no se sabrá de qué herramienta opinan`);
-  check(h.includes('design/feedback.js') && !h.includes('feedback.js" defer'),
-    `${t}: carga feedback.js sin defer`,
-    `⚠ ${t}: feedback.js falta o usa defer → se carga tarde y no funciona`);
-  check(h.includes('brand-strip') && h.includes('brand-ribbon'),
-    `${t}: cabecera de marca correcta`,
-    `⚠ ${t}: le falta brand-strip o brand-ribbon`);
-  check(h.includes('Todos los derechos reservados'), `${t}: aviso legal presente`,
-    `⚠ ${t}: FALTA el aviso legal en el footer`);
-  check(/no reemplaza el juicio|does not replace|não substitui/.test(h),
-    `${t}: disclaimer clínico presente`,
-    `⚠ ${t}: FALTA el disclaimer clínico`);
-  check(sw.includes('NETWORK-FIRST') || sw.includes('network-first'),
-    `${t}: service worker network-first`,
-    `⚠ ${t}: el SW no es network-first → los usuarios quedarán pegados en versión vieja`);
-  check(/etFbAfterUse/.test(h), `${t}: pide opinión tras el primer resultado`,
-    `⚠ ${t}: no llama etFbAfterUse() → nunca pedirá opinión`);
-}
-
-/* 3. El hub sí debe tener el idioma, y listar todas las tools */
+/* 2. La app: archivos presentes y enlazados en el orden correcto */
 const hub = leer('index.html');
-check(hub.includes('lang-switch'), 'hub: conserva el selector de idioma',
-  '⚠ hub: perdió el selector de idioma (es el único lugar donde debe estar)');
-for (const t of TOOLS) {
-  const href = `${t}/`;
-  check(hub.includes(`href:"${href}"`), `hub: enlaza ${t}`,
-    `⚠ hub: no enlaza la tool ${t} → nadie la encontrará`);
+check(hub.includes('class="et-app"'), 'index.html es la app móvil',
+  '⚠ index.html NO es la app → ¿se revirtió la migración?');
+for (const f of APP_JS) {
+  check(existsSync(f), `${f} presente`, `⚠ Falta ${f}`);
+  check(hub.includes(`src="${f}"`), `index.html carga ${f}`,
+    `⚠ index.html NO carga ${f} → la app fallará al arrancar`);
+}
+/* app.js va al final: usa lo que definen los demás. */
+check(hub.lastIndexOf('src="app.js"') > hub.lastIndexOf('src="tools.js"'),
+  'app.js se carga después de tools.js',
+  '⚠ app.js se carga antes que tools.js → TOOLS no existirá al arrancar');
+
+check(hub.includes('brand-strip') || hub.includes('et-strip'),
+  'app: franja de marca presente', '⚠ app: falta la franja de marca');
+check(hub.includes('EduTrauma Tools'), 'app: cinta con el nombre del producto',
+  '⚠ app: la cinta perdió "EduTrauma Tools"');
+check(hub.includes('design/feedback.js'), 'app: carga la encuesta',
+  '⚠ app: no carga design/feedback.js → nadie podrá opinar');
+
+/* 3. Las cuatro pestañas y las cinco herramientas siguen existiendo */
+const i18n = leer('i18n.js');
+const tools = leer('tools.js') + leer('tools2.js');
+for (const tab of ['kit', 'casos', 'guias', 'perfil']) {
+  check(i18n.includes(`${tab}:`), `i18n define la pestaña ${tab}`,
+    `⚠ i18n perdió la pestaña ${tab}`);
+}
+for (const id of ['abdomen', 'aast', 'mip', 'teg', 'calc']) {
+  check(tools.includes(`${id}:`) || tools.includes(`'${id}'`),
+    `la app registra la herramienta ${id}`,
+    `⚠ la app NO registra ${id} → desapareció del Kit`);
 }
 
-/* 4. Clases CSS usadas por las tools que no existen en el sistema de diseño */
-const css = leer('design/edutrauma-ui.css');
-const claves = ['tool-foot', 'brand-strip', 'brand-ribbon', 'result-card', 'fb-faces', 'calc-btn', 'organ-btn'];
-const faltantes = claves.filter(c => !css.includes('.' + c));
-check(faltantes.length === 0, 'CSS: todos los componentes clave definidos',
-  `⚠ CSS: faltan componentes: ${faltantes.join(', ')}`);
+/* 4. Las URLs viejas siguen vivas y apuntan a su herramienta.
+   Es lo que impide romper los QR y enlaces ya repartidos. */
+for (const [dir, hash] of Object.entries(REDIRECTS)) {
+  const h = leer(`${dir}/index.html`);
+  check(h.includes(`#${hash}`),
+    `${dir}/ redirige a #${hash}`,
+    `⚠ ${dir}/ no redirige a #${hash} → se rompen los QR y enlaces repartidos`);
+  check(/location\.replace|http-equiv="refresh"/.test(h),
+    `${dir}/ redirige automáticamente`,
+    `⚠ ${dir}/ no redirige solo → el usuario verá una página en blanco`);
+}
+check(leer('clasico.html').includes('tool-card') || leer('clasico.html').length > 1000,
+  'el hub anterior sigue disponible en /clasico.html',
+  '⚠ Falta clasico.html → no hay a dónde mandar a nadie si algo falla');
 
-/* 5. Una sola lista de especialidades en toda la serie.
-   El hub es la fuente de verdad. Si una tool ofrece una opción que el hub no
-   tiene, el panel cuenta esa profesión aparte y los números dejan de cuadrar. */
+/* 5. Textos: los tres idiomas deben tener exactamente las mismas claves */
+try {
+  const I18N = new Function(i18n + '; return I18N;')();
+  const rec = (a, b, ruta) => {
+    for (const k of Object.keys(a)) {
+      if (!(k in b)) { problemas.push(`⚠ i18n: falta "${ruta}${k}" en uno de los idiomas`); continue; }
+      if (a[k] && typeof a[k] === 'object' && !Array.isArray(a[k])) rec(a[k], b[k], `${ruta}${k}.`);
+    }
+  };
+  rec(I18N.es, I18N.en, ''); rec(I18N.es, I18N.pt, '');
+  rec(I18N.en, I18N.es, ''); rec(I18N.pt, I18N.es, '');
+  check(true, 'i18n: es/en/pt tienen las mismas claves', '');
+} catch (e) {
+  problemas.push(`⚠ i18n.js no se puede evaluar: ${e.message}`);
+}
+
+/* 6. Una sola lista de especialidades en toda la serie.
+   La app es la fuente de verdad; si una página vieja ofrece opciones que la
+   app no tiene, el panel cuenta esa profesión aparte y los números no cuadran. */
 const ANCLAS = { es: 'Cirugía general', en: 'General surgery', pt: 'Cirurgia geral' };
-
-/* Encuentra todas las listas de especialidades de un archivo, sea cual sea su
-   forma (I18N.specialties, const SPECS, const SPECIALTIES…): busca los arrays
-   que contengan la primera opción canónica de cada idioma. */
 function listasEspecialidad(src) {
   const out = {};
   for (const [lang, ancla] of Object.entries(ANCLAS)) {
@@ -99,20 +124,12 @@ function listasEspecialidad(src) {
   }
   return out;
 }
-
-const canon = listasEspecialidad(hub);
+const canon = listasEspecialidad(i18n);
 check(Object.keys(canon).length === 3,
-  'hub: define las especialidades en los tres idiomas',
-  '⚠ hub: no encuentro las 3 listas de especialidades (es/en/pt) → es la fuente de verdad');
+  'la app define las especialidades en los tres idiomas',
+  '⚠ i18n.js: no encuentro las 3 listas de especialidades (es/en/pt)');
 
-for (const [lang, listas] of Object.entries(canon)) {
-  const ref = JSON.stringify(listas[0]);
-  check(listas.every(l => JSON.stringify(l) === ref),
-    `hub: la lista de especialidades (${lang}) es única`,
-    `⚠ hub: tiene ${listas.length} listas de especialidades distintas en ${lang}`);
-}
-
-for (const t of TOOLS) {
+for (const t of Object.keys(REDIRECTS)) {
   const encontradas = listasEspecialidad(leer(`${t}/index.html`));
   const diverge = [];
   for (const [lang, listas] of Object.entries(encontradas)) {
@@ -120,22 +137,44 @@ for (const t of TOOLS) {
     for (const l of listas) {
       if (JSON.stringify(l) !== ref) {
         const extra = l.filter(s => !(canon[lang] || [[]])[0].includes(s));
-        const falta = ((canon[lang] || [[]])[0]).filter(s => !l.includes(s));
-        diverge.push(`${lang}${extra.length ? ` sobra: ${extra.join(', ')}` : ''}` +
-                     `${falta.length ? ` falta: ${falta.join(', ')}` : ''}`);
+        diverge.push(`${lang}${extra.length ? ` sobra: ${extra.join(', ')}` : ''}`);
       }
     }
   }
   check(diverge.length === 0,
-    `${t}: especialidades idénticas a las del hub`,
-    `⚠ ${t}: su lista de especialidades DIVERGE del hub (${diverge.join(' · ')}) → el panel contará profesiones de más`);
+    `${t}: sin lista de especialidades propia`,
+    `⚠ ${t}: tiene una lista de especialidades que DIVERGE (${diverge.join(' · ')})`);
 }
+
+/* 7. Service worker y manifiesto */
+const sw = leer('sw.js');
+check(/NETWORK-FIRST|network-first/.test(sw), 'service worker network-first',
+  '⚠ el SW no es network-first → los usuarios quedarán pegados en versión vieja');
+check(sw.includes('skipWaiting') && sw.includes('clients.claim'),
+  'el SW se auto-activa', '⚠ el SW no se auto-activa → la actualización no llega sola');
+for (const f of APP_JS) {
+  check(sw.includes(`./${f}`), `el SW cachea ${f}`,
+    `⚠ el SW no cachea ${f} → sin conexión la app no arrancará`);
+}
+const man = leer('manifest.json');
+check(man.includes('"start_url"') && man.includes('"scope"'),
+  'manifest con start_url y scope', '⚠ manifest incompleto');
+
+/* 8. Lo legal y lo clínico no pueden desaparecer */
+check(i18n.includes('Todos los derechos reservados') || hub.includes('Todos los derechos reservados')
+      || i18n.includes('EduTrauma®'),
+  'aviso de marca presente', '⚠ FALTA el aviso de marca');
+check(/no reemplaza|no reemplazan|does not replace|não substitui/.test(i18n),
+  'disclaimer clínico presente', '⚠ FALTA el disclaimer clínico');
+check(/localStorage/.test(leer('cases.js')) && !/ET_EVENTS_URL/.test(leer('cases.js')),
+  'los casos no se envían a ningún servidor',
+  '⚠ cases.js habla con el servidor → los casos deben quedarse en el teléfono');
 
 /* ---------- Reporte ---------- */
 console.log('\n=== AUDITORÍA DE COHERENCIA — EduTrauma Tools ===\n');
 console.log(`✅ ${ok.length} comprobaciones OK`);
 if (problemas.length === 0) {
-  console.log('🎉 Sin divergencias. Las tools son coherentes entre sí.\n');
+  console.log('🎉 Sin divergencias. La app es coherente.\n');
   process.exit(0);
 } else {
   console.log(`\n❌ ${problemas.length} PROBLEMA(S):\n`);

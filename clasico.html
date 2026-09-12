@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>EduTrauma Tools — Herramientas Clínicas</title>
+<meta name="theme-color" content="#00205C">
+<meta name="description" content="Kit de herramientas clínicas EduTrauma: apoyo a la decisión en cirugía de trauma. Gratis, offline, en tres idiomas.">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ET Tools">
+
+<link rel="stylesheet" href="design/edutrauma-ui.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="brand-strip">
+    <img src="logo-blanco-trim.png" alt="EduTrauma" class="brand-logo">
+  </div>
+  <div class="brand-ribbon" id="brandRibbon">EduTrauma Tools</div>
+
+  <div class="install-banner" id="installBanner">
+    <span id="installText"></span>
+    <button id="installBtn"></button>
+    <button class="close-x" onclick="dismissInstall()" aria-label="Cerrar">✕</button>
+  </div>
+
+  <header>
+    <h1 id="hubTitle"></h1>
+    <p id="hubSubtitle"></p>
+  </header>
+
+  <main id="main"></main>
+
+  <footer id="hubFooter"></footer>
+</div>
+
+<script>
+/* ============ Analytics (anónimo, → n8n) ============ */
+const ET_EVENTS_URL = 'https://devn8n.tuescuelademarcas.cl/webhook/et-tools-event';
+/* Cola offline: si no hay conexión, el evento se guarda y se reenvía después */
+function etEnqueue(p){
+  try{
+    const q = JSON.parse(localStorage.getItem('et_queue') || '[]');
+    q.push(p);
+    while (q.length > 200) q.shift();
+    localStorage.setItem('et_queue', JSON.stringify(q));
+  }catch(e){}
+}
+function etPost(p){
+  return fetch(ET_EVENTS_URL, {
+    method: 'POST', keepalive: true,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(p)
+  }).then(r => { if (!r.ok) throw new Error('http'); });
+}
+function etFlushQueue(){
+  let q = [];
+  try{ q = JSON.parse(localStorage.getItem('et_queue') || '[]'); }catch(e){}
+  if (!q.length) return;
+  try{ localStorage.setItem('et_queue', '[]'); }catch(e){}
+  q.forEach(p => etPost(p).catch(() => etEnqueue(p)));
+}
+window.addEventListener('online', etFlushQueue);
+etFlushQueue();
+
+
+function etAnonId(){
+  let id = localStorage.getItem('et_anon');
+  if (!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('et_anon', id);
+  }
+  return id;
+}
+
+function etProfile(){
+  try{ return JSON.parse(localStorage.getItem('et_profile') || '{}'); }catch(e){ return {}; }
+}
+
+function sendEvent(event, extra){
+  try{
+    const p = etProfile();
+    const __p = {
+        ts: new Date().toISOString(),
+        anon_id: etAnonId(),
+        event: event,
+        tool: 'hub',
+        lang: LANG,
+        country: p.country || '',
+        specialty: p.specialty || '',
+        tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ''),
+        ua: navigator.userAgent.slice(0, 180),
+        extra: extra || {}
+      };
+    etPost(__p).catch(() => etEnqueue(__p));
+  }catch(e){}
+}
+
+/* ============ i18n ============ */
+const I18N = {
+  es: {
+    specOtherPh: "Escríbela aquí… (ej: Veterinaria)",
+    specContinue: "Continuar ›",
+    installText: "Instala el kit en tu pantalla de inicio para acceso rápido, incluso sin conexión.",
+    installBtn: "Instalar",
+    installIOSShort: "Guárdala en tu pantalla de inicio — funciona sin conexión.",
+    iosHow: "¿Cómo?",
+    iosTitle: "Instalar en tu iPhone",
+    iosSteps: ["Toca el botón <b>Compartir</b> (el cuadrado con flecha ↑) en la barra de Safari", "Desliza hacia abajo y elige <b>“Agregar a pantalla de inicio”</b>", "Toca <b>Agregar</b> — quedará como una app con el logo EduTrauma"],
+    iosDone: "Entendido",
+    profileSkip: "Ahora no",
+    profileMini: "¿Tu especialidad? (un toque)",
+    htmlLang: "es",
+    ribbon: "EduTrauma Tools",
+    title: "Kit de herramientas EduTrauma",
+    subtitle: "Apoyo a la decisión clínica en trauma. Gratis, funciona sin conexión, directo en tu teléfono.",
+    open: "Abrir ›",
+    available: "Disponible",
+    soonTitle: "Más herramientas en camino",
+    soonDesc: "El kit crece junto a los cursos EduTrauma.",
+    profileTitle: "¿Cuál es tu especialidad?",
+    profileDesc: "Un toque, solo una vez — nos ayuda a crear las herramientas que tu práctica necesita.",
+    specialtyPh: "Tu especialidad…",
+    countryPh: "Tu país…",
+    save: "Guardar",
+    profileDone: "✓ Perfil guardado — ¡gracias!",
+    edit: "editar",
+    specialties: ["Cirugía general","Cirugía de trauma","Residente de cirugía","Medicina de urgencia","Enfermería","Estudiante de medicina","Otra"],
+    sourceTitle: "¿Cómo nos conociste?",
+    sourceDesc: "Un toque, solo una vez — nos ayuda a saber por dónde llegar a más colegas.",
+    sources: [{id:"correo",label:"Correo EduTrauma"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"Un amigo / colega"},{id:"otro",label:"Otro"}],
+    footer: 'Herramientas de apoyo a la decisión clínica — no reemplazan el juicio quirúrgico.<br>EduTrauma® — Enseñando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos los derechos reservados. Prohibida su comercialización, reproducción o modificación sin autorización escrita.</span>',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
+        title:"Abdomen Abierto — MIAA",
+        desc:"5 algoritmos del curso MIAA: cuándo dejarlo abierto (+ Björck), conducta por grado, antibióticos, nutrición e hipertensión intraabdominal (HIA/SCA)." },
+      { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"Curso DQT",
+        title:"Escalas AAST de lesiones",
+        desc:"Gradación de lesiones de órganos (Moore et al.): 32 órganos con grado, ICD-9 y AIS. Referencia de bolsillo en pabellón." },
+      { id:"mip", href:"mip/", chip:"logo-mip.png", chipAlt:"Curso MIP",
+        title:"MIP — Manejo Integral del Politraumatizado",
+        desc:"Algoritmos de decisión del abordaje primario (ABCDE): restricción del movimiento espinal, criterios NEXUS y vía aérea. Curso MIP." },
+      { id:"teg", href:"teg/", emoji:"🩸",
+        title:"TEG6s — Tromboelastografía",
+        desc:"Interpreta el panel viscoelástico: factores, plaquetas, fibrinógeno y fibrinólisis, con sugerencias de hemoderivados y TXA." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Calculadoras médicas",
+        desc:"16 calculadoras: Glasgow, Índice de Shock, Parkland, IMC, creatinina, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, PHQ-9 y más. En español." }
+    ]
+  },
+  en: {
+    specOtherPh: "Type it here… (e.g. Veterinary)",
+    specContinue: "Continue ›",
+    installText: "Install the kit on your home screen for quick access, even offline.",
+    installBtn: "Install",
+    installIOSShort: "Save it to your home screen — works offline.",
+    iosHow: "How?",
+    iosTitle: "Install on your iPhone",
+    iosSteps: ["Tap the <b>Share</b> button (the square with an ↑ arrow) in Safari's toolbar", "Scroll down and choose <b>“Add to Home Screen”</b>", "Tap <b>Add</b> — it will appear as an app with the EduTrauma logo"],
+    iosDone: "Got it",
+    profileSkip: "Not now",
+    profileMini: "Your specialty? (one tap)",
+    htmlLang: "en",
+    ribbon: "EduTrauma Tools",
+    title: "EduTrauma tool kit",
+    subtitle: "Clinical decision support in trauma. Free, works offline, right on your phone.",
+    open: "Open ›",
+    available: "Available",
+    soonTitle: "More tools on the way",
+    soonDesc: "The kit grows alongside EduTrauma courses.",
+    profileTitle: "What is your specialty?",
+    profileDesc: "One tap, just once — it helps us build the tools your practice needs.",
+    specialtyPh: "Your specialty…",
+    countryPh: "Your country…",
+    save: "Save",
+    profileDone: "✓ Profile saved — thank you!",
+    edit: "edit",
+    specialties: ["General surgery","Trauma surgery","Surgery resident","Emergency medicine","Nursing","Medical student","Other"],
+    sourceTitle: "How did you hear about us?",
+    sourceDesc: "One tap, just once — it helps us know how to reach more colleagues.",
+    sources: [{id:"correo",label:"EduTrauma email"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"A friend / colleague"},{id:"otro",label:"Other"}],
+    footer: 'Clinical decision support tools — they do not replace surgical judgment.<br>EduTrauma® — Teaching to save lives.<br><span style="opacity:0.75">© 2026 EduTrauma® · All rights reserved. Commercialization, reproduction or modification without written authorization is prohibited.</span>',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"MIAA course",
+        title:"Open Abdomen — MIAA",
+        desc:"5 MIAA course algorithms: when to leave it open (+ Björck), management by grade, antibiotics, nutrition and intra-abdominal hypertension (IAH/ACS)." },
+      { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"DQT course",
+        title:"AAST injury scales",
+        desc:"Organ injury scaling (Moore et al.): 32 organs with grade, ICD-9 and AIS. Pocket reference in the OR." },
+      { id:"mip", href:"mip/", chip:"logo-mip.png", chipAlt:"MIP course",
+        title:"MIP — Comprehensive Polytrauma Management",
+        desc:"Decision algorithms for the primary trauma survey (ABCDE): spinal motion restriction, NEXUS criteria and airway. MIP course." },
+      { id:"teg", href:"teg/", emoji:"🩸",
+        title:"TEG6s — Thromboelastography",
+        desc:"Interprets the viscoelastic panel: factors, platelets, fibrinogen and fibrinolysis, with blood-product and TXA suggestions." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Medical calculators",
+        desc:"16 calculators: Glasgow, Shock Index, Parkland, BMI, creatinine, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, PHQ-9 and more." }
+    ]
+  },
+  pt: {
+    specOtherPh: "Escreva aqui… (ex: Veterinária)",
+    specContinue: "Continuar ›",
+    installText: "Instale o kit na sua tela de início para acesso rápido, mesmo offline.",
+    installBtn: "Instalar",
+    installIOSShort: "Salve na sua tela de início — funciona offline.",
+    iosHow: "Como?",
+    iosTitle: "Instalar no seu iPhone",
+    iosSteps: ["Toque no botão <b>Compartilhar</b> (o quadrado com seta ↑) na barra do Safari", "Role para baixo e escolha <b>“Adicionar à Tela de Início”</b>", "Toque em <b>Adicionar</b> — vai aparecer como um app com o logo EduTrauma"],
+    iosDone: "Entendi",
+    profileSkip: "Agora não",
+    profileMini: "Sua especialidade? (um toque)",
+    htmlLang: "pt-BR",
+    ribbon: "EduTrauma Tools",
+    title: "Kit de ferramentas EduTrauma",
+    subtitle: "Apoio à decisão clínica em trauma. Grátis, funciona offline, direto no seu telefone.",
+    open: "Abrir ›",
+    available: "Disponível",
+    soonTitle: "Mais ferramentas a caminho",
+    soonDesc: "O kit cresce junto com os cursos EduTrauma.",
+    profileTitle: "Qual é a sua especialidade?",
+    profileDesc: "Um toque, só uma vez — nos ajuda a criar as ferramentas que a sua prática precisa.",
+    specialtyPh: "Sua especialidade…",
+    countryPh: "Seu país…",
+    save: "Salvar",
+    profileDone: "✓ Perfil salvo — obrigado!",
+    edit: "editar",
+    specialties: ["Cirurgia geral","Cirurgia do trauma","Residente de cirurgia","Medicina de emergência","Enfermagem","Estudante de medicina","Outra"],
+    sourceTitle: "Como você nos conheceu?",
+    sourceDesc: "Um toque, só uma vez — nos ajuda a saber como alcançar mais colegas.",
+    sources: [{id:"correo",label:"E-mail EduTrauma"},{id:"instagram",label:"Instagram"},{id:"whatsapp",label:"WhatsApp"},{id:"linkedin",label:"LinkedIn"},{id:"amigo",label:"Um amigo / colega"},{id:"otro",label:"Outro"}],
+    footer: 'Ferramentas de apoio à decisão clínica — não substituem o julgamento cirúrgico.<br>EduTrauma® — Ensinando a salvar vidas.<br><span style="opacity:0.75">© 2026 EduTrauma® · Todos os direitos reservados. Proibida a comercialização, reprodução ou modificação sem autorização por escrito.</span>',
+    tools: [
+      { id:"abdomen", href:"abdomen/", chip:"logo-miaa.png", chipAlt:"Curso MIAA",
+        title:"Abdome Aberto — MIAA",
+        desc:"5 algoritmos do curso MIAA: quando deixá-lo aberto (+ Björck), conduta por grau, antibióticos, nutrição e hipertensão intra-abdominal (HIA/SCA)." },
+      { id:"aast", href:"aast/", chip:"logo-dqt.png", chipAlt:"Curso DQT",
+        title:"Escalas AAST de lesões",
+        desc:"Graduação de lesões de órgãos (Moore et al.): 32 órgãos com grau, ICD-9 e AIS. Referência de bolso no centro cirúrgico." },
+      { id:"mip", href:"mip/", chip:"logo-mip.png", chipAlt:"Curso MIP",
+        title:"MIP — Manejo Integral do Politraumatizado",
+        desc:"Algoritmos de decisão da abordagem primária (ABCDE): restrição do movimento espinhal, critérios NEXUS e via aérea. Curso MIP." },
+      { id:"teg", href:"teg/", emoji:"🩸",
+        title:"TEG6s — Tromboelastografia",
+        desc:"Interpreta o painel viscoelástico: fatores, plaquetas, fibrinogênio e fibrinólise, com sugestões de hemoderivados e TXA." },
+      { id:"calculadoras", href:"calculadoras/",
+        title:"Calculadoras médicas",
+        desc:"16 calculadoras: Glasgow, Índice de Choque, Parkland, IMC, creatinina, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, PHQ-9 e mais." }
+    ]
+  }
+};
+
+const COUNTRIES = ["Chile","México","Colombia","Argentina","Perú","Ecuador","Bolivia","Uruguay","Paraguay","Venezuela","Brasil","Panamá","Costa Rica","Guatemala","República Dominicana","España","Estados Unidos","Otro / Other"];
+const LANG_NAMES = { es: "Español", en: "English", pt: "Português" };
+const LANGS = ['es', 'en', 'pt'];
+
+function detectLang(){
+  const saved = localStorage.getItem('lang');
+  if (saved && I18N[saved]) return saved;
+  const nav = (navigator.language || 'es').toLowerCase();
+  if (nav.startsWith('pt')) return 'pt';
+  if (nav.startsWith('en')) return 'en';
+  return 'es';
+}
+
+let LANG = detectLang();
+function T(){ return I18N[LANG]; }
+
+function setLang(lang){
+  const changed = lang !== LANG;
+  LANG = lang;
+  localStorage.setItem('lang', lang);
+  const sw = document.getElementById('langSwitch');
+  if (sw){
+    sw.dataset.active = LANGS.indexOf(lang);
+    sw.querySelectorAll('button').forEach((b, i) => {
+      b.classList.toggle('active', LANGS[i] === lang);
+      b.setAttribute('aria-pressed', LANGS[i] === lang);
+    });
+    applyStaticTexts();
+    if (typeof refreshInstallBanner === 'function') refreshInstallBanner();
+    document.getElementById('toolGrid').innerHTML = toolGridHTML();
+    document.getElementById('profileZone').innerHTML = profileHTML();
+  } else {
+    render();
+  }
+  if (changed) sendEvent('lang_change');
+}
+
+function applyStaticTexts(){
+  const t = T();
+  document.documentElement.lang = t.htmlLang;
+  document.getElementById('brandRibbon').textContent = t.ribbon;
+  document.getElementById('hubTitle').textContent = t.title;
+  document.getElementById('hubSubtitle').textContent = t.subtitle;
+  document.getElementById('hubFooter').innerHTML = t.footer;
+}
+
+function toolGridHTML(){
+  const t = T();
+  const cards = t.tools.map(tool => `
+    <a class="tool-card" href="${tool.href}" onclick="sendEvent('tool_open', {tool_id:'${tool.id}'})">
+      <div class="tool-card-top">
+        ${tool.chip ? `<span class="tool-chip"><img src="${tool.chip}" alt="${tool.chipAlt}"></span>` : `<span class="tool-chip" style="border:none;background:none;padding:0;font-size:1.4rem;">${tool.emoji||'🧮'}</span>`}
+        <span class="tool-status">${t.available}</span>
+      </div>
+      <div class="tool-title">${tool.title}</div>
+      <p class="tool-desc">${tool.desc}</p>
+      <span class="tool-cta">${t.open}</span>
+    </a>`).join('');
+  return cards + `
+    <div class="tool-card soon">
+      <div class="tool-title">${t.soonTitle}</div>
+      <p class="tool-desc">${t.soonDesc}</p>
+    </div>`;
+}
+
+function profileHTML(){
+  const t = T();
+  const p = etProfile();
+  if (p.specialty || p.country){
+    return `<div class="profile-done" style="margin-top:18px;">
+      <span>${t.profileDone}</span>
+      <button onclick="editProfile()">${t.edit}</button>
+    </div>`;
+  }
+  return `<button class="hub-link" style="margin-top:14px;" onclick="showProfileSheet()">👤 ${t.profileMini}</button>`;
+}
+
+function profileFieldsHTML(){
+  const t = T();
+  const mandatory = !etProfile().specialty;
+  return `
+    <h2>${t.profileTitle}</h2>
+    <p style="margin:0 0 4px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.profileDesc}</p>
+    <div class="spec-grid">
+      ${t.specialties.map(s => `<button onclick="pickSpecialtyHub(this.textContent)">${s}</button>`).join('')}
+    </div>
+    ${mandatory ? '' : `<button class="fb-skip" onclick="closeProfileSheet(true)">${t.profileSkip}</button>`}`;
+}
+
+function pickSpecialtyHub(s){
+  const t = T();
+  if (s === t.specialties[t.specialties.length - 1]){
+    // "Otra" → texto libre dentro de la misma hoja
+    const sheet = document.querySelector('#pfOverlay .sheet');
+    sheet.innerHTML = `
+      <h2>${t.profileTitle}</h2>
+      <input class="spec-input" id="specOtherHub" maxlength="60" placeholder="${t.specOtherPh}"
+        oninput="document.getElementById('specGoHub').disabled = !this.value.trim()">
+      <button class="spec-continue" id="specGoHub" disabled
+        onclick="saveSpecialtyHub(document.getElementById('specOtherHub').value.trim())">${t.specContinue}</button>`;
+    setTimeout(() => document.getElementById('specOtherHub').focus(), 100);
+    return;
+  }
+  saveSpecialtyHub(s);
+}
+
+function saveSpecialtyHub(s){
+  if (!s) return;
+  localStorage.setItem('et_profile', JSON.stringify({ specialty: s.slice(0, 60) }));
+  sendEvent('profile_saved', { specialty: s.slice(0, 60) });
+  // Encadena con "¿cómo nos conociste?" (obligatoria) si aún no la respondió
+  if (!localStorage.getItem('et_source')){
+    showSourceSheet();
+  } else {
+    closeProfileSheet(false);
+  }
+}
+
+/* ===== ¿Cómo nos conociste? (origen, un toque, opcional) ===== */
+function sourceFieldsHTML(){
+  const t = T();
+  return `
+    <h2>${t.sourceTitle}</h2>
+    <p style="margin:0 0 4px; font-size:0.84rem; color:var(--et-muted); line-height:1.45;">${t.sourceDesc}</p>
+    <div class="spec-grid">
+      ${t.sources.map(s => `<button onclick="saveSourceHub('${s.id}')">${s.label}</button>`).join('')}
+    </div>`;
+}
+function showSourceSheet(){
+  let ov = document.getElementById('pfOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'pfOverlay';
+    ov.className = 'overlay';
+    document.body.appendChild(ov);
+  }
+  ov.onclick = () => {}; // obligatoria: no se descarta tocando fuera
+  ov.innerHTML = `<div class="sheet">${sourceFieldsHTML()}</div>`;
+  ov.classList.add('show');
+}
+function saveSourceHub(id){
+  try{ localStorage.setItem('et_source', id); }catch(e){}
+  sendEvent('source', { source: id });
+  closeSourceSheet();
+}
+function closeSourceSheet(){
+  const ov = document.getElementById('pfOverlay');
+  if (ov) ov.classList.remove('show');
+  const z = document.getElementById('profileZone');
+  if (z) z.innerHTML = profileHTML();
+}
+
+function editProfile(){
+  // No borra el perfil: la hoja abre en modo edición (con opción de cerrar);
+  // elegir un chip nuevo simplemente sobreescribe.
+  showProfileSheet();
+}
+
+function showProfileSheet(){
+  let ov = document.getElementById('pfOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'pfOverlay';
+    ov.className = 'overlay';
+    ov.onclick = (e) => { if (e.target === ov && etProfile().specialty) closeProfileSheet(true); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="sheet">${profileFieldsHTML()}</div>`;
+  ov.classList.add('show');
+}
+
+function closeProfileSheet(dismissed){
+  if (dismissed){ try{ localStorage.setItem('et_profile_dismissed', '1'); }catch(e){} }
+  const ov = document.getElementById('pfOverlay');
+  if (ov) ov.classList.remove('show');
+  const z = document.getElementById('profileZone');
+  if (z) z.innerHTML = profileHTML();
+}
+
+function maybeAskProfile(){
+  try{
+    if (!etProfile().specialty){ showProfileSheet(); return; }
+    // Ya tiene especialidad pero nunca respondió cómo llegó → preguntar (obligatoria)
+    if (!localStorage.getItem('et_source')){
+      showSourceSheet();
+    }
+  }catch(e){}
+}
+
+/* ============ Aviso de novedades ============
+   Para anunciar herramientas nuevas SIN depender de notificaciones push
+   (que en iPhone solo llegan a quien tiene la app instalada).
+   Se muestra a quien no haya visto ESTE aviso y se descarta para siempre.
+   Para anunciar algo nuevo: cambiar `id` y los textos. Nada más. */
+const NEWS = {
+  id: 'teg-mip-2026-09',
+  href: 'teg/',
+  es: { txt: '🆕 <b>Dos herramientas nuevas:</b> TEG6s (tromboelastografía) y MIP (manejo integral del politraumatizado). MIAA también suma 5 algoritmos.', cta: 'Ver TEG6s ›' },
+  en: { txt: '🆕 <b>Two new tools:</b> TEG6s (thromboelastography) and MIP (polytrauma management). MIAA also adds 5 algorithms.', cta: 'Open TEG6s ›' },
+  pt: { txt: '🆕 <b>Duas ferramentas novas:</b> TEG6s (tromboelastografia) e MIP (manejo do politraumatizado). O MIAA também ganhou 5 algoritmos.', cta: 'Ver TEG6s ›' }
+};
+function newsSeen(){ try{ return localStorage.getItem('et_news') === NEWS.id; }catch(e){ return true; } }
+function markNewsSeen(){ try{ localStorage.setItem('et_news', NEWS.id); }catch(e){} }
+function newsHTML(){
+  if (newsSeen()) return '';
+  const n = NEWS[LANG] || NEWS.es;
+  return `<div class="news" id="newsBox">
+    <div class="news-body">
+      <div class="news-txt">${n.txt}</div>
+      <a class="news-cta" href="${NEWS.href}" onclick="newsClick()">${n.cta}</a>
+    </div>
+    <button class="news-x" onclick="newsDismiss()" aria-label="Cerrar">✕</button>
+  </div>`;
+}
+function newsClick(){ markNewsSeen(); sendEvent('news_click', { news: NEWS.id }); }
+function newsDismiss(){
+  markNewsSeen();
+  sendEvent('news_dismiss', { news: NEWS.id });
+  const b = document.getElementById('newsBox');
+  if (b) b.remove();
+}
+
+function render(){
+  applyStaticTexts();
+  const langBtns = LANGS.map(l =>
+    `<button class="${l === LANG ? 'active' : ''}" onclick="setLang('${l}')" aria-pressed="${l === LANG}">${LANG_NAMES[l]}</button>`
+  ).join('');
+  const globe = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/></svg>';
+  document.getElementById('main').innerHTML = `
+    <div class="lang-wrap" style="margin: 0 0 18px; padding-top: 4px;">
+      ${globe}
+      <div class="lang-switch" id="langSwitch" role="group" aria-label="Idioma / Language" data-active="${LANGS.indexOf(LANG)}">
+        <div class="lang-thumb"></div>
+        ${langBtns}
+      </div>
+    </div>
+    ${newsHTML()}
+    <div class="tool-grid" id="toolGrid">${toolGridHTML()}</div>
+    <div id="profileZone">${profileHTML()}</div>
+  `;
+  if (!newsSeen()) sendEvent('news_shown', { news: NEWS.id });
+}
+
+render();
+sendEvent('hub_view');
+maybeAskProfile();
+
+/* ============ Instalación: prompt nativo (Android) / guía visual (iOS) ============ */
+let deferredPrompt = null;
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+const IS_STANDALONE = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+
+function refreshInstallBanner(){
+  const banner = document.getElementById('installBanner');
+  if (!banner) return;
+  const t = T();
+  if (IS_STANDALONE || localStorage.getItem('installDismissed') === '1'){
+    banner.classList.remove('show');
+    return;
+  }
+  // No ofrecer instalar antes de que la persona use una herramienta (mismo criterio
+  // que design/feedback.js → etShouldOfferInstall; el hub no carga ese módulo).
+  let usos = 0; try{ usos = parseInt(localStorage.getItem('et_uses') || '0', 10) || 0; }catch(e){}
+  if (usos < 1){ banner.classList.remove('show'); return; }
+  const btn = document.getElementById('installBtn');
+  if (IS_IOS){
+    document.getElementById('installText').innerHTML = t.installIOSShort;
+    btn.style.display = '';
+    btn.textContent = t.iosHow;
+    btn.onclick = showIOSGuide;
+    banner.classList.add('show');
+  } else if (deferredPrompt){
+    document.getElementById('installText').innerHTML = t.installText;
+    btn.style.display = '';
+    btn.textContent = t.installBtn;
+    btn.onclick = promptInstall;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  refreshInstallBanner();
+});
+window.addEventListener('appinstalled', () => {
+  sendEvent('pwa_installed');
+  const b = document.getElementById('installBanner');
+  if (b) b.classList.remove('show');
+});
+function promptInstall(){
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.finally(() => { deferredPrompt = null; refreshInstallBanner(); });
+}
+function dismissInstall(){
+  try{ localStorage.setItem('installDismissed', '1'); }catch(e){}
+  document.getElementById('installBanner').classList.remove('show');
+}
+function showIOSGuide(){
+  const t = T();
+  let ov = document.getElementById('iosOverlay');
+  if (!ov){
+    ov = document.createElement('div');
+    ov.id = 'iosOverlay';
+    ov.className = 'overlay';
+    ov.onclick = (e) => { if (e.target === ov) ov.classList.remove('show'); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="sheet">
+    <h2>${t.iosTitle}</h2>
+    ${t.iosSteps.map((s, i) => `<div class="rule-item"><div class="rule-dot"></div><div><b>${i + 1}.</b> ${s}</div></div>`).join('')}
+    <button class="close-sheet" onclick="document.getElementById('iosOverlay').classList.remove('show')">${t.iosDone}</button>
+  </div>`;
+  ov.classList.add('show');
+  sendEvent('ios_guide_open');
+}
+refreshInstallBanner();
+
+// Service worker (solo cachea el hub; /abdomen/ tiene el suyo)
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing || !hadController) return; // recarga UNA vez cuando llega versión nueva
+    refreshing = true;
+    location.reload();
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      reg.update();
+      setInterval(() => reg.update(), 60000); // busca actualización cada minuto mientras esté abierta
+    }).catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
