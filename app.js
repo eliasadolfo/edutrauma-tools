@@ -149,6 +149,7 @@ const ICON = {
   branch: SVG('<circle cx="6" cy="4.5" r="2.2"/><circle cx="17.5" cy="13" r="2.2"/><circle cx="6" cy="19.5" r="2.2"/><path d="M6 6.7v10.6"/><path d="M8.2 5.5h4.3a3 3 0 0 1 3 3v2.3"/>'),
   share:  SVG('<path d="M12 15V4"/><path d="M8.5 7.5L12 4l3.5 3.5"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>'),
   print:  SVG('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="7" rx="2"/><path d="M7 14h10v7H7z"/>'),
+  beds:   SVG('<path d="M3 7v12"/><path d="M21 19v-7a2 2 0 0 0-2-2H3"/><path d="M3 15h18"/><circle cx="7.5" cy="11.5" r="1.6"/>'),
   save:   SVG('<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h7V3"/><rect x="8" y="13" width="8" height="6"/>'),
   grid:   SVG('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 4v16"/>'),
   /* Canales */
@@ -164,7 +165,7 @@ const ICON = {
 const S = {
   tab: 'kit',
   stack: [],       /* pila de la pestaña activa */
-  stacks: { kit:[], casos:[], guias:[], perfil:[] },  /* una pila por pestaña */
+  stacks: { kit:[], casos:[], guias:[], perfil:[], camas:[] },  /* una pila por pestaña */
   dir: 0,          /* 1 push · -1 pop · 0 cambio de pestaña */
   sheet: null,     /* 'country' | 'channel' */
   filter: '',
@@ -345,6 +346,9 @@ function closeSheet(){ S.sheet = null; S.filter = ''; render(); }
 function sheetHTML(){
   const t = T();
   if(S.sheet === 'newcase') return newCaseSheetHTML();
+  if(S.sheet === 'nuevaCama') return camaSheetHTML('nueva');
+  if(S.sheet && S.sheet.startsWith('ingreso:')) return camaSheetHTML('ingreso', S.sheet.slice(8));
+  if(S.sheet && S.sheet.startsWith('mover:'))   return camaSheetHTML('mover',   S.sheet.slice(6));
   if(S.sheet === 'country'){
     const c = t.countrySheet;
     return `<div class="et-overlay" onclick="if(event.target===this)closeSheet()">
@@ -573,6 +577,16 @@ function perfilHTML(){
       <p style="margin:9px 0 0;font:400 12px/1.45 var(--et-font);color:var(--app-slate)">${esc(pf.offlineNote)}</p>
     </div>
 
+    <div class="et-section">${esc(T().camas.tab)}</div>
+    <div class="et-group">
+      <button class="et-row" style="min-height:54px" onclick="irACamas()">
+        <span class="et-row-main">
+          <span class="et-row-title">${esc(hayCamas() ? C.unidad.nombre : T().camas.unirseTitulo)}</span>
+          <span class="et-row-sub">${esc(hayCamas() ? T().camas.compartida : T().camas.entrarSub)}</span>
+        </span>${ICON.right}
+      </button>
+    </div>
+
     <div class="et-section">${esc(pf.courses)}</div>
     <div class="et-group">${courses}</div>
 
@@ -591,11 +605,13 @@ function openFeedback(){
 }
 
 /* ============ Render ============ */
+function hayCamas(){ return typeof C !== 'undefined' && !!(C.sesion && C.unidad && C.unidad.id); }
 function tabsHTML(){
   const t = T().tabs;
-  return ['kit','casos','guias','perfil'].map(id => `
+  const ids = ['kit','casos','guias'].concat(hayCamas() ? ['camas'] : []).concat(['perfil']);
+  return ids.map(id => `
     <button class="et-tab" role="tab" aria-selected="${S.tab === id}" onclick="setTab('${id}')">
-      ${ICON[id]}<span>${esc(t[id])}</span>
+      ${ICON[id === 'camas' ? 'beds' : id]}<span>${esc(id === 'camas' ? T().camas.tab : t[id])}</span>
     </button>`).join('');
 }
 function setTab(id){
@@ -642,6 +658,7 @@ function render(){
     kit:    kitHTML,
     casos:  casosScreenHTML,
     guias:  guiasScreenHTML,
+    camas:  () => (typeof camasScreenHTML === 'function' ? camasScreenHTML() : ''),
     perfil: perfilHTML
   }[S.tab]();
 
@@ -714,6 +731,7 @@ function openDeepLink(){
   if(!S.onb) openDeepLink();
   window.addEventListener('hashchange', () => { if(!S.onb) openDeepLink(); });
   sendEvent('app_open');
+  if(typeof camasInit === 'function') camasInit();
 
   /* Service worker de la serie (ámbito raíz): es el que da el uso sin conexión
      y el que hace que las apps instaladas se actualicen solas. */

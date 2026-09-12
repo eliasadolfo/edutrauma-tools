@@ -396,13 +396,22 @@ function stackScreenHTML(scr){
     calc: calcFormHTML,
     calcResult: calcResultHTML,
     caseDetail: caseDetailHTML,
-    guiaDetail: guiaDetailHTML
+    guiaDetail: guiaDetailHTML,
+    camaPaciente: camaPacienteHTML,
+    camaEquipo: camaEquipoHTML
   }[scr.kind](scr);
 }
 /* Título y etiqueta de "atrás" de cada nivel. */
 function stackNav(scr, prev){
   const t = T();
   /* El detalle de caso vive en la pestaña Casos, no cuelga de una herramienta. */
+  if(scr.kind === 'camaPaciente'){
+    const p = C.pacientes.find(x => x.id === scr.pacienteId);
+    return { backLabel: T().camas.tab, title: p ? p.alias : '', chip: null };
+  }
+  if(scr.kind === 'camaEquipo'){
+    return { backLabel: T().camas.tab, title: T().camas.verEquipo, chip: null };
+  }
   if(scr.kind === 'guiaDetail'){
     const g = guiasList().find(x => x.id === scr.guiaId);
     return { backLabel: t.tabs.guias, title: g ? g.title : '', chip: null };

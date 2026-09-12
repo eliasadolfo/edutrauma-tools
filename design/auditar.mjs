@@ -20,7 +20,7 @@ const REDIRECTS = {
 };
 /* Los archivos que componen la app. */
 const APP_JS = ['i18n.js','et-data.js','aast-data.js','mip-data.js',
-                'tools.js','tools2.js','cases.js','guias.js','app.js'];
+                'tools.js','tools2.js','cases.js','guias.js','camas.js','app.js'];
 
 const problemas = [];
 const ok = [];
@@ -166,9 +166,18 @@ check(i18n.includes('Todos los derechos reservados') || hub.includes('Todos los 
   'aviso de marca presente', '⚠ FALTA el aviso de marca');
 check(/no reemplaza|no reemplazan|does not replace|não substitui/.test(i18n),
   'disclaimer clínico presente', '⚠ FALTA el disclaimer clínico');
-check(/localStorage/.test(leer('cases.js')) && !/ET_EVENTS_URL/.test(leer('cases.js')),
+check(/localStorage/.test(leer('cases.js')) && !/ET_EVENTS_URL/.test(leer('cases.js'))
+      && !/supabase|sbClient/.test(leer('cases.js')),
   'los casos no se envían a ningún servidor',
-  '⚠ cases.js habla con el servidor → los casos deben quedarse en el teléfono');
+  '⚠ cases.js habla con un servidor → los casos deben quedarse en el teléfono');
+/* Camas SÍ habla con un servidor, a propósito. Lo que no puede es mezclarse
+   con Casos: son promesas distintas al usuario. */
+const camasJs = leer('camas.js');
+check(!/et_cases|CASES_KEY/.test(camasJs),
+  'Camas no toca el almacén de Casos',
+  '⚠ camas.js toca los casos privados → Casos y Camas deben quedar separados');
+check(/supabase\.co/.test(camasJs), 'Camas apunta a su propio proyecto',
+  '⚠ camas.js perdió la dirección de su servidor');
 
 /* ---------- Reporte ---------- */
 console.log('\n=== AUDITORÍA DE COHERENCIA — EduTrauma Tools ===\n');
