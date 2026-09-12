@@ -99,6 +99,42 @@ Ambas tablas tienen RLS activo y **ninguna política**: nadie las lee desde la
 app. Se administran desde la consola de Supabase. El aviso INFO del linter es
 esperado.
 
+## Cómo se entra a una unidad
+
+Decisión de Elías, 12-sep-2026: **el código basta**. En un turno de trauma,
+bloquear a alguien que necesita escribir a las 3 de la mañana es peor que el
+riesgo de que entre alguien de más, teniendo el organizador la lista a la
+vista. Dijo "por ahora", y se tomó en serio:
+
+| clave | valor | significa |
+|---|---|---|
+| `ingreso_unidad` | `codigo` | con el código entras y ya |
+| | `aprobacion` | entras como pendiente hasta que el organizador te admita |
+
+La estructura soporta las dos: `miembro.estado` es `activo` o `pendiente`, y
+ser miembro significa estar **activo**. Apretarlo es cambiar el valor.
+
+El estado **no lo decide el cliente**: lo pone un trigger según el ajuste. La
+app no puede pedir entrar como activa cuando el ajuste dice aprobación.
+
+### Identidad y firma
+
+Son tres cosas distintas:
+
+1. **La cuenta** — el correo con el que inició sesión. Es el dato duro. La
+   política de inserción exige `auth.uid() = autor_id`: la app no puede firmar
+   como otro, el servidor lo rechaza.
+2. **El nombre** — lo escribe cada uno al entrar a la unidad. Es lo que se ve
+   en cada línea, y se guarda **copiado** en ella: si alguien rota a otro
+   servicio y se le saca de la unidad, sus líneas siguen firmadas.
+3. **El correo, copiado en `miembro`** — el nombre lo escribe cada uno y puede
+   mentir; la cuenta detrás no. Por eso el organizador ve ambos. Ese es el
+   control real, no el código.
+
+Cada línea lleva además **dos horas**: `cliente_ts` (cuándo se escribió en el
+teléfono) y `creada` (cuándo llegó al servidor). La evolución se ordena por la
+primera, que es cuando pasó; la segunda deja constancia de que llegó después.
+
 ## Seguridad
 
 Todo pasa por RLS, y todo gira en torno a pertenecer a la unidad. Las
