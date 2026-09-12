@@ -3,8 +3,15 @@
 Contexto: el handoff `design_handoff_mobile_app` rediseñó el hub y MIP.
 Faltan las otras 4 herramientas y completar el Perfil.
 
-Copia cada bloque tal cual, en una conversación nueva de Claude Design,
-**adjuntando el handoff anterior** para que mantenga tokens y gramática.
+Pégalos **en la misma conversación donde salió el primer paquete** (la titulada
+"Edutrauma mobile app design"): ya tiene el contexto, los tokens y las decisiones
+tomadas, así que no hay que volver a explicárselo ni adjuntar nada.
+
+Uno a la vez, y espera el paquete antes de pedir el siguiente. Empieza por el 1,
+que es el grande.
+
+Si por lo que sea tienes que empezar en una conversación nueva, adjunta ahí el
+paquete anterior (`design_handoff_mobile_app`) para que mantenga la coherencia.
 
 ---
 
