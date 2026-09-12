@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  body{margin:0;background:#e9edf5;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#00205C}
+  a{color:#16829e;text-decoration:none}
+  a:hover{color:#00205C}
+  @keyframes etPush{from{opacity:.2;transform:translateX(26px)}to{opacity:1;transform:none}}
+  @keyframes etPop{from{opacity:.2;transform:translateX(-22px)}to{opacity:1;transform:none}}
+  @keyframes etFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes etSheet{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes etSymbol{0%{opacity:0;transform:scale(.7)}60%{transform:scale(1.06)}100%{opacity:1;transform:none}}
+  @keyframes etUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes etBarIn{from{opacity:0}to{opacity:1}}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
+</style>
+<script src="et-data.js"></script>
+<script src="aast-data.js"></script>
+</helmet>
+
+<div style="min-height:100vh;padding:34px 24px 60px;display:flex;flex-direction:column;align-items:center;gap:26px;background:linear-gradient(180deg,#eef1f7,#e3e8f3)">
+
+  <div style="max-width:700px;display:flex;flex-direction:column;gap:10px;text-align:center">
+    <div style="font-size:.62rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#5b6b8c">EduTrauma Tools · App móvil</div>
+    <h1 style="margin:0;font-size:1.5rem;line-height:1.25;font-weight:800;letter-spacing:-0.02em;text-wrap:balance">Las cinco herramientas al mismo nivel, cada una con la interacción que le corresponde</h1>
+    <p style="margin:0;font-size:.9rem;line-height:1.55;color:#5b6b8c;text-wrap:pretty">Prototipo navegable con los colores del repo (<code style="font-size:.82rem">edutrauma-ui.css</code>) y la gramática de iOS. Árboles de decisión en <b>MIP</b> y <b>MIAA</b>, obra de consulta en <b>AAST</b>, formulario y panel en <b>TEG6s</b>, y 16 <b>calculadoras</b> en 5 áreas — con la lógica clínica real del repo.</p>
+  </div>
+
+  <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+    <div style="height:100%;display:flex;flex-direction:column;background:#f2f4f9;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#00205C;position:relative;z-index:0;overflow:hidden;letter-spacing:-0.01em">
+
+      <div style="flex-shrink:0;background:#00205C;padding:58px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <img src="logo-blanco-trim.png" alt="EduTrauma" style="height:22px;width:auto;display:block">
+        <sc-if value="{{ chipMip }}" hint-placeholder-val="{{ false }}">
+          <span style="background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;flex-shrink:0"><img src="logo-mip.png" alt="Curso MIP" style="height:24px;width:auto;display:block"></span>
+        </sc-if>
+        <sc-if value="{{ chipDqt }}" hint-placeholder-val="{{ false }}">
+          <span style="background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;flex-shrink:0"><img src="logo-dqt.png" alt="Curso DQT" style="height:24px;width:auto;display:block"></span>
+        </sc-if>
+        <sc-if value="{{ chipMiaa }}" hint-placeholder-val="{{ false }}">
+          <span style="background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;flex-shrink:0"><img src="logo-miaa.png" alt="Curso MIAA" style="height:24px;width:auto;display:block"></span>
+        </sc-if>
+      </div>
+      <div style="flex-shrink:0;background:#001845;border-top:2px solid #E02826;color:rgba(255,255,255,.78);text-align:center;font-size:.58rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;padding:5px 16px 6px">EduTrauma Tools</div>
+
+      <sc-if value="{{ canGoBack }}" hint-placeholder-val="{{ false }}">
+        <div style="flex-shrink:0;position:relative;height:44px;display:flex;align-items:center;background:rgba(242,244,249,.9);backdrop-filter:blur(18px);border-bottom:.5px solid rgba(0,32,92,.14);z-index:5">
+          <button onClick="{{ back }}" style="display:flex;align-items:center;gap:3px;background:none;border:0;padding:0 8px 0 10px;font-family:inherit;font-size:17px;color:#16829e;cursor:pointer;max-width:44%;transition:opacity .18s ease" style-active="opacity:.4">
+            <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="#16829e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2.5 10 10 18"></path></svg>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ backLabel }}</span>
+          </button>
+          <div style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:600;pointer-events:none;padding:0 96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ navTitle }}</div>
+        </div>
+      </sc-if>
+
+      <div onScroll="{{ onScroll }}" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch">
+
+        <sc-if value="{{ isKit }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="position:sticky;top:0;height:0;z-index:6">
+              <div style="height:42px;background:#001845;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 16px rgba(0,24,69,.28);opacity:0;animation:etBarIn linear both;animation-timeline:scroll(nearest);animation-range:60px 130px">
+                <span style="width:7px;height:7px;border-radius:999px;background:#4ad196;flex-shrink:0"></span>
+                <span style="font-size:14px;font-weight:600;color:rgba(255,255,255,.92);letter-spacing:-0.01em">Listo para usar sin conexión</span>
+              </div>
+            </div>
+            <div style="position:relative;background:linear-gradient(180deg,#001845 0%,#00205C 55%,#062b6f 100%);border-radius:0 0 24px 24px;padding:20px 16px 20px;overflow:hidden">
+              <div style="position:absolute;top:-42px;right:-52px;width:190px;height:190px;border-radius:999px;border:26px solid rgba(255,255,255,.05)"></div>
+              <div style="position:absolute;bottom:-70px;left:-40px;width:150px;height:150px;border-radius:999px;background:rgba(224,40,38,.14)"></div>
+              <div style="position:relative">
+                <div style="font-size:31px;font-weight:800;line-height:36px;letter-spacing:-0.035em;color:#fff;text-wrap:balance">¿Qué necesitas decidir?</div>
+                <div style="font-size:15px;line-height:1.45;color:rgba(255,255,255,.72);margin-top:8px">Elige una herramienta y te acompaño paso a paso.</div>
+                <sc-if value="{{ hasActiveCase }}" hint-placeholder-val="{{ true }}">
+                  <div style="height:1px;background:rgba(255,255,255,.15);margin:16px 0 2px"></div>
+                  <button onClick="{{ goActiveCase }}" style="width:100%;display:flex;align-items:center;gap:11px;background:none;border:0;padding:11px 0 2px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:opacity .18s ease" style-active="opacity:.55">
+                    <span style="width:32px;height:32px;border-radius:9px;background:#E02826;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+                    </span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6)">Continuar caso</span>
+                      <span style="display:block;font-size:16px;font-weight:600;color:#fff;line-height:1.25;margin-top:3px">{{ activeCaseLabel }}</span>
+                    </span>
+                    <span style="font-size:13px;color:rgba(255,255,255,.6);flex-shrink:0">{{ activeCaseCount }}</span>
+                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                  </button>
+                </sc-if>
+                <sc-if value="{{ noActiveCase }}" hint-placeholder-val="{{ false }}">
+                  <div style="height:1px;background:rgba(255,255,255,.15);margin:16px 0 2px"></div>
+                  <div style="display:flex;align-items:center;gap:11px;padding:11px 0 2px">
+                    <span style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+                    </span>
+                    <span style="flex:1;min-width:0;font-size:14px;line-height:1.45;color:rgba(255,255,255,.72)">Sin caso abierto. Lo que calcules puede quedar guardado en uno.</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+
+            <sc-if value="{{ hasFavs }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:22px">
+                <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">FAVORITOS</div>
+                <div style="display:flex;gap:10px;padding:0 16px;overflow-x:auto">
+                  <sc-for list="{{ favs }}" as="f" hint-placeholder-count="2">
+                    <button onClick="{{ f.open }}" style="flex:0 0 auto;width:172px;text-align:left;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:13px;font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.95)">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="#E02826" stroke="none"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z"></path></svg>
+                      <span style="display:block;font-size:15px;font-weight:600;line-height:1.3">{{ f.label }}</span>
+                      <span style="display:block;font-size:12px;color:#5b6b8c">{{ f.tool }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="margin-top:22px">
+              <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">TUS HERRAMIENTAS</div>
+              <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                <sc-for list="{{ tools }}" as="t" hint-placeholder-count="5">
+                  <button onClick="{{ t.open }}" style="width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;border-bottom:{{ t.sep }};padding:12px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                    <span style="width:38px;height:38px;border-radius:10px;background:{{ t.iconBg }};box-shadow:0 3px 8px rgba(0,32,92,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                      <sc-if value="{{ t.isMiaa }}" hint-placeholder-val="{{ false }}">
+                        <img src="logo-miaa.png" alt="" style="width:28px;height:auto;display:block">
+                      </sc-if>
+                      <sc-if value="{{ t.isDqt }}" hint-placeholder-val="{{ false }}">
+                        <img src="logo-dqt.png" alt="" style="width:28px;height:auto;display:block">
+                      </sc-if>
+                      <sc-if value="{{ t.isMip }}" hint-placeholder-val="{{ false }}">
+                        <img src="logo-mip.png" alt="" style="width:28px;height:auto;display:block">
+                      </sc-if>
+                      <sc-if value="{{ t.noChip }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.02em">{{ t.mono }}</span>
+                      </sc-if>
+                    </span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:17px;font-weight:600;line-height:1.25;letter-spacing:-0.02em">{{ t.title }}</span>
+                      <span style="display:block;font-size:13px;line-height:1.4;color:#5b6b8c;margin-top:3px">{{ t.desc }}</span>
+                    </span>
+                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                  </button>
+                </sc-for>
+              </div>
+              <p style="margin:7px 16px 0;font-size:12px;line-height:1.45;color:#5b6b8c">Apoyo a la decisión clínica — no reemplazan el juicio quirúrgico.</p>
+              <div style="margin:20px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                <button onClick="{{ openFeedback }}" style="width:100%;display:flex;align-items:center;gap:11px;min-height:52px;background:none;border:0;padding:13px 14px;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16829e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15.5A2.5 2.5 0 0117.5 18H8l-4 3V6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5z"></path></svg>
+                  <span style="flex:1;min-width:0">Danos tu opinión</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAlgoList }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:14px 16px 10px">
+              <div style="font-size:15px;line-height:1.45;color:#5b6b8c">{{ toolBlurb }}</div>
+            </div>
+            <sc-if value="{{ showBjorckRef }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:0 16px 10px">
+                <button onClick="{{ openBjorck }}" style="width:100%;display:flex;align-items:center;gap:11px;background:#00205C;border:0;border-radius:14px;padding:13px 14px;font-family:inherit;color:#fff;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.975);filter:brightness(.92)">
+                  <span style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"></rect><path d="M3.5 10h17M9.5 10v9.5"></path></svg>
+                  </span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:block;font-size:16px;font-weight:700;line-height:1.25">Clasificación de Björck</span>
+                    <span style="display:block;font-size:13px;color:rgba(255,255,255,.72);margin-top:2px">Los 9 grados de un vistazo, sin recorrer el árbol</span>
+                  </span>
+                  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                </button>
+              </div>
+            </sc-if>
+            <div style="padding:0 16px 6px;display:flex;align-items:center;gap:10px">
+              <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;background:rgba(0,32,92,.07);border-radius:10px;padding:8px 10px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <input placeholder="Buscar algoritmo" value="{{ filter }}" onInput="{{ onSearch }}" style="flex:1;min-width:0;background:none;border:0;outline:none;font-family:inherit;font-size:17px;color:#00205C">
+              </div>
+              <sc-if value="{{ hasFilter }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ clearSearch }}" style="flex-shrink:0;background:none;border:0;padding:4px 2px;font-family:inherit;font-size:17px;color:#16829e;cursor:pointer;transition:opacity .18s ease" style-active="opacity:.4">Cancelar</button>
+              </sc-if>
+            </div>
+            <sc-for list="{{ regions }}" as="r" hint-placeholder-count="2">
+              <div style="margin-top:18px">
+                <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">{{ r.title }}</div>
+                <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ r.items }}" as="a" hint-placeholder-count="2">
+                    <div style="display:flex;align-items:stretch;border-bottom:{{ a.sep }}">
+                      <button onClick="{{ a.open }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;padding:12px 4px 12px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                        <span style="flex:1;min-width:0">
+                          <span style="display:block;font-size:17px;font-weight:600;line-height:1.25">{{ a.name }}</span>
+                          <span style="display:block;font-size:13px;line-height:1.4;color:#5b6b8c;margin-top:3px">{{ a.short }}</span>
+                        </span>
+                        <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                      </button>
+                      <button onClick="{{ a.toggleFav }}" aria-label="Favorito" style="width:46px;flex-shrink:0;background:none;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" stroke="#E02826" stroke-width="1.8" stroke-linejoin="round" fill="{{ a.favFill }}"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z"></path></svg>
+                      </button>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:56px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;animation:etUp .3s ease both">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(0,32,92,.25)" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <div style="font-size:19px;font-weight:700;color:rgba(0,32,92,.55)">Sin resultados</div>
+                <div style="font-size:14px;line-height:1.45;color:#5b6b8c">Prueba con «collarín», «NEXUS» o «vía aérea».</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isBjorck }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 2px;font-size:15px;line-height:1.45;color:#5b6b8c">Los 9 grados en una sola pantalla. Toca un grado para ver su conducta paso a paso.</div>
+            <sc-for list="{{ bjGrades }}" as="g" hint-placeholder-count="4">
+              <div style="margin-top:18px">
+                <div style="padding:0 16px 7px;display:flex;align-items:baseline;gap:8px">
+                  <span style="font-size:13px;font-weight:700;color:#00205C">{{ g.gLabel }}</span>
+                  <span style="font-size:12px;line-height:1.35;color:#5b6b8c;flex:1;min-width:0">{{ g.desc }}</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px">
+                  <sc-for list="{{ g.cells }}" as="c" hint-placeholder-count="3">
+                    <button onClick="{{ c.open }}" style="flex:1 1 44%;min-width:132px;min-height:86px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:12px 13px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.96)">
+                      <span style="display:flex;align-items:center;gap:7px">
+                        <span style="min-width:34px;height:26px;padding:0 7px;border-radius:7px;background:{{ c.chipBg }};color:{{ c.chipColor }};font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ c.code }}</span>
+                        <span style="font-size:12px;font-weight:600;color:#5b6b8c">{{ c.state }}</span>
+                      </span>
+                      <span style="display:block;font-size:13px;line-height:1.4;font-weight:600;margin-top:2px">{{ c.summary }}</span>
+                      <span style="display:block;font-size:12px;color:#5b6b8c">{{ c.stepsLabel }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="margin:20px 16px 0;background:#fff8ec;border-radius:12px;padding:13px 14px;font-size:13px;line-height:1.5;color:#7a5b13">{{ bjCaution }}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAast }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="position:sticky;top:0;z-index:6;background:#f2f4f9;padding:4px 16px 10px">
+              <div style="display:flex;align-items:center;gap:9px;background:#fff;border-radius:13px;box-shadow:0 4px 14px rgba(0,32,92,.09);padding:13px 14px">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <input placeholder="Buscar órgano o región" value="{{ filter }}" onInput="{{ onSearch }}" style="flex:1;min-width:0;background:none;border:0;outline:none;font-family:inherit;font-size:19px;font-weight:600;color:#00205C">
+                <sc-if value="{{ hasFilter }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ clearSearch }}" aria-label="Borrar" style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(0,32,92,.12);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"></path></svg>
+                  </button>
+                </sc-if>
+              </div>
+            </div>
+            <sc-for list="{{ aastRegions }}" as="r" hint-placeholder-count="6">
+              <div style="margin-top:14px">
+                <div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:#5b6b8c">{{ r.title }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px">
+                  <sc-for list="{{ r.organs }}" as="o" hint-placeholder-count="4">
+                    <button onClick="{{ o.open }}" style="flex:1 1 44%;min-width:140px;min-height:58px;display:flex;align-items:center;gap:8px;background:#fff;border:0;border-radius:13px;box-shadow:0 5px 16px rgba(0,32,92,.07);padding:11px 13px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.955)">
+                      <span style="flex:1;min-width:0;font-size:16px;font-weight:600;line-height:1.25">{{ o.name }}</span>
+                      <span style="font-size:11px;font-weight:700;color:#16829e;flex-shrink:0">{{ o.maxLabel }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ aastEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:56px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;animation:etUp .3s ease both">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(0,32,92,.25)" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <div style="font-size:19px;font-weight:700;color:rgba(0,32,92,.55)">Sin resultados</div>
+                <div style="font-size:14px;line-height:1.45;color:#5b6b8c">Prueba con «bazo», «hígado» o «vascular».</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAastOrgan }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 4px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600;color:#5b6b8c">{{ aastOrganRegion }}</span>
+              <span style="font-size:13px;color:#5b6b8c">· hasta grado {{ aastMaxRoman }}</span>
+            </div>
+            <sc-for list="{{ aastGroups }}" as="grp" hint-placeholder-count="2">
+              <div style="margin-top:14px">
+                <sc-if value="{{ grp.hasTitle }}" hint-placeholder-val="{{ true }}">
+                  <div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:#5b6b8c">{{ grp.title }}</div>
+                </sc-if>
+                <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ grp.rows }}" as="row" hint-placeholder-count="5">
+                    <button onClick="{{ row.pick }}" style="width:100%;display:flex;align-items:flex-start;gap:12px;background:{{ row.bg }};border:0;border-bottom:{{ row.sep }};padding:12px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .18s ease" style-active="background:rgba(0,32,92,.055)">
+                      <span style="width:44px;height:44px;border-radius:11px;background:{{ row.badgeBg }};color:{{ row.badgeColor }};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;font-weight:800;letter-spacing:-0.02em">{{ row.roman }}</span>
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:16px;line-height:1.4;font-weight:500">{{ row.label }}</span>
+                        <span style="display:block;font-size:12px;color:#5b6b8c;margin-top:4px">{{ row.meta }}</span>
+                        <sc-if value="{{ row.warn }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:flex;align-items:center;gap:6px;margin-top:6px">
+                            <span style="width:6px;height:6px;border-radius:999px;background:#c99a12;flex-shrink:0"></span>
+                            <span style="font-size:12px;line-height:1.4;color:#7a5b13">{{ row.warnText }}</span>
+                          </span>
+                        </sc-if>
+                      </span>
+                      <sc-if value="{{ row.on }}" hint-placeholder-val="{{ false }}">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E02826" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:13px"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+                      </sc-if>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ hasAdjust }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:20px">
+                <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">AJUSTES</div>
+                <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ adjusts }}" as="a" hint-placeholder-count="1">
+                    <button onClick="{{ a.toggle }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:56px;background:none;border:0;border-bottom:{{ a.sep }};padding:12px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:16px;line-height:1.35">{{ a.q }}</span>
+                        <span style="display:block;font-size:12px;color:#5b6b8c;margin-top:3px">{{ a.rule }}</span>
+                      </span>
+                      <span style="width:51px;height:31px;border-radius:999px;background:{{ a.track }};flex-shrink:0;display:flex;align-items:center;padding:2px;box-sizing:border-box;justify-content:{{ a.justify }};transition:background .2s ease">
+                        <span style="width:27px;height:27px;border-radius:999px;background:#fff;box-shadow:0 2px 5px rgba(0,32,92,.28)"></span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <p style="margin:14px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Referencia:</b> {{ aastRef }}</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isTeg }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 12px;font-size:15px;line-height:1.45;color:#5b6b8c">Copia los valores del panel TEG6s. Interpreta cada componente de la hemostasia y sugiere conducta.</div>
+            <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">HEPARINA</div>
+            <div style="margin:0 16px 4px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:13px 14px;display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:16px;line-height:1.35">¿El paciente recibió heparina?</div>
+              <div style="background:rgba(0,32,92,.07);border-radius:10px;padding:2px;display:flex;gap:2px">
+                <button onClick="{{ tegHepNo }}" style="flex:1;min-height:40px;background:{{ tegNoBg }};border:0;border-radius:8px;font-family:inherit;font-size:16px;font-weight:{{ tegNoWeight }};color:#00205C;cursor:pointer;box-shadow:{{ tegNoShadow }}">No</button>
+                <button onClick="{{ tegHepSi }}" style="flex:1;min-height:40px;background:{{ tegSiBg }};border:0;border-radius:8px;font-family:inherit;font-size:16px;font-weight:{{ tegSiWeight }};color:#00205C;cursor:pointer;box-shadow:{{ tegSiShadow }}">Sí</button>
+              </div>
+            </div>
+            <div style="padding:18px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">VALORES DEL PANEL</div>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px">
+              <sc-for list="{{ tegFields }}" as="f" hint-placeholder-count="7">
+                <div style="background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:12px 14px">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:16px;font-weight:700;line-height:1.2">{{ f.label }}</span>
+                      <span style="display:block;font-size:12px;line-height:1.4;color:#5b6b8c;margin-top:3px">{{ f.hint }}</span>
+                    </span>
+                    <span style="display:flex;align-items:baseline;gap:5px;flex-shrink:0;background:rgba(0,32,92,.06);border-radius:10px;padding:6px 10px">
+                      <input inputmode="decimal" autocomplete="off" placeholder="—" value="{{ f.value }}" onInput="{{ f.set }}" style="width:62px;background:none;border:0;outline:none;font-family:inherit;font-size:22px;font-weight:700;text-align:right;color:#00205C">
+                      <span style="font-size:13px;font-weight:600;color:#5b6b8c">{{ f.unit }}</span>
+                    </span>
+                  </div>
+                  <sc-if value="{{ f.bad }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;align-items:center;gap:7px;margin-top:9px;background:#fff8ec;border-radius:9px;padding:8px 10px">
+                      <span style="width:6px;height:6px;border-radius:999px;background:#c99a12;flex-shrink:0"></span>
+                      <span style="font-size:12px;line-height:1.4;color:#7a5b13">Valor fuera del rango habitual — revisa que no sea un error de digitación.</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:10px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c">Acepta coma o punto decimal. Ningún valor fuera de rango bloquea la interpretación.</p>
+            <div style="margin:18px 16px 0">
+              <button onClick="{{ tegRun }}" disabled="{{ tegNotReady }}" style="width:100%;min-height:52px;background:{{ tegBtnBg }};border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">{{ tegBtnLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isTegResult }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:14px 0 26px;animation:etUp .3s ease both">
+            <div style="padding:0 16px 10px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#5b6b8c">Interpretación del panel</div>
+            <sc-for list="{{ tegAlerts }}" as="al" hint-placeholder-count="1">
+              <div style="margin:0 16px 10px;background:{{ al.bg }};border-radius:14px;padding:13px 14px">
+                <div style="font-size:16px;font-weight:800;line-height:1.25;color:{{ al.color }}">{{ al.title }}</div>
+                <div style="font-size:14px;line-height:1.5;margin-top:4px">{{ al.text }}</div>
+              </div>
+            </sc-for>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px">
+              <sc-for list="{{ tegComp }}" as="c" hint-placeholder-count="4">
+                <div style="background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);overflow:hidden;display:flex">
+                  <span style="width:5px;flex-shrink:0;background:{{ c.color }}"></span>
+                  <span style="flex:1;min-width:0;padding:13px 14px">
+                    <span style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                      <span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5b6b8c">{{ c.name }}</span>
+                      <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:{{ c.pillBg }};color:{{ c.color }};flex-shrink:0">{{ c.statusWord }}</span>
+                    </span>
+                    <span style="display:block;font-size:17px;font-weight:700;line-height:1.3;margin-top:5px;color:{{ c.color }}">{{ c.finding }}</span>
+                    <span style="display:block;font-size:12px;line-height:1.45;color:#5b6b8c;margin-top:4px">{{ c.value }}</span>
+                    <sc-if value="{{ c.hasSug }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:block;font-size:14px;line-height:1.5;margin-top:8px;padding-top:9px;border-top:.5px solid rgba(0,32,92,.1)">{{ c.sug }}</span>
+                    </sc-if>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin:14px 16px 0;background:#fff8ec;border-radius:12px;padding:13px 14px;font-size:13px;line-height:1.5;color:#7a5b13">{{ tegCaution }}</div>
+            <div style="margin:14px 16px 0;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:12px 14px;font-size:13px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Referencia:</b> {{ tegRef }}</div>
+            <sc-if value="{{ caseCapture }}" hint-placeholder-val="{{ true }}">
+              <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                <button onClick="{{ saveToCase }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:52px;background:none;border:0;padding:13px 14px;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16829e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h11L19 8v11.5H5z"></path><path d="M9 4.5v5h6"></path></svg>
+                  <span style="flex:1;min-width:0">{{ saveLabel }}</span>
+                </button>
+              </div>
+            </sc-if>
+            <div style="margin:14px 16px 0;display:flex;flex-direction:column;gap:10px">
+              <button onClick="{{ back }}" style="width:100%;min-height:50px;background:rgba(0,32,92,.07);border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#00205C;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);background:rgba(0,32,92,.12)">Corregir un valor</button>
+              <button onClick="{{ tegReset }}" style="width:100%;min-height:50px;background:none;border:0;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;cursor:pointer" style-active="opacity:.4">Evaluar otro caso</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCalcs }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="position:sticky;top:0;z-index:6;background:#f2f4f9;padding:4px 16px 10px">
+              <div style="display:flex;align-items:center;gap:9px;background:#fff;border-radius:13px;box-shadow:0 4px 14px rgba(0,32,92,.09);padding:12px 14px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <input placeholder="Buscar calculadora" value="{{ filter }}" onInput="{{ onSearch }}" style="flex:1;min-width:0;background:none;border:0;outline:none;font-family:inherit;font-size:18px;font-weight:600;color:#00205C">
+                <sc-if value="{{ hasFilter }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ clearSearch }}" aria-label="Borrar" style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(0,32,92,.12);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"></path></svg>
+                  </button>
+                </sc-if>
+              </div>
+            </div>
+            <sc-if value="{{ hasCalcRecent }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:8px">
+                <div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:#5b6b8c">RECIENTES</div>
+                <div style="display:flex;gap:8px;padding:0 16px;overflow-x:auto">
+                  <sc-for list="{{ calcRecent }}" as="c" hint-placeholder-count="3">
+                    <button onClick="{{ c.open }}" style="flex:0 0 auto;min-height:44px;background:#00205C;border:0;border-radius:999px;padding:11px 16px;font-family:inherit;font-size:15px;font-weight:600;color:#fff;white-space:nowrap;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.95)">{{ c.short }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-for list="{{ calcAreas }}" as="a" hint-placeholder-count="5">
+              <div style="margin-top:18px">
+                <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">{{ a.title }}</div>
+                <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ a.items }}" as="c" hint-placeholder-count="3">
+                    <button onClick="{{ c.open }}" style="width:100%;display:flex;align-items:center;gap:11px;min-height:54px;background:none;border:0;border-bottom:{{ c.sep }};padding:12px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                      <span style="flex:1;min-width:0">
+                        <span style="display:block;font-size:17px;font-weight:600;line-height:1.3">{{ c.short }}</span>
+                        <span style="display:block;font-size:12px;color:#5b6b8c;margin-top:2px">{{ c.kind }}</span>
+                      </span>
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ calcsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:56px 32px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;animation:etUp .3s ease both">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(0,32,92,.25)" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <div style="font-size:19px;font-weight:700;color:rgba(0,32,92,.55)">Sin resultados</div>
+                <div style="font-size:14px;line-height:1.45;color:#5b6b8c">Prueba con «Glasgow», «sepsis» o «quemados».</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCalc }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#16829e;background:#e7f4f7;border-radius:999px;padding:5px 10px">{{ calcArea }}</span>
+              <span style="font-size:13px;color:#5b6b8c">{{ calcFullName }}</span>
+            </div>
+            <sc-if value="{{ calcIsPhq }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:0 16px 12px;background:#e7f4f7;border-radius:12px;padding:12px 13px;font-size:13px;line-height:1.5;color:#00205C">{{ phqLegend }}</div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:10px;padding:0 16px">
+              <sc-for list="{{ calcInputs }}" as="f" hint-placeholder-count="3">
+                <div style="background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:12px 14px">
+                  <sc-if value="{{ f.isNum }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <span style="flex:1;min-width:0;font-size:16px;line-height:1.35">{{ f.label }}</span>
+                      <span style="display:flex;align-items:baseline;gap:5px;flex-shrink:0;background:rgba(0,32,92,.06);border-radius:10px;padding:6px 10px">
+                        <input inputmode="decimal" autocomplete="off" placeholder="—" value="{{ f.value }}" onInput="{{ f.set }}" style="width:66px;background:none;border:0;outline:none;font-family:inherit;font-size:22px;font-weight:700;text-align:right;color:#00205C">
+                        <span style="font-size:13px;font-weight:600;color:#5b6b8c">{{ f.unit }}</span>
+                      </span>
+                    </div>
+                    <sc-if value="{{ f.hasUnits }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-top:10px;background:rgba(0,32,92,.07);border-radius:10px;padding:2px;display:flex;gap:2px">
+                        <sc-for list="{{ f.units }}" as="u" hint-placeholder-count="2">
+                          <button onClick="{{ u.pick }}" style="flex:1;min-height:36px;background:{{ u.bg }};border:0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:{{ u.weight }};color:#00205C;cursor:pointer;box-shadow:{{ u.shadow }}">{{ u.label }}</button>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </sc-if>
+                  <sc-if value="{{ f.isSeg }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:16px;line-height:1.35">{{ f.label }}</div>
+                    <div style="margin-top:10px;display:flex;flex-direction:{{ f.segDir }};gap:{{ f.segGap }};background:{{ f.segTrack }};border-radius:10px;padding:2px">
+                      <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3">
+                        <button onClick="{{ o.pick }}" style="flex:1;min-height:{{ o.minH }};background:{{ o.bg }};border:0;border-radius:8px;font-family:inherit;font-size:15px;font-weight:{{ o.weight }};color:#00205C;text-align:{{ o.align }};padding:0 12px;cursor:pointer;box-shadow:{{ o.shadow }}">{{ o.label }}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ f.isToggle }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ f.toggle }}" style="width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;font-family:inherit;color:inherit;text-align:left;cursor:pointer">
+                      <span style="flex:1;min-width:0;font-size:16px;line-height:1.35">{{ f.label }}</span>
+                      <span style="width:51px;height:31px;border-radius:999px;background:{{ f.track }};flex-shrink:0;display:flex;align-items:center;padding:2px;box-sizing:border-box;justify-content:{{ f.justify }};transition:background .2s ease">
+                        <span style="width:27px;height:27px;border-radius:999px;background:#fff;box-shadow:0 2px 5px rgba(0,32,92,.28)"></span>
+                      </span>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{ f.isPhq }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:15px;line-height:1.4">{{ f.label }}</div>
+                    <div style="margin-top:10px;background:rgba(0,32,92,.07);border-radius:10px;padding:2px;display:flex;gap:2px">
+                      <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="4">
+                        <button onClick="{{ o.pick }}" style="flex:1;min-height:42px;background:{{ o.bg }};border:0;border-radius:8px;font-family:inherit;font-size:17px;font-weight:{{ o.weight }};color:#00205C;cursor:pointer;box-shadow:{{ o.shadow }}">{{ o.label }}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:10px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c">Los campos numéricos aceptan coma o punto decimal.</p>
+            <div style="margin:18px 16px 0">
+              <button onClick="{{ calcRun }}" disabled="{{ calcNotReady }}" style="width:100%;min-height:52px;background:{{ calcBtnBg }};border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">{{ calcBtnLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCalcResult }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 0 26px;animation:etUp .3s ease both">
+            <div style="margin:0 16px;background:#fff;border-radius:16px;box-shadow:0 10px 28px rgba(0,32,92,.1);padding:0 18px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;overflow:hidden">
+              <div style="align-self:stretch;margin:0 -18px 14px;height:6px;background:{{ crColor }}"></div>
+              <div style="font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#5b6b8c">{{ crName }}</div>
+              <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin-top:2px">
+                <span style="font-size:56px;font-weight:800;line-height:1;letter-spacing:-0.04em;color:{{ crColor }}">{{ crValue }}</span>
+                <span style="font-size:17px;font-weight:600;color:#5b6b8c">{{ crUnit }}</span>
+              </div>
+              <div style="margin-top:8px;font-size:15px;font-weight:700;letter-spacing:.02em;padding:7px 14px;border-radius:999px;background:{{ crSoft }};color:{{ crColor }}">{{ crCat }}</div>
+              <div style="font-size:15px;line-height:1.55;margin-top:10px;text-wrap:pretty">{{ crDetail }}</div>
+              <sc-if value="{{ crHasAlert }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;margin-top:6px;background:#fdecea;border-radius:11px;padding:12px 13px;font-size:13px;line-height:1.5;color:#8f1714;text-align:left;font-weight:600">{{ crAlert }}</div>
+              </sc-if>
+            </div>
+            <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <div style="padding:12px 14px;border-bottom:.5px solid rgba(0,32,92,.1);font-size:13px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Fórmula:</b> {{ crFormula }}</div>
+              <div style="padding:12px 14px;font-size:13px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Referencia:</b> {{ crRef }}</div>
+            </div>
+            <sc-if value="{{ caseCapture }}" hint-placeholder-val="{{ true }}">
+              <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                <button onClick="{{ saveToCase }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:52px;background:none;border:0;padding:13px 14px;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16829e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h11L19 8v11.5H5z"></path><path d="M9 4.5v5h6"></path></svg>
+                  <span style="flex:1;min-width:0">{{ saveLabel }}</span>
+                </button>
+              </div>
+            </sc-if>
+            <div style="margin:14px 16px 0;display:flex;flex-direction:column;gap:10px">
+              <button onClick="{{ back }}" style="width:100%;min-height:50px;background:rgba(0,32,92,.07);border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#00205C;cursor:pointer" style-active="transform:scale(.97);background:rgba(0,32,92,.12)">Corregir datos</button>
+              <button onClick="{{ openCalcs }}" style="width:100%;min-height:50px;background:none;border:0;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;cursor:pointer" style-active="opacity:.4">Otra calculadora</button>
+            </div>
+            <p style="margin:14px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c;text-align:center">Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isQuestion }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:14px 16px 26px;display:flex;flex-direction:column;gap:14px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <span style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">{{ stepLabel }}</span>
+                <span style="font-size:12px;font-weight:600;color:#5b6b8c">{{ algoName }}</span>
+              </div>
+              <div style="height:4px;border-radius:999px;background:rgba(0,32,92,.12);overflow:hidden">
+                <div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#00205C,#E02826);width:{{ progress }};transition:width .3s ease"></div>
+              </div>
+            </div>
+            <sc-if value="{{ qHasCategory }}" hint-placeholder-val="{{ false }}">
+              <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;background:#e7f4f7;border-radius:999px;padding:6px 12px;margin-top:2px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16829e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+                <span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#16829e">{{ qCategory }}</span>
+              </span>
+            </sc-if>
+            <div style="font-size:26px;font-weight:800;line-height:1.22;letter-spacing:-0.03em;text-wrap:pretty;margin-top:4px">{{ qText }}</div>
+            <sc-if value="{{ hasHelp }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0;font-size:15px;line-height:1.5;color:#5b6b8c;text-wrap:pretty">{{ qHelp }}</p>
+            </sc-if>
+            <sc-if value="{{ qYesNo }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:10px;margin-top:6px">
+                <button onClick="{{ pickYes }}" style="flex:1;min-height:78px;background:#00205C;border:0;border-radius:16px;font-family:inherit;font-size:24px;font-weight:800;letter-spacing:.04em;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.955);filter:brightness(.9)">SÍ</button>
+                <button onClick="{{ pickNo }}" style="flex:1;min-height:78px;background:#fff;border:1.5px solid #00205C;border-radius:16px;font-family:inherit;font-size:24px;font-weight:800;letter-spacing:.04em;color:#00205C;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.955);background:#eef1f7">NO</button>
+              </div>
+              <sc-if value="{{ qShowRules }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:10px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:13px 14px">
+                  <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">Regla práctica</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;margin-top:9px">
+                    <sc-for list="{{ qRules }}" as="r" hint-placeholder-count="3">
+                      <div style="display:flex;gap:9px;align-items:flex-start">
+                        <span style="width:7px;height:7px;border-radius:999px;background:#E02826;flex-shrink:0;margin-top:6px"></span>
+                        <span style="flex:1;min-width:0;font-size:14px;line-height:1.45"><b>{{ r.k }}</b> {{ r.v }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{ qOptsMode }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+                <sc-for list="{{ opts }}" as="o" hint-placeholder-count="2">
+                  <button onClick="{{ o.pick }}" style="min-height:62px;display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:14px 16px;font-family:inherit;color:inherit;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.965);background:#fbfcfe">
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:18px;font-weight:600;line-height:1.3">{{ o.label }}</span>
+                      <sc-if value="{{ o.hasSub }}" hint-placeholder-val="{{ false }}">
+                        <span style="display:block;font-size:13px;line-height:1.4;color:#5b6b8c;margin-top:3px">{{ o.sub }}</span>
+                      </sc-if>
+                    </span>
+                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isChecklist }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:14px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 10px">
+              <div style="font-size:26px;font-weight:800;line-height:1.22;letter-spacing:-0.03em">Criterios NEXUS</div>
+              <p style="margin:7px 0 0;font-size:15px;line-height:1.5;color:#5b6b8c">Activa los criterios <b>presentes</b>. La columna se libera solo si ninguno lo está.</p>
+            </div>
+            <div style="margin:8px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ crits }}" as="c" hint-placeholder-count="5">
+                <button onClick="{{ c.toggle }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:54px;text-align:left;background:none;border:0;border-bottom:{{ c.sep }};padding:11px 14px;font-family:inherit;color:inherit;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <span style="flex:1;min-width:0;font-size:17px;line-height:1.3">{{ c.label }}</span>
+                  <span style="width:51px;height:31px;border-radius:999px;background:{{ c.track }};flex-shrink:0;display:flex;align-items:center;padding:2px;box-sizing:border-box;justify-content:{{ c.justify }};transition:background .2s ease">
+                    <span style="width:27px;height:27px;border-radius:999px;background:#fff;box-shadow:0 2px 5px rgba(0,32,92,.28)"></span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+            <p style="margin:8px 16px 0;font-size:12px;color:#5b6b8c">{{ critCount }} de 5 presentes</p>
+            <div style="margin:20px 16px 0">
+              <button onClick="{{ finishChecklist }}" style="width:100%;min-height:50px;background:#00205C;border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">Ver resultado</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 0 26px;animation:etUp .3s ease both">
+            <div style="margin:0 16px;background:#fff;border-radius:16px;box-shadow:0 10px 28px rgba(0,32,92,.1);padding:0 18px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;overflow:hidden">
+              <div style="align-self:stretch;margin:0 -18px 4px;height:74px;background:{{ resSoft }};display:flex;align-items:flex-end;justify-content:center">
+                <div style="width:100%;height:4px;background:{{ resColor }};opacity:.9"></div>
+              </div>
+              <span style="width:58px;height:58px;margin-top:-48px;border-radius:999px;background:#fff;box-shadow:0 4px 14px rgba(0,32,92,.16);display:flex;align-items:center;justify-content:center;animation:etSymbol .45s cubic-bezier(.34,1.5,.64,1) both">
+                <sc-if value="{{ resIsConduct }}" hint-placeholder-val="{{ false }}">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{ resColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h6M4 16.5h16"></path><circle cx="14.5" cy="7.5" r="2.6"></circle><circle cx="8.5" cy="16.5" r="2.6"></circle></svg>
+                </sc-if>
+                <sc-if value="{{ resIsClinical }}" hint-placeholder-val="{{ true }}">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{{ resColor }}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+                </sc-if>
+              </span>
+              <div style="font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#5b6b8c">{{ resEyebrow }}</div>
+              <div style="font-size:24px;font-weight:800;line-height:1.22;letter-spacing:-0.03em;color:{{ resColor }};text-wrap:balance">{{ resTitle }}</div>
+              <div style="font-size:15px;line-height:1.55;color:#00205C;text-wrap:pretty">{{ resDetail }}</div>
+              <sc-if value="{{ hasList }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;display:flex;flex-direction:column;gap:9px;margin-top:6px;text-align:left">
+                  <sc-for list="{{ resList }}" as="it" hint-placeholder-count="3">
+                    <div style="display:flex;gap:11px;align-items:flex-start;background:#eef1f7;border-radius:12px;padding:11px 12px">
+                      <span style="width:22px;height:22px;border-radius:7px;background:#00205C;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ it.n }}</span>
+                      <span style="flex:1;min-width:0;font-size:14px;line-height:1.5">{{ it.text }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ resIsConduct }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;margin-top:4px;background:#eef1f7;border-radius:11px;padding:12px 13px;font-size:13px;line-height:1.5;color:#5b6b8c;text-align:left">{{ resNeutralNote }}</div>
+              </sc-if>
+              <sc-if value="{{ hasWarn }}" hint-placeholder-val="{{ false }}">
+                <div style="width:100%;background:#fff8ec;border-radius:11px;padding:12px 13px;font-size:13px;line-height:1.5;color:#7a5b13;text-align:left">{{ resWarn }}</div>
+              </sc-if>
+              <sc-if value="{{ hasGoto }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ goNext }}" style="width:100%;margin-top:6px;min-height:50px;background:#00205C;border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">{{ gotoLabel }}</button>
+              </sc-if>
+            </div>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">TRAZABILIDAD</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <div style="padding:12px 14px;border-bottom:.5px solid rgba(0,32,92,.1);font-size:15px;line-height:1.5">{{ traceLabel }}</div>
+              <div style="padding:12px 14px;font-size:13px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Referencia:</b> {{ resRef }}</div>
+            </div>
+
+            <sc-if value="{{ caseCapture }}" hint-placeholder-val="{{ true }}">
+              <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                <button onClick="{{ saveToCase }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:52px;background:none;border:0;padding:13px 14px;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#16829e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h11L19 8v11.5H5z"></path><path d="M9 4.5v5h6"></path></svg>
+                  <span style="flex:1;min-width:0">{{ saveLabel }}</span>
+                </button>
+              </div>
+            </sc-if>
+
+            <div style="margin:14px 16px 0">
+              <button onClick="{{ openOwnTool }}" style="width:100%;min-height:50px;background:rgba(0,32,92,.07);border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#00205C;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);background:rgba(0,32,92,.12)">Otro algoritmo</button>
+            </div>
+            <p style="margin:14px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c;text-align:center">Herramienta de apoyo a la decisión clínica — no reemplaza el juicio médico.<br>EduTrauma® — Enseñando a salvar vidas.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCasos }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:14px 16px 4px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+              <div style="font-size:30px;font-weight:800;line-height:36px;letter-spacing:-0.03em">Tus casos</div>
+              <button onClick="{{ newCase }}" style="background:none;border:0;padding:0 0 8px;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">Nuevo</button>
+            </div>
+            <p style="margin:2px 16px 0;font-size:13px;line-height:1.5;color:#5b6b8c">Los cálculos quedan agrupados por paciente, solo en tu teléfono y sin identificadores.</p>
+            <div style="margin:18px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ cases }}" as="c" hint-placeholder-count="2">
+                <button onClick="{{ c.open }}" style="width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;border-bottom:{{ c.sep }};padding:13px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <span style="flex:1;min-width:0">
+                    <span style="display:flex;align-items:center;gap:7px">
+                      <span style="font-size:17px;font-weight:600;line-height:1.25">{{ c.label }}</span>
+                      <sc-if value="{{ c.isActive }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:#fdecea;color:#E02826;flex-shrink:0">Activo</span>
+                      </sc-if>
+                    </span>
+                    <span style="display:block;font-size:13px;color:#5b6b8c;margin-top:3px">{{ c.meta }}</span>
+                    <span style="display:block;font-size:13px;line-height:1.4;color:#00205C;margin-top:4px">{{ c.preview }}</span>
+                  </span>
+                  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCaseDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:2px 16px 0">
+              <div style="font-size:15px;line-height:1.45;color:#5b6b8c">{{ caseMeta }}</div>
+            </div>
+            <div style="padding:18px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">REGISTRO</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ caseEntries }}" as="e" hint-placeholder-count="3">
+                <div style="display:flex;gap:11px;padding:13px 14px;border-bottom:{{ e.sep }}">
+                  <span style="width:9px;height:9px;border-radius:999px;background:{{ e.dot }};flex-shrink:0;margin-top:6px"></span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                      <span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5b6b8c">{{ e.tool }}</span>
+                      <span style="font-size:12px;color:#5b6b8c;flex-shrink:0">{{ e.time }}</span>
+                    </span>
+                    <span style="display:block;font-size:16px;font-weight:600;line-height:1.3;margin-top:4px;color:{{ e.color }}">{{ e.title }}</span>
+                    <span style="display:block;font-size:13px;line-height:1.45;color:#5b6b8c;margin-top:3px">{{ e.trace }}</span>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ caseEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="margin:34px 32px 0;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;animation:etUp .3s ease both">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="rgba(0,32,92,.25)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+                <div style="font-size:19px;font-weight:700;color:rgba(0,32,92,.55)">Caso sin registros</div>
+                <div style="font-size:14px;line-height:1.45;color:#5b6b8c">Los resultados que guardes aparecerán aquí en orden cronológico.</div>
+              </div>
+            </sc-if>
+            <div style="margin:20px 16px 0">
+              <button onClick="{{ openMip }}" style="width:100%;min-height:50px;background:#00205C;border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">Añadir un algoritmo</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGuias }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:14px 16px 4px">
+              <div style="font-size:30px;font-weight:800;line-height:36px;letter-spacing:-0.03em">Material de los cursos</div>
+            </div>
+            <p style="margin:4px 16px 0;font-size:13px;line-height:1.5;color:#5b6b8c">Consulta rápida del material de los cursos. Sin flujo: solo referencia.</p>
+            <div style="margin:18px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ guias }}" as="g" hint-placeholder-count="4">
+                <button onClick="{{ g.open }}" style="width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;border-bottom:{{ g.sep }};padding:13px 14px;font-family:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <span style="width:30px;height:30px;border-radius:8px;background:#00205C;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 015.5 4H11v16H5.5A1.5 1.5 0 014 18.5z"></path><path d="M20 5.5A1.5 1.5 0 0018.5 4H13v16h5.5A1.5 1.5 0 0020 18.5z"></path></svg>
+                  </span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:block;font-size:17px;font-weight:600;line-height:1.25">{{ g.title }}</span>
+                    <span style="display:block;font-size:13px;color:#5b6b8c;margin-top:2px">{{ g.meta }}</span>
+                  </span>
+                  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGuiaDetail }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:0 16px 4px">
+              <div style="font-size:26px;font-weight:800;line-height:1.22;letter-spacing:-0.03em;text-wrap:balance">{{ guiaTitle }}</div>
+              <p style="margin:8px 0 0;font-size:15px;line-height:1.5;color:#5b6b8c">{{ guiaIntro }}</p>
+            </div>
+            <div style="margin:18px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ guiaItems }}" as="i" hint-placeholder-count="5">
+                <div style="display:flex;gap:12px;padding:13px 14px;border-bottom:{{ i.sep }}">
+                  <span style="width:26px;height:26px;border-radius:7px;background:#00205C;color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">{{ i.k }}</span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:block;font-size:16px;font-weight:600;line-height:1.3">{{ i.title }}</span>
+                    <span style="display:block;font-size:13px;line-height:1.45;color:#5b6b8c;margin-top:3px">{{ i.desc }}</span>
+                  </span>
+                </div>
+              </sc-for>
+            </div>
+            <p style="margin:8px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c"><b style="color:#00205C">Fuente:</b> {{ guiaRef }}</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPerfil }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+            <div style="padding:14px 16px 4px">
+              <div style="font-size:30px;font-weight:800;line-height:36px;letter-spacing:-0.03em">Tu perfil</div>
+            </div>
+            <p style="margin:4px 16px 0;font-size:15px;line-height:1.5;color:#00205C;font-weight:600">Anónimo. Nos dice qué herramientas construir, nunca quién eres.</p>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">ESPECIALIDAD</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <sc-for list="{{ specs }}" as="s" hint-placeholder-count="7">
+                <button onClick="{{ s.pick }}" style="width:100%;display:flex;align-items:center;gap:10px;background:none;border:0;border-bottom:{{ s.sep }};padding:12px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="background:rgba(0,32,92,.055)">
+                  <span style="flex:1;min-width:0">{{ s.label }}</span>
+                  <sc-if value="{{ s.on }}" hint-placeholder-val="{{ false }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E02826" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+
+            <p style="margin:8px 16px 0;font-size:13px;line-height:1.55;color:#5b6b8c">Nunca pedimos nombre, correo ni identificador. Estos tres datos se usan agregados, para decidir qué construir. <b style="color:#00205C">Tus casos clínicos no salen de este teléfono.</b></p>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">PAÍS</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <button onClick="{{ openCountrySheet }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:54px;background:none;border:0;padding:12px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                <span style="flex:1;min-width:0">País de práctica</span>
+                <span style="font-size:17px;color:#5b6b8c;flex-shrink:0;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ countryValue }}</span>
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+              </button>
+            </div>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">CÓMO NOS CONOCISTE</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <button onClick="{{ openOriginSheet }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:54px;background:none;border:0;padding:12px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                <span style="flex:1;min-width:0">Canal</span>
+                <span style="font-size:17px;color:#5b6b8c;flex-shrink:0;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ originValue }}</span>
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+              </button>
+            </div>
+            <p style="margin:7px 16px 0;font-size:12px;line-height:1.45;color:#5b6b8c">Es la única forma que tenemos de saber qué canal funciona.</p>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">IDIOMA</div>
+            <div style="margin:0 16px;background:rgba(0,32,92,.07);border-radius:10px;padding:2px;display:flex;gap:2px">
+              <sc-for list="{{ langs }}" as="l" hint-placeholder-count="3">
+                <button onClick="{{ l.pick }}" style="flex:1;min-height:34px;background:{{ l.bg }};border:0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:{{ l.weight }};color:#00205C;cursor:pointer;box-shadow:{{ l.shadow }}">{{ l.label }}</button>
+              </sc-for>
+            </div>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">DISPONIBILIDAD OFFLINE</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:14px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <span style="font-size:17px;font-weight:600">5 de 5 herramientas</span>
+                <span style="font-size:13px;color:#1F7A5C;font-weight:600">Descargadas</span>
+              </div>
+              <div style="height:5px;border-radius:999px;background:rgba(0,32,92,.12);overflow:hidden"><div style="height:100%;width:100%;background:#1F7A5C;border-radius:999px"></div></div>
+              <div style="font-size:13px;line-height:1.45;color:#5b6b8c">Actualizado hace 2 h · 1,8 MB. Los cálculos se sincronizan al recuperar red.</div>
+            </div>
+
+            <div style="padding:20px 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">CURSOS EDUTRAUMA</div>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:.5px solid rgba(0,32,92,.1)">
+                <img src="logo-dqt.png" alt="" style="height:26px;width:auto;display:block;flex-shrink:0">
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:16px;font-weight:600;line-height:1.3">DQT</span>
+                  <span style="display:block;font-size:13px;color:#5b6b8c;margin-top:2px">Destrezas Quirúrgicas en Trauma</span>
+                </span>
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:.5px solid rgba(0,32,92,.1)">
+                <img src="logo-mip.png" alt="" style="height:26px;width:auto;display:block;flex-shrink:0">
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:16px;font-weight:600;line-height:1.3">MIP</span>
+                  <span style="display:block;font-size:13px;color:#5b6b8c;margin-top:2px">Manejo Integral del Politraumatizado</span>
+                </span>
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px">
+                <img src="logo-miaa.png" alt="" style="height:26px;width:auto;display:block;flex-shrink:0">
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:16px;font-weight:600;line-height:1.3">MIAA</span>
+                  <span style="display:block;font-size:13px;color:#5b6b8c;margin-top:2px">Manejo Integral del Abdomen Abierto</span>
+                </span>
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+              </div>
+            </div>
+            <p style="margin:16px;font-size:12px;line-height:1.6;color:#5b6b8c;text-align:center">© 2026 EduTrauma® — Enseñando a salvar vidas.</p>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <div style="flex-shrink:0;background:rgba(255,255,255,.86);backdrop-filter:blur(22px);border-top:.5px solid rgba(0,32,92,.16);padding:7px 6px 26px;display:flex;align-items:stretch;gap:2px">
+        <button onClick="{{ goKit }}" style="flex:1;min-height:46px;background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:inherit;cursor:pointer;color:{{ tabKit }}">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.6"></rect><path d="M9 7V5.6A1.6 1.6 0 0110.6 4h2.8A1.6 1.6 0 0115 5.6V7M3 12.5h18"></path></svg>
+          <span style="font-size:10px;font-weight:600;letter-spacing:0">Kit</span>
+        </button>
+        <sc-if value="{{ caseCapture }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ goCasos }}" style="flex:1;min-height:46px;background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:inherit;cursor:pointer;color:{{ tabCasos }}">
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 3 10 2-5h7"></path></svg>
+            <span style="font-size:10px;font-weight:600">Casos</span>
+          </button>
+        </sc-if>
+        <button onClick="{{ goGuias }}" style="flex:1;min-height:46px;background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:inherit;cursor:pointer;color:{{ tabGuias }}">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 015.5 4H11v16H5.5A1.5 1.5 0 014 18.5z"></path><path d="M20 5.5A1.5 1.5 0 0018.5 4H13v16h5.5A1.5 1.5 0 0020 18.5z"></path></svg>
+          <span style="font-size:10px;font-weight:600">Guías</span>
+        </button>
+        <button onClick="{{ goPerfil }}" style="flex:1;min-height:46px;background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:inherit;cursor:pointer;color:{{ tabPerfil }}">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.6"></circle><path d="M4.6 20c1.2-3.6 4-5.4 7.4-5.4s6.2 1.8 7.4 5.4"></path></svg>
+          <span style="font-size:10px;font-weight:600">Perfil</span>
+        </button>
+      </div>
+
+      <sc-if value="{{ sheetCountry }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;justify-content:flex-end">
+          <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(0,24,69,.34);backdrop-filter:blur(2px);animation:etFade .2s ease both"></div>
+          <div style="position:relative;height:88%;background:#f2f4f9;border-radius:20px 20px 0 0;box-shadow:0 -12px 40px rgba(0,32,92,.22);display:flex;flex-direction:column;overflow:hidden">
+            <div style="flex-shrink:0;padding:9px 0 0"><div style="width:38px;height:5px;border-radius:999px;background:rgba(0,32,92,.2);margin:0 auto"></div></div>
+            <div style="flex-shrink:0;position:relative;height:44px;display:flex;align-items:center;border-bottom:.5px solid rgba(0,32,92,.12)">
+              <div style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:600;pointer-events:none">País</div>
+              <button onClick="{{ closeSheet }}" style="margin-left:auto;background:none;border:0;padding:0 16px;font-family:inherit;font-size:17px;color:#16829e;cursor:pointer" style-active="opacity:.4">Cancelar</button>
+            </div>
+            <div style="flex-shrink:0;padding:10px 16px 8px">
+              <div style="display:flex;align-items:center;gap:9px;background:rgba(0,32,92,.07);border-radius:10px;padding:9px 11px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                <input placeholder="Buscar país" value="{{ onbFilter }}" onInput="{{ onbSearch }}" style="flex:1;min-width:0;background:none;border:0;outline:none;font-family:inherit;font-size:17px;color:#00205C">
+                <sc-if value="{{ onbHasFilter }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ onbClearSearch }}" aria-label="Borrar" style="flex-shrink:0;width:24px;height:24px;border-radius:999px;background:rgba(0,32,92,.14);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"></path></svg>
+                  </button>
+                </sc-if>
+              </div>
+            </div>
+            <div style="flex:1;overflow:auto;padding:0 0 22px">
+              <sc-for list="{{ sheetCountries }}" as="g" hint-placeholder-count="2">
+                <div style="margin-top:10px">
+                  <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">{{ g.title }}</div>
+                  <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden">
+                    <sc-for list="{{ g.items }}" as="c" hint-placeholder-count="6">
+                      <button onClick="{{ c.pick }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:50px;background:none;border:0;border-bottom:{{ c.sep }};padding:11px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                        <span style="flex:1;min-width:0">{{ c.label }}</span>
+                        <sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E02826" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+                        </sc-if>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ sheetEmpty }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:40px 32px;text-align:center;font-size:15px;line-height:1.5;color:#5b6b8c">Sin resultados. Si tu país no aparece, elige «Otro».</p>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ sheetOrigin }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;justify-content:flex-end">
+          <div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(0,24,69,.34);backdrop-filter:blur(2px);animation:etFade .2s ease both"></div>
+          <div style="position:relative;background:#f2f4f9;border-radius:20px 20px 0 0;padding:9px 0 30px;box-shadow:0 -12px 40px rgba(0,32,92,.22)">
+            <div style="width:38px;height:5px;border-radius:999px;background:rgba(0,32,92,.2);margin:0 auto 12px"></div>
+            <div style="padding:0 18px 4px;font-size:22px;font-weight:800;line-height:1.25;letter-spacing:-0.03em">¿Cómo nos conociste?</div>
+            <p style="margin:6px 18px 12px;font-size:14px;line-height:1.45;color:#5b6b8c">Anónimo. Nos dice qué canal funciona.</p>
+            <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden">
+              <sc-for list="{{ sheetOrigins }}" as="o" hint-placeholder-count="6">
+                <button onClick="{{ o.pick }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:54px;background:none;border:0;border-bottom:{{ o.sep }};padding:12px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                  <span style="width:30px;height:30px;border-radius:9px;background:#eef1f7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <sc-if value="{{ o.isCorreo }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ o.isInstagram }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.6"></rect><circle cx="12" cy="12" r="3.9"></circle><circle cx="17.2" cy="6.9" r=".9" fill="#00205C"></circle></svg>
+                    </sc-if>
+                    <sc-if value="{{ o.isWhatsapp }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 01-12.3 7.4L4 20l1.1-4.1A8.4 8.4 0 1120.5 11.6z"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ o.isLinkedin }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2.4"></rect><path d="M7.5 10.5v6M7.5 7.6v.1M11.6 16.5v-6M11.6 13c0-1.4 1-2.5 2.4-2.5s2.5 1.1 2.5 2.5v3.5"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ o.isAmigo }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3 19.5c.9-3 3.1-4.6 6-4.6s5.1 1.6 6 4.6"></path><path d="M16 5.6a3.2 3.2 0 010 5.8M18.5 19.5c-.3-1.4-.8-2.5-1.6-3.4"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ o.isOtro }}" hint-placeholder-val="{{ false }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="#00205C" stroke="none"><circle cx="5.5" cy="12" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="18.5" cy="12" r="1.7"></circle></svg>
+                    </sc-if>
+                  </span>
+                  <span style="flex:1;min-width:0">{{ o.label }}</span>
+                  <sc-if value="{{ o.on }}" hint-placeholder-val="{{ false }}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E02826" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ aastBar }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:0;right:0;bottom:79px;z-index:20;background:rgba(0,24,69,.96);backdrop-filter:blur(14px);padding:12px 16px 13px;display:flex;align-items:center;gap:12px;box-shadow:0 -8px 26px rgba(0,32,92,.28);animation:etUp .22s ease both">
+          <span style="width:50px;height:50px;border-radius:13px;background:#fff;color:#00205C;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;font-weight:800;letter-spacing:-0.02em">{{ aastSelRoman }}</span>
+          <span style="flex:1;min-width:0">
+            <span style="display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.6)">Grado AAST</span>
+            <span style="display:block;font-size:15px;font-weight:600;color:#fff;line-height:1.3;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ aastSelName }}</span>
+            <sc-if value="{{ aastSelAdjusted }}" hint-placeholder-val="{{ false }}">
+              <span style="display:block;font-size:12px;color:#ffd9d8;margin-top:3px">{{ aastSelAdjNote }}</span>
+            </sc-if>
+          </span>
+          <sc-if value="{{ caseCapture }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ saveToCase }}" style="flex-shrink:0;min-height:44px;background:#E02826;border:0;border-radius:12px;padding:0 15px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.94)">{{ aastSaveLabel }}</button>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ fbOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;justify-content:flex-end">
+          <div onClick="{{ fbClose }}" style="position:absolute;inset:0;background:rgba(0,24,69,.34);backdrop-filter:blur(2px);animation:etFade .2s ease both"></div>
+          <div style="position:relative;background:#f2f4f9;border-radius:20px 20px 0 0;padding:9px 18px 30px;box-shadow:0 -12px 40px rgba(0,32,92,.22)">
+            <div style="width:38px;height:5px;border-radius:999px;background:rgba(0,32,92,.2);margin:0 auto 14px"></div>
+
+            <sc-if value="{{ fbStep1 }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">Paso 1 de 3</div>
+                <div style="font-size:22px;font-weight:800;line-height:1.25;letter-spacing:-0.03em;text-wrap:balance">¿Qué tan útil te pareció {{ fbToolName }}?</div>
+                <div style="display:flex;gap:8px">
+                  <sc-for list="{{ fbFaces }}" as="f" hint-placeholder-count="5">
+                    <button onClick="{{ f.pick }}" style="flex:1;min-height:62px;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);font-size:26px;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.9)">{{ f.face }}</button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#5b6b8c"><span>Nada útil</span><span>Muy útil</span></div>
+                <button onClick="{{ fbClose }}" style="margin-top:4px;min-height:48px;background:none;border:0;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;cursor:pointer;transition:opacity .18s ease" style-active="opacity:.4">Ahora no</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ fbStep2 }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">Paso 2 de 3</div>
+                <div style="font-size:22px;font-weight:800;line-height:1.25;letter-spacing:-0.03em;text-wrap:balance">¿Le agregarías algo para mejorar {{ fbToolName }}?</div>
+                <button onClick="{{ fbMejoraSi }}" style="min-height:54px;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);font-family:inherit;font-size:17px;font-weight:600;color:#00205C;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97)">Sí, le agregaría algo</button>
+                <button onClick="{{ fbMejoraNo }}" style="min-height:54px;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);font-family:inherit;font-size:17px;font-weight:600;color:#00205C;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97)">No, está bien así</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ fbStep25 }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">Paso 2 de 3</div>
+                <div style="font-size:22px;font-weight:800;line-height:1.25;letter-spacing:-0.03em">¿Qué le agregarías?</div>
+                <textarea placeholder="Escribe aquí…" onInput="{{ fbText }}" style="width:100%;box-sizing:border-box;min-height:104px;resize:none;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:14px;font-family:inherit;font-size:17px;line-height:1.45;color:#00205C;outline:none"></textarea>
+                <button onClick="{{ fbNext }}" style="min-height:50px;background:#00205C;border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">Continuar</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ fbStep3 }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5b6b8c">Paso 3 de 3 · opcional</div>
+                <div style="font-size:22px;font-weight:800;line-height:1.25;letter-spacing:-0.03em;text-wrap:balance">¿Qué otra herramienta te gustaría que agregáramos?</div>
+                <p style="margin:0;font-size:14px;line-height:1.45;color:#5b6b8c">Lo que pidas entra a la lista de lo que construimos.</p>
+                <textarea placeholder="Ej: calculadora de…, algoritmo de…" onInput="{{ fbText }}" style="width:100%;box-sizing:border-box;min-height:96px;resize:none;background:#fff;border:0;border-radius:14px;box-shadow:0 6px 18px rgba(0,32,92,.07);padding:14px;font-family:inherit;font-size:17px;line-height:1.45;color:#00205C;outline:none"></textarea>
+                <button onClick="{{ fbFinish }}" style="min-height:50px;background:#00205C;border:0;border-radius:13px;font-family:inherit;font-size:17px;font-weight:600;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.9)">Enviar</button>
+                <button onClick="{{ fbFinish }}" style="min-height:44px;background:none;border:0;font-family:inherit;font-size:17px;font-weight:600;color:#16829e;cursor:pointer;transition:opacity .18s ease" style-active="opacity:.4">Omitir y cerrar</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ fbThanks }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0 8px;text-align:center">
+                <span style="width:56px;height:56px;border-radius:999px;background:#e9f6f1;display:flex;align-items:center;justify-content:center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1F7A5C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+                </span>
+                <div style="font-size:20px;font-weight:800;line-height:1.3;letter-spacing:-0.02em">¡Gracias!</div>
+                <div style="font-size:15px;line-height:1.5;color:#5b6b8c">Tu opinión construye las próximas herramientas.</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ onbActive }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:95;background:#f2f4f9;display:flex;flex-direction:column;overflow:hidden">
+
+          <sc-if value="{{ onbStep0 }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;min-height:0;position:relative;background:linear-gradient(180deg,#001845 0%,#00205C 55%,#062b6f 100%);display:flex;flex-direction:column;padding:70px 24px 34px;overflow:hidden;animation:etFade .4s ease both">
+              <div style="position:absolute;top:-56px;right:-66px;width:230px;height:230px;border-radius:999px;border:30px solid rgba(255,255,255,.05)"></div>
+              <div style="position:absolute;bottom:-84px;left:-52px;width:186px;height:186px;border-radius:999px;background:rgba(224,40,38,.16)"></div>
+              <img src="logo-blanco-trim.png" alt="EduTrauma" style="position:relative;height:30px;width:auto;display:block;align-self:flex-start">
+              <div style="flex:1"></div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.6)">Herramientas clínicas de trauma</div>
+                <div style="font-size:34px;font-weight:800;line-height:39px;letter-spacing:-0.035em;color:#fff;text-wrap:balance">Tres toques y estás dentro.</div>
+                <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.76);text-wrap:pretty">Sin cuenta, sin correo, sin contraseña. Solo queremos saber para quién estamos construyendo.</div>
+                <div style="display:flex;align-items:flex-start;gap:11px;margin-top:8px;background:rgba(255,255,255,.1);border-radius:13px;padding:13px 14px">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4ad196" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 3.2l7 2.6v5.5c0 4.2-2.8 7.5-7 9.5-4.2-2-7-5.3-7-9.5V5.8z"></path><path d="M9.2 12.1l2 2 3.6-3.9"></path></svg>
+                  <span style="flex:1;min-width:0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.9)">Anónimo de principio a fin. Nunca pedimos nombre ni identificador, y tus casos clínicos no salen de este teléfono.</span>
+                </div>
+                <button onClick="{{ onbNext }}" style="margin-top:12px;width:100%;min-height:54px;background:#E02826;border:0;border-radius:14px;font-family:inherit;font-size:17px;font-weight:700;color:#fff;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.5,.64,1)" style-active="transform:scale(.97);filter:brightness(.92)">Empecemos</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onbStep4 }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;min-height:0;background:linear-gradient(180deg,#001845 0%,#00205C 60%,#062b6f 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:34px 28px;text-align:center;animation:etFade .3s ease both">
+              <span style="width:72px;height:72px;border-radius:999px;background:rgba(74,209,150,.16);display:flex;align-items:center;justify-content:center;animation:etSymbol .5s cubic-bezier(.34,1.5,.64,1) both">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4ad196" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9.5 17 4 11.5"></path></svg>
+              </span>
+              <div style="font-size:28px;font-weight:800;line-height:1.25;letter-spacing:-0.03em;color:#fff;text-wrap:balance">Listo</div>
+              <div style="font-size:16px;line-height:1.55;color:rgba(255,255,255,.78);text-wrap:pretty">Las cinco herramientas ya están en tu teléfono y funcionan sin conexión.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onbForm }}" hint-placeholder-val="{{ false }}">
+            <div style="flex-shrink:0;background:linear-gradient(180deg,#001845,#00205C);padding:62px 20px 20px;border-radius:0 0 22px 22px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <sc-for list="{{ onbDots }}" as="d" hint-placeholder-count="3">
+                  <span style="height:7px;width:{{ d.w }};border-radius:999px;background:{{ d.bg }};transition:width .3s ease,background .3s ease"></span>
+                </sc-for>
+                <span style="margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)">{{ onbStepLabel }}</span>
+              </div>
+              <div style="font-size:26px;font-weight:800;line-height:1.24;letter-spacing:-0.03em;color:#fff;margin-top:14px;text-wrap:balance">{{ onbTitle }}</div>
+              <div style="font-size:14px;line-height:1.5;color:rgba(255,255,255,.68);margin-top:7px">{{ onbSub }}</div>
+            </div>
+
+            <div style="flex:1;min-height:0;overflow:auto;padding:0 0 26px;animation:{{ anim }} .34s cubic-bezier(.32,.72,0,1) both">
+              <sc-if value="{{ onbStep1 }}" hint-placeholder-val="{{ false }}">
+                <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ onbSpecs }}" as="sp" hint-placeholder-count="7">
+                    <button onClick="{{ sp.pick }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:56px;background:none;border:0;border-bottom:{{ sp.sep }};padding:13px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                      <span style="flex:1;min-width:0">{{ sp.label }}</span>
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ onbStep2 }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:12px 16px 8px">
+                  <div style="display:flex;align-items:center;gap:9px;background:#fff;border-radius:12px;box-shadow:0 4px 14px rgba(0,32,92,.09);padding:11px 13px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+                    <input placeholder="Buscar país" value="{{ onbFilter }}" onInput="{{ onbSearch }}" style="flex:1;min-width:0;background:none;border:0;outline:none;font-family:inherit;font-size:18px;font-weight:600;color:#00205C">
+                    <sc-if value="{{ onbHasFilter }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ onbClearSearch }}" aria-label="Borrar" style="flex-shrink:0;width:24px;height:24px;border-radius:999px;background:rgba(0,32,92,.14);border:0;display:flex;align-items:center;justify-content:center;cursor:pointer">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5b6b8c" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"></path></svg>
+                      </button>
+                    </sc-if>
+                  </div>
+                </div>
+                <sc-for list="{{ onbCountries }}" as="g" hint-placeholder-count="2">
+                  <div style="margin-top:10px">
+                    <div style="padding:0 16px 7px;font-size:13px;font-weight:600;color:#5b6b8c">{{ g.title }}</div>
+                    <div style="margin:0 16px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                      <sc-for list="{{ g.items }}" as="c" hint-placeholder-count="6">
+                        <button onClick="{{ c.pick }}" style="width:100%;display:flex;align-items:center;gap:10px;min-height:52px;background:none;border:0;border-bottom:{{ c.sep }};padding:12px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                          <span style="flex:1;min-width:0">{{ c.label }}</span>
+                          <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ onbStep3 }}" hint-placeholder-val="{{ false }}">
+                <div style="margin:14px 16px 0;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,32,92,.07)">
+                  <sc-for list="{{ onbOrigins }}" as="o" hint-placeholder-count="6">
+                    <button onClick="{{ o.pick }}" style="width:100%;display:flex;align-items:center;gap:12px;min-height:56px;background:none;border:0;border-bottom:{{ o.sep }};padding:13px 14px;font-family:inherit;font-size:17px;color:inherit;text-align:left;cursor:pointer" style-active="background:rgba(0,32,92,.055)">
+                      <span style="width:30px;height:30px;border-radius:9px;background:#eef1f7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <sc-if value="{{ o.isCorreo }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"></rect><path d="M3.5 7l8.5 6 8.5-6"></path></svg>
+                        </sc-if>
+                        <sc-if value="{{ o.isInstagram }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.6"></rect><circle cx="12" cy="12" r="3.9"></circle><circle cx="17.2" cy="6.9" r=".9" fill="#00205C"></circle></svg>
+                        </sc-if>
+                        <sc-if value="{{ o.isWhatsapp }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a8.4 8.4 0 01-12.3 7.4L4 20l1.1-4.1A8.4 8.4 0 1120.5 11.6z"></path></svg>
+                        </sc-if>
+                        <sc-if value="{{ o.isLinkedin }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2.4"></rect><path d="M7.5 10.5v6M7.5 7.6v.1M11.6 16.5v-6M11.6 13c0-1.4 1-2.5 2.4-2.5s2.5 1.1 2.5 2.5v3.5"></path></svg>
+                        </sc-if>
+                        <sc-if value="{{ o.isAmigo }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00205C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.2"></circle><path d="M3 19.5c.9-3 3.1-4.6 6-4.6s5.1 1.6 6 4.6"></path><path d="M16 5.6a3.2 3.2 0 010 5.8M18.5 19.5c-.3-1.4-.8-2.5-1.6-3.4"></path></svg>
+                        </sc-if>
+                        <sc-if value="{{ o.isOtro }}" hint-placeholder-val="{{ false }}">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="#00205C" stroke="none"><circle cx="5.5" cy="12" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="18.5" cy="12" r="1.7"></circle></svg>
+                        </sc-if>
+                      </span>
+                      <span style="flex:1;min-width:0">{{ o.label }}</span>
+                      <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="rgba(0,32,92,.3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M1 1l6 6-6 6"></path></svg>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <p style="margin:14px 16px 0;font-size:12px;line-height:1.5;color:#5b6b8c;text-align:center">Anónimo y agregado. Sin nombre, sin correo, sin identificador.</p>
+            </div>
+          </sc-if>
+
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:16px;right:16px;bottom:96px;background:rgba(0,24,69,.95);backdrop-filter:blur(12px);color:#fff;border-radius:14px;padding:13px 15px;font-size:15px;font-weight:500;line-height:1.4;box-shadow:0 12px 30px rgba(0,32,92,.32);animation:etUp .22s ease both">{{ toastText }}</div>
+      </sc-if>
+
+    </div>
+  </x-import>
+
+  <div style="max-width:700px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:.78rem;color:#5b6b8c">
+    <span style="background:#fff;border:1px solid #dbe1ee;border-radius:999px;padding:7px 13px">Las 5 herramientas, con la lógica clínica real del repo</span>
+    <span style="background:#fff;border:1px solid #dbe1ee;border-radius:999px;padding:7px 13px">Cada interacción según su naturaleza: árbol, consulta, formulario, calculadora</span>
+    <span style="background:#fff;border:1px solid #dbe1ee;border-radius:999px;padding:7px 13px">Todo resultado se guarda en el caso activo</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:1120},&quot;showOnboarding&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Primer arranque&quot;},&quot;caseCapture&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Alcance&quot;},&quot;offlineBanner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Alcance&quot;}}">
+const ALGOS = {
+  espinal: {
+    id:'espinal', region:'CONTROL DE COLUMNA CERVICAL (A)',
+    name:'Restricción del movimiento espinal',
+    short:'Collarín cervical: colocar, mantener o retirar según el mecanismo.',
+    ref:'Algoritmo MIP — Restricción del movimiento espinal (Dr. Pablo Ottolino, curso MIP, 2026)',
+    type:'tree', start:'mecanismo', depth:4, tag:'Espinal',
+    nodes:{
+      mecanismo:{ q:'¿Cuál fue el mecanismo de trauma?', opts:[
+        { label:'Penetrante', sub:'Arma blanca, proyectil', set:{mech:'pen'}, next:'collar' },
+        { label:'Cerrado (contuso)', sub:'Caída, colisión, aplastamiento', set:{mech:'cer'}, next:null }]},
+      collar:{ q:'¿El paciente ya trae el collarín puesto?',
+        help:'De esto depende si la conducta se enuncia como «colocar / mantener» o como «retirar / no colocar». La lógica es la misma.',
+        opts:[
+          { label:'Sí, ya lo trae', set:{collar:'trae'}, next:'zona' },
+          { label:'No lo trae', set:{collar:'no'}, next:'zona' }]},
+      zona:{ q:'¿Dónde está la herida penetrante?', opts:[
+        { label:'Cuello', set:{zona:'cuello'}, next:'lesion' },
+        { label:'Cráneo / Torso / Extremidades', set:{zona:'otro', base:'liberar'}, next:null }]},
+      lesion:{ q:'Abre la parte frontal del collarín y examina la herida. ¿Hay signos de lesión medular?',
+        help:'Déficit motor o sensitivo, o dolor/deformidad en la línea media cervical.',
+        opts:[
+          { label:'Sí, hay lesión medular', set:{base:'inmov'}, next:null },
+          { label:'No hay lesión medular', set:{base:'liberar'}, next:null }]}
+    },
+    resolve(ctx){
+      if(ctx.mech==='cer') return { level:'ok', title:'Mantener el collarín',
+        detail:'Mecanismo cerrado: dedícate a las lesiones potencialmente mortales y espera a la evaluación secundaria.',
+        warn:'Pendiente para la 2ª valoración: aplica los criterios NEXUS para decidir si la columna puede liberarse.',
+        goto:{ id:'nexus', label:'Aplicar criterios NEXUS' } };
+      const trae = ctx.collar==='trae';
+      if(ctx.base==='inmov') return trae
+        ? { level:'ok', title:'Mantener el collarín', detail:'Herida penetrante en cuello con signos de lesión medular: la columna debe permanecer inmovilizada.' }
+        : { level:'ok', title:'Colocar el collarín', detail:'Herida penetrante en cuello con signos de lesión medular: inmoviliza la columna cervical.' };
+      return trae
+        ? { level:'info', title:'Retirar el collarín', detail:'Sin indicación de inmovilización por este mecanismo: el collarín puede retirarse.' }
+        : { level:'info', title:'No colocar el collarín', detail:'Sin indicación de inmovilización por este mecanismo: no es necesario colocar collarín.' };
+    }
+  },
+  nexus: {
+    id:'nexus', region:'CONTROL DE COLUMNA CERVICAL (A)',
+    name:'Criterios NEXUS', tag:'NEXUS',
+    short:'¿Se puede liberar la columna cervical? 5 criterios.',
+    ref:'NEXUS — Hoffman et al., NEJM 2000 · valoración secundaria, curso MIP',
+    type:'checklist',
+    criteria:[
+      { id:'dolor', label:'Dolor en la línea media cervical' },
+      { id:'deficit', label:'Déficit neurológico focal' },
+      { id:'alerta', label:'Estado de alerta anormal (GCS < 14)' },
+      { id:'intox', label:'Intoxicación' },
+      { id:'distr', label:'Lesión distractora' }
+    ],
+    resolve(n){
+      if(n>=1) return { level:'ok', title:'Mantener / colocar la inmovilización cervical',
+        detail: n+' de 5 criterios presentes. Con al menos uno positivo, la columna no puede liberarse; mantén la inmovilización.' };
+      return { level:'info', title:'Se puede liberar el collarín',
+        detail:'0 de 5 criterios presentes: ningún criterio positivo, la columna cervical puede liberarse.' };
+    }
+  },
+  viaaerea: {
+    id:'viaaerea', region:'VÍA AÉREA (A)',
+    name:'Evaluación de vía aérea', tag:'Vía aérea',
+    short:'Permeable, obstruida o en riesgo, según la respuesta verbal.',
+    ref:'Algoritmo MIP — Evaluación 1, Secuencia de Respuesta Verbal (curso MIP, 2026)',
+    type:'tree', start:'verbal', depth:3,
+    nodes:{
+      verbal:{ q:'¿El paciente emite respuesta verbal?', opts:[
+        { label:'Sí, responde', set:{verbal:'si'}, next:'calidad' },
+        { label:'No responde', set:{verbal:'no'}, next:'obstr' }]},
+      calidad:{ q:'Calidad de la respuesta', opts:[
+        { label:'Coherente', set:{cal:'coh'}, next:'voz' },
+        { label:'Incoherente', set:{cal:'inc'}, next:'neuro' }]},
+      voz:{ q:'Características de la voz: ¿hay alteración?',
+        help:'Disfonía, estridor, voz «apagada» o gorgoteo sugieren lesión de la vía aérea.',
+        opts:[
+          { label:'Sí, voz alterada', set:{out:'lesionada'}, next:null },
+          { label:'No, voz normal', set:{out:'permeable'}, next:null }]},
+      neuro:{ q:'¿Hay compromiso neurológico?', opts:[
+        { label:'Sí', set:{out:'proteger'}, next:null },
+        { label:'No', set:{neuro:'no'}, next:'obstr' }]},
+      obstr:{ q:'¿Hay obstrucción mecánica de la vía aérea?',
+        help:'Cuerpo extraño, sangre, secreciones, edema o compresión.',
+        opts:[
+          { label:'Sí', set:{out:'obstruida'}, next:null },
+          { label:'No', set:{out:'permeable'}, next:null }]}
+    },
+    resolve(ctx){
+      switch(ctx.out){
+        case 'permeable': return { level:'ok', title:'Vía aérea permeable', detail:'La vía aérea está permeable en este momento. Continúa con el abordaje primario (B).' };
+        case 'lesionada': return { level:'warn', title:'Vía aérea permeable, pero lesionada', detail:'Permeable ahora, pero con signos de lesión.', warn:'Puede evolucionar a obstrucción asociada a la lesión. Reevalúa de forma periódica durante la reanimación.' };
+        case 'proteger': return { level:'alert', title:'Proteger la vía aérea', detail:'Respuesta incoherente con compromiso neurológico: la vía aérea está en riesgo. Asegúrala de inmediato.' };
+        case 'obstruida': return { level:'alert', title:'Vía aérea obstruida', detail:'Obstrucción mecánica presente: intervención inmediata de la vía aérea.' };
+        default: return { level:'info', title:'Sin resultado', detail:'Revisa las respuestas.' };
+      }
+    }
+  }
+};
+const REGIONS = ['VÍA AÉREA (A)', 'CONTROL DE COLUMNA CERVICAL (A)'];
+/* 'conduct' = conducta válida (navy neutro). Verde/ámbar/rojo = gravedad clínica. */
+const LVL = { ok:'#1F7A5C', warn:'#c99a12', alert:'#E02826', info:'#00205C', conduct:'#00205C' };
+const LVL_SOFT = { ok:'#e9f6f1', warn:'#fff8ec', alert:'#fdecea', info:'#eef1f7', conduct:'#eef1f7' };
+const SEP = '.5px solid rgba(0,32,92,.1)';
+
+const TOOLS = [
+  { id:'abdomen', title:'Abdomen Abierto — MIAA', chip:'logo-miaa.png', iconBg:'#e7f4f7',
+    desc:'5 algoritmos: cuándo dejarlo abierto, Björck, antibióticos, nutrición e HIA/SCA.',
+    contents:'Cuándo dejar el abdomen abierto · Clasificación de Björck · Conducta por grado · Antibióticos · Nutrición · Hipertensión intraabdominal (HIA/SCA).' },
+  { id:'aast', title:'Escalas AAST de lesiones', chip:'logo-dqt.png', iconBg:'#eef1f7',
+    desc:'32 órganos en 6 regiones, con grado, ICD-9 y AIS. Busca y lee en pabellón.',
+    contents:'Gradación de lesiones de órganos (Moore et al.): 32 órganos con grado, ICD-9 y AIS.' },
+  { id:'mip', title:'MIP — Politraumatizado', chip:'logo-mip.png', iconBg:'#fdecea',
+    desc:'Abordaje primario ABCDE: espinal, NEXUS y vía aérea.', contents:'' },
+  { id:'teg', title:'TEG6s — Tromboelastografía', mono:'TEG', iconBg:'#E02826',
+    desc:'8 valores del panel → interpretación de 4 componentes con hemoderivados y TXA.',
+    contents:'Interpreta el panel viscoelástico: factores, plaquetas, fibrinógeno y fibrinólisis, con sugerencias de hemoderivados y TXA.' },
+  { id:'calculadoras', title:'Calculadoras médicas', mono:'16', iconBg:'#00205C',
+    desc:'16 calculadoras en 5 áreas: Glasgow, Shock, Parkland, qSOFA y más.',
+    contents:'16 calculadoras: Glasgow, Índice de Shock, Parkland, IMC, creatinina, CHA₂DS₂-VASc, HAS-BLED, CURB-65, qSOFA, PHQ-9 y más.' }
+];
+
+const GUIAS = [
+  { id:'abcde', title:'Secuencia del abordaje primario', meta:'Curso MIP · 5 pasos',
+    intro:'El orden del abordaje primario. Cada letra se resuelve antes de pasar a la siguiente.',
+    ref:'Curso MIP — Manejo Integral del Politraumatizado, EduTrauma (2026).',
+    items:[
+      { k:'A', title:'Vía aérea y control cervical', desc:'Evalúa la respuesta verbal; decide inmovilización según el mecanismo.' },
+      { k:'B', title:'Ventilación', desc:'Busca y trata las causas que comprometen el intercambio de aire.' },
+      { k:'C', title:'Circulación y control de hemorragia', desc:'Detén el sangrado; reanima con criterio.' },
+      { k:'D', title:'Déficit neurológico', desc:'Estado de conciencia y examen dirigido.' },
+      { k:'E', title:'Exposición y control ambiental', desc:'Expón para buscar lesiones; previene la hipotermia.' }
+    ] },
+  { id:'nexusg', title:'Criterios NEXUS — referencia', meta:'Hoffman et al., NEJM 2000',
+    intro:'La columna cervical se libera solo si ninguno de los cinco criterios está presente.',
+    ref:'NEXUS — Hoffman et al., NEJM 2000 · valoración secundaria, curso MIP.',
+    items:[
+      { k:'1', title:'Dolor en la línea media cervical', desc:'A la palpación de la línea media posterior.' },
+      { k:'2', title:'Déficit neurológico focal', desc:'Motor o sensitivo.' },
+      { k:'3', title:'Estado de alerta anormal', desc:'GCS menor de 14.' },
+      { k:'4', title:'Intoxicación', desc:'Alcohol o drogas.' },
+      { k:'5', title:'Lesión distractora', desc:'Dolor que impide una evaluación fiable.' }
+    ] },
+  { id:'tegg', title:'Panel TEG6s — qué mide cada parámetro', meta:'Curso DQT · en preparación',
+    intro:'Contenido en preparación con el equipo docente.', ref:'Curso DQT, EduTrauma.',
+    items:[ { k:'—', title:'En preparación', desc:'Se publicará junto a la próxima versión de la herramienta TEG6s.' } ] },
+  { id:'bjorck', title:'Clasificación de Björck', meta:'Curso MIAA · en preparación',
+    intro:'Contenido en preparación con el equipo docente.', ref:'Curso MIAA, EduTrauma.',
+    items:[ { k:'—', title:'En preparación', desc:'Disponible hoy dentro de la herramienta Abdomen Abierto.' } ] }
+];
+
+/* Lista canónica de la serie: las mismas 7 que el hub. En el código existe una
+   segunda lista de 9 (añade "Medicina interna" y "Medicina general") que el
+   equipo va a unificar hacia esta. design/auditar.mjs comprueba la divergencia. */
+const SPECS = ['Cirugía general','Cirugía de trauma','Residente de cirugía','Medicina de urgencia','Enfermería','Estudiante de medicina','Otra'];
+/* País: 18 hoy, 25 países con usuarios reales, el selector se diseña para ~30.
+   FREQ son los mercados principales; el resto va alfabético. */
+const COUNTRY_FREQ = ['Chile','México','Colombia','Argentina','Perú'];
+const COUNTRIES = ['Chile','México','Colombia','Argentina','Perú','Ecuador','Bolivia','Uruguay','Paraguay','Venezuela','Brasil','Panamá','Costa Rica','Guatemala','República Dominicana','España','Estados Unidos','Otro'];
+/* Único dato de atribución de canal que recogemos. Se pregunta una sola vez. */
+const ORIGINS = [
+  { id:'correo', label:'Correo EduTrauma' },
+  { id:'instagram', label:'Instagram' },
+  { id:'whatsapp', label:'WhatsApp' },
+  { id:'linkedin', label:'LinkedIn' },
+  { id:'amigo', label:'Un amigo / colega' },
+  { id:'otro', label:'Otro' }
+];
+const LANGS = [{id:'es',label:'Español'},{id:'en',label:'English'},{id:'pt',label:'Português'}];
+const COURSES = [
+  { id:'dqt', name:'DQT', desc:'Destrezas Quirúrgicas en Trauma', logo:'logo-dqt.png' },
+  { id:'mip', name:'MIP', desc:'Manejo Integral del Politraumatizado', logo:'logo-mip.png' },
+  { id:'miaa', name:'MIAA', desc:'Manejo Integral del Abdomen Abierto', logo:'logo-miaa.png' }
+];
+const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+/* Contenido clínico portado del repo: et-data.js (MIAA, TEG6s, calculadoras) y
+   aast-data.js (32 órganos AAST, extraído de aast/index.html). */
+const D = window.ET_DATA || {};
+const AASTDB = window.AAST_DB || { regionOrder:[], organs:{} };
+const ROMAN = D.ROMAN || ['','I','II','III','IV','V','VI'];
+Object.keys(ALGOS).forEach(k => { ALGOS[k].tool = 'mip'; });
+if(D.MIAA_DECISION) ALGOS[D.MIAA_DECISION.id] = D.MIAA_DECISION;
+Object.assign(ALGOS, D.MIAA_ALGOS || {});
+const CALCS = D.CALCS || [];
+const CALC_BY_ID = {}; CALCS.forEach(c => { CALC_BY_ID[c.id] = c; });
+const TOOL_BLURB = {
+  mip:'Manejo Integral del Politraumatizado — algoritmos del abordaje primario (ABCDE).',
+  abdomen:'Manejo Integral del Abdomen Abierto — 5 algoritmos del curso MIAA.'
+};
+/* Nivel 'conduct': conducta válida, nunca verde/rojo. Verde/ámbar/rojo quedan
+   reservados para gravedad clínica. */
+const CONDUCT_ICON = { open:'abrir', closed:'cerrar' };
+function calcKind(c){
+  const t = c.inputs.map(i=>i.t);
+  if(t.every(x=>x==='toggle')) return 'Lista de sí/no';
+  if(t.every(x=>x==='phq')) return 'Cuestionario 0–3';
+  if(t.every(x=>x==='segv'||x==='seg')) return 'Selección por categoría';
+  if(t.indexOf('toggle')>=0) return 'Mixto';
+  return 'Entrada numérica';
+}
+
+class Component extends DCLogic {
+  state = {
+    screen:'kit', toolId:null, algoId:null, nodeId:null, ctx:{}, history:[], checks:{},
+    result:null, saved:false, filter:'', favs:['espinal'], spec:null, lang:'es',
+    country:null, origin:null, onbStep:0, onbDone:false, sheet:null, sheetFilter:'',
+    scrolled:false, dir:0, qIdx:0,
+    aastOrgan:null, aastSel:null, aastAdj:{ multi:false, inc:false, dec:false },
+    teg:{ hep:'no' }, tegResult:null,
+    calcId:null, calcVals:{}, calcResult:null, calcRecent:[],
+    fb:{ open:false, step:0, done:false, tool:'MIP', rating:0, txt:'' },
+    caseId:'c1', openCaseId:null, guiaId:null, toast:'',
+    cases:[
+      { id:'c1', label:'Politrauma · Box 3', meta:'Hoy 21:40 · colisión de alta energía', active:true,
+        entries:[
+          { tool:'MIP · Vía aérea', title:'Vía aérea permeable, pero lesionada', level:'warn', time:'21:42', trace:'Responde · coherente · voz alterada' },
+          { tool:'MIP · Espinal', title:'Mantener el collarín', level:'ok', time:'21:41', trace:'Mecanismo cerrado' }
+        ] },
+      { id:'c2', label:'Penetrante cuello · Box 1', meta:'Ayer 03:10 · arma blanca', active:false,
+        entries:[
+          { tool:'MIP · Espinal', title:'Retirar el collarín', level:'info', time:'03:12', trace:'Penetrante · cuello · sin lesión medular' }
+        ] }
+    ]
+  };
+
+  flash(t){ this.setState({toast:t}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:''}),2300); }
+  setFb(patch){ this.setState(s=>({ fb: Object.assign({}, s.fb, patch) })); }
+  toolLabel(){
+    const N = { mip:'MIP', abdomen:'MIAA', aast:'las escalas AAST', teg:'TEG6s', calculadoras:'las calculadoras' };
+    return N[this.state.toolId] || 'esta herramienta';
+  }
+  openFeedback = () => this.setFb({ open:true, step:1, rating:0, txt:'', tool:this.toolLabel() });
+  fbClose = () => this.setFb({ open:false, step:0 });
+  fbRate = (v) => this.setFb({ rating:v, step:2 });
+  fbText = (e) => { this._fbTxt = e.target.value; };
+  fbNext = () => this.setFb({ step:3, txt:this._fbTxt||'' });
+  fbFinish = () => {
+    this.setFb({ step:4, done:true });
+    clearTimeout(this._fbT);
+    this._fbT = setTimeout(()=>this.setFb({open:false, step:0}), 1500);
+  };
+  /* Como en design/feedback.js: se ofrece una sola vez, tras el primer resultado, y nunca bloquea */
+  maybeAskFeedback(){
+    if(this.state.fb.done || this.state.fb.open || this._fbAsked) return;
+    this._fbAsked = true;
+    setTimeout(()=>{ if(!this.state.fb.done) this.setFb({open:true, step:1, tool:this.toolLabel()}); }, 900);
+  }
+  onScroll = (e) => {
+    const on = e.target.scrollTop > 26;
+    if(on !== this.state.scrolled) this.setState({scrolled:on});
+  };
+  go = (screen) => this.setState({screen, result:null, saved:false, dir:0, scrolled:false});
+  openTool = (id) => {
+    const route = { aast:'aast', teg:'teg', calculadoras:'calcs' }[id] || 'tool';
+    const patch = { screen:route, toolId:id, filter:'', dir:1, scrolled:false, result:null, saved:false };
+    if(route==='teg'){ patch.teg = { hep:'no' }; patch.tegResult = null; }
+    this.setState(patch);
+  };
+  openOwnTool = () => this.openTool(this.state.toolId || 'mip');
+  openCalcs = () => this.openTool('calculadoras');
+  openBjorck = () => this.setState({screen:'bjorck', dir:1, scrolled:false});
+  openAlgo = (id) => {
+    const a = ALGOS[id];
+    const base = { algoId:id, result:null, saved:false, dir:1, scrolled:false, history:[], ctx:{} };
+    if(a.type==='checklist') this.setState(Object.assign(base,{screen:'checklist', checks:{}}));
+    else if(a.type==='yesno') this.setState(Object.assign(base,{screen:'question', qIdx:0}));
+    else this.setState(Object.assign(base,{screen:'question', nodeId:a.start}));
+  };
+  /* MIAA decisión: 6 preguntas SÍ/NO, cada una puede terminar el flujo */
+  pickYesNo = (ans) => {
+    const s = this.state, a = ALGOS[s.algoId], q = a.questions[s.qIdx];
+    let branch = ans ? q.yes : q.no;
+    const history = s.history.concat([{ qIdx:s.qIdx, label:(ans?'Sí':'No')+' · '+q.text.slice(0,58)+(q.text.length>58?'…':'') }]);
+    if(branch === 'next'){
+      if(s.qIdx+1 < a.questions.length) return this.setState({ qIdx:s.qIdx+1, history, dir:1, scrolled:false });
+      branch = a.questions[a.questions.length-1].yes;
+    }
+    const r = { level:'conduct', conduct:branch.result, title:branch.title, detail:branch.detail };
+    this.setState({ history, result:r, screen:'result', saved:false, dir:1, scrolled:false });
+    this.maybeAskFeedback();
+  };
+  /* Björck: desde la rejilla de consulta, salta directo a la conducta del grado */
+  openBjorckCell = (ctx, code) => {
+    const a = ALGOS.miaa_conducta;
+    this.setState({ screen:'result', algoId:'miaa_conducta', ctx:ctx,
+      history:[{ nodeId:'ref', label:'Consulta directa · grado '+code }],
+      result:a.resolve(ctx), saved:false, dir:1, scrolled:false });
+  };
+
+  /* ---------- AAST ---------- */
+  openOrgan = (key) => this.setState({ screen:'aastOrgan', aastOrgan:key, aastSel:null,
+    aastAdj:{ multi:false, inc:false, dec:false }, saved:false, dir:1, scrolled:false });
+  pickAastItem = (gi, ii) => this.setState(s => ({ aastSel: (s.aastSel && s.aastSel.gi===gi && s.aastSel.ii===ii) ? null : { gi, ii }, saved:false }));
+  toggleAastAdj = (k) => this.setState(s => ({ aastAdj: Object.assign({}, s.aastAdj, { [k]: !s.aastAdj[k] }), saved:false }));
+  aastGroupsFor(o){
+    if(!o) return [];
+    if(o.categories) return o.categories.map(c => ({ title:c.label, rows:c.items }));
+    const byGrade = {};
+    o.items.forEach(it => { (byGrade[it.grade] = byGrade[it.grade] || []).push(it); });
+    return Object.keys(byGrade).sort().map(g => ({ title:'Grado '+ROMAN[g], rows:byGrade[g] }));
+  }
+  aastComputed(){
+    const s = this.state, o = AASTDB.organs[s.aastOrgan];
+    if(!o || !s.aastSel) return null;
+    const groups = this.aastGroupsFor(o);
+    const grp = groups[s.aastSel.gi]; if(!grp) return null;
+    const item = grp.rows[s.aastSel.ii]; if(!item) return null;
+    let g = item.grade, note = '';
+    const A = D.AAST_ADJUST || {}, V = D.AAST_VESSEL || {};
+    if(o.adjust === 'vessel'){
+      if(s.aastAdj.inc && g < o.maxGrade){ g = g + 1; note = V.inc ? V.inc.note : ''; }
+      else if(s.aastAdj.dec && g > 1){ g = g - 1; note = V.dec ? V.dec.note : ''; }
+    } else if(A[o.adjust] && s.aastAdj.multi){
+      const rule = A[o.adjust].rule;
+      const cap = rule === 'upTo3' ? 3 : rule === 'upTo5' ? 5 : o.maxGrade;
+      if(g < cap){ g = g + 1; note = A[o.adjust].note; }
+    }
+    return { grade:g, base:item.grade, item, note, organ:o };
+  }
+
+  /* ---------- TEG6s ---------- */
+  setTegHep = (v) => this.setState(s => {
+    const t = Object.assign({}, s.teg, { hep:v });
+    if(v === 'no') delete t.ckhr;
+    return { teg:t };
+  });
+  setTegNum = (id, raw) => this.setState(s => ({ teg: Object.assign({}, s.teg, { [id]: D.parseNum(raw) }) }));
+  tegFieldList(){ return (D.TEG_FIELDS || []).filter(f => !f.onlyIfHep || this.state.teg.hep === 'si'); }
+  tegReady(){ return this.tegFieldList().every(f => { const v = this.state.teg[f.id]; return v !== undefined && !isNaN(v); }); }
+  runTeg = () => {
+    if(!this.tegReady()) return;
+    this.setState({ tegResult: D.computeTEG(this.state.teg), screen:'tegResult', saved:false, dir:1, scrolled:false });
+    this.maybeAskFeedback();
+  };
+  resetTeg = () => this.setState({ teg:{ hep:'no' }, tegResult:null, screen:'teg', saved:false, dir:-1, scrolled:false });
+
+  /* ---------- Calculadoras ---------- */
+  openCalc = (id) => {
+    const c = CALC_BY_ID[id], vals = {};
+    c.inputs.forEach(i => { if(i.t === 'toggle') vals[i.id] = false; if(i.t === 'numberunit') vals[i.id+'_unit'] = i.units[0].v; });
+    this.setState({ screen:'calc', calcId:id, calcVals:vals, calcResult:null, saved:false, dir:1, scrolled:false });
+  };
+  setCalcVal = (id, v) => this.setState(s => ({ calcVals: Object.assign({}, s.calcVals, { [id]: v }) }));
+  toggleCalcVal = (id) => this.setState(s => ({ calcVals: Object.assign({}, s.calcVals, { [id]: !s.calcVals[id] }) }));
+  calcReady(){
+    const c = CALC_BY_ID[this.state.calcId]; if(!c) return false;
+    const v = this.state.calcVals;
+    for(const i of c.inputs){
+      if(i.t === 'number' || i.t === 'numberunit'){
+        const x = v[i.id];
+        if(x === undefined || isNaN(x)) return false;
+        if(i.min != null && x < i.min) return false;
+        if(i.max != null && x > i.max) return false;
+      } else if(i.t !== 'toggle'){ if(v[i.id] === undefined) return false; }
+    }
+    return true;
+  }
+  runCalc = () => {
+    if(!this.calcReady()) return;
+    const c = CALC_BY_ID[this.state.calcId];
+    const r = c.compute(this.state.calcVals);
+    if(r.error) return this.flash(r.error);
+    this.setState(s => ({ calcResult:r, screen:'calcResult', saved:false, dir:1, scrolled:false,
+      calcRecent: [c.id].concat(s.calcRecent.filter(x => x !== c.id)).slice(0,4) }));
+    this.maybeAskFeedback();
+  };
+  pick = (i) => {
+    const s=this.state, a=ALGOS[s.algoId], node=a.nodes[s.nodeId], o=node.opts[i];
+    const history = s.history.concat([{nodeId:s.nodeId, label:o.label}]);
+    const ctx = Object.assign({}, s.ctx, o.set||{});
+    if(o.next==null){ this.setState({ctx, history, result:a.resolve(ctx), screen:'result', saved:false, dir:1, scrolled:false}); this.maybeAskFeedback(); }
+    else this.setState({ctx, history, nodeId:o.next, dir:1, scrolled:false});
+  };
+  pop(patch){ this.setState(Object.assign({dir:-1, scrolled:false}, patch)); }
+  back = () => {
+    const s = this.state;
+    const algo = s.algoId ? ALGOS[s.algoId] : null;
+    const home = () => ({ screen:(algo && algo.tool==='abdomen') ? 'tool' : 'tool', toolId:(algo && algo.tool) || s.toolId || 'mip' });
+    if(s.screen==='result'){
+      if(algo && algo.type==='checklist') return this.pop({screen:'checklist'});
+      if(s.history.length && s.history[0].nodeId==='ref') return this.pop({screen:'bjorck'});
+      return this.pop({screen:'question'});
+    }
+    if(s.screen==='question'){
+      const h=s.history.slice(); h.pop();
+      if(!h.length) return this.pop(home());
+      if(algo && algo.type==='yesno') return this.pop({ qIdx:h[h.length-1].qIdx+1, history:h });
+      const prev=h[h.length-1];
+      const node=algo.nodes[prev.nodeId], chosen=node.opts.find(o=>o.label===prev.label);
+      return this.pop({nodeId:chosen.next, history:h});
+    }
+    if(s.screen==='checklist') return this.pop(home());
+    if(s.screen==='bjorck') return this.pop({screen:'tool', toolId:'abdomen'});
+    if(s.screen==='aastOrgan') return this.pop({screen:'aast', filter:''});
+    if(s.screen==='tegResult') return this.pop({screen:'teg'});
+    if(s.screen==='calcResult') return this.pop({screen:'calc'});
+    if(s.screen==='calc') return this.pop({screen:'calcs', filter:''});
+    if(['tool','aast','teg','calcs'].indexOf(s.screen)>=0) return this.pop({screen:'kit'});
+    if(s.screen==='caseDetail') return this.pop({screen:'casos'});
+    if(s.screen==='guiaDetail') return this.pop({screen:'guias'});
+    return this.pop({screen:'kit'});
+  };
+  toggleFav = (id) => this.setState(s=>({favs: s.favs.includes(id)? s.favs.filter(x=>x!==id) : s.favs.concat([id])}));
+  toggleCrit = (id) => this.setState(s=>({checks: Object.assign({}, s.checks, {[id]: !s.checks[id]})}));
+  finishChecklist = () => {
+    const a=ALGOS.nexus, n=a.criteria.filter(c=>this.state.checks[c.id]).length;
+    this.setState({result:a.resolve(n), screen:'result', saved:false, dir:1, scrolled:false});
+    this.maybeAskFeedback();
+  };
+  traceText(){
+    const s=this.state;
+    if(s.screen==='aastOrgan'){
+      const c=this.aastComputed();
+      return c ? (c.organ.name+' · '+c.item.label.slice(0,80)+(c.item.label.length>80?'…':'')+(c.note?' · '+c.note:'')) : '';
+    }
+    if(s.screen==='tegResult'){
+      const t=s.teg, parts=['Heparina: '+(t.hep==='si'?'sí':'no')];
+      this.tegFieldList().forEach(f=>parts.push(f.label+' '+t[f.id]+' '+f.unit));
+      return parts.join(' · ');
+    }
+    if(s.screen==='calcResult'){
+      const c=CALC_BY_ID[s.calcId]; if(!c) return '';
+      return c.inputs.map(i=>{
+        const v=s.calcVals[i.id];
+        if(i.t==='toggle') return i.label.slice(0,34)+': '+(v?'sí':'no');
+        if(i.t==='seg'||i.t==='segv'){ const o=(i.options||[]).find(x=>x.v===v); return i.label+': '+(o?o.label:v); }
+        return i.label+' '+v+(i.unit?' '+i.unit:'');
+      }).join(' · ');
+    }
+    const a=ALGOS[s.algoId];
+    if(!a) return '';
+    if(a.type==='checklist'){
+      const on=a.criteria.filter(c=>s.checks[c.id]).map(c=>c.label);
+      return on.length? on.join(' · ') : 'Ningún criterio presente';
+    }
+    return s.history.map(h=>h.label).join(' · ');
+  }
+  saveToCase = () => {
+    const s=this.state;
+    if(s.saved) return;
+    let entry = null;
+    const time = '21:'+(46+Math.floor(Math.random()*9));
+    if(s.screen==='aastOrgan'){
+      const c=this.aastComputed(); if(!c) return;
+      entry={ tool:'AAST · '+c.organ.name, title:'Grado '+ROMAN[c.grade], level:'info', time, trace:this.traceText() };
+    } else if(s.screen==='tegResult'){
+      const r=s.tegResult; if(!r) return;
+      const worst = r.comp.some(c=>c.level==='alert') ? 'alert' : (r.comp.some(c=>c.level==='warn') ? 'warn' : 'ok');
+      const flagged = r.comp.filter(c=>c.level!=='ok').map(c=>c.name);
+      entry={ tool:'TEG6s', title: flagged.length ? flagged.join(', ')+' alterado'+(flagged.length>1?'s':'') : 'Panel sin alteraciones', level:worst, time, trace:this.traceText() };
+    } else if(s.screen==='calcResult'){
+      const r=s.calcResult, c=CALC_BY_ID[s.calcId]; if(!r) return;
+      entry={ tool:c.short, title:r.display+(r.unit?' '+r.unit:'')+' · '+r.cat, level:r.level==='conduct'?'info':r.level, time, trace:this.traceText() };
+    } else {
+      const r=s.result, a=ALGOS[s.algoId];
+      if(!r || !a) return;
+      const prefix = (a.tool==='abdomen' ? 'MIAA · ' : 'MIP · ') + a.tag;
+      entry={ tool:prefix, title:r.title, level:r.level==='conduct'?'info':r.level, time, trace:this.traceText() };
+    }
+    const target=s.cases.find(c=>c.id===s.caseId);
+    this.setState({saved:true, cases: s.cases.map(c=> c.id===s.caseId ? Object.assign({},c,{entries:[entry].concat(c.entries)}) : c)});
+    this.flash('Guardado en «'+(target?target.label:'caso')+'»');
+  };
+  newCase = () => {
+    const n=this.state.cases.length+1, id='c'+n;
+    this.setState(s=>({caseId:id, openCaseId:id, screen:'caseDetail',
+      cases:[{id, label:'Caso nuevo · Box '+(n+1), meta:'Ahora · sin identificadores', active:true, entries:[]}]
+        .concat(s.cases.map(c=>Object.assign({},c,{active:false})))}));
+    this.flash('Caso creado y marcado como activo');
+  };
+  /* ---------- Primer arranque: 3 datos, sin cuenta, sin omitir ---------- */
+  onbNext = () => this.setState(s => ({ onbStep: s.onbStep + 1 }));
+  onbPickSpec = (v) => this.setState(s => ({ spec:v, onbStep: s.onbStep + 1 }));
+  onbPickCountry = (v) => this.setState(s => ({ country:v, onbStep: s.onbStep + 1, sheetFilter:'' }));
+  onbPickOrigin = (v) => { this.setState({ origin:v, onbStep:4 }); clearTimeout(this._onbT); this._onbT = setTimeout(()=>this.setState({onbDone:true}), 1400); };
+  /* ---------- Hojas de selección (país y origen) ---------- */
+  openSheet = (k) => this.setState({ sheet:k, sheetFilter:'' });
+  closeSheet = () => this.setState({ sheet:null, sheetFilter:'' });
+  pickCountry = (v) => { this.setState({ country:v, sheet:null, sheetFilter:'' }); this.flash('País actualizado: '+v); };
+  pickOrigin = (v) => { this.setState({ origin:v, sheet:null }); this.flash('Gracias — nos ayuda a saber qué canal funciona'); };
+  countryGroups(filter){
+    const f = norm(filter);
+    const hit = c => !f || norm(c).includes(f);
+    const rest = COUNTRIES.filter(c => c !== 'Otro' && COUNTRY_FREQ.indexOf(c) < 0)
+      .slice().sort((a,b)=>a.localeCompare(b,'es'));
+    if(f) return [{ title:'RESULTADOS', items: COUNTRIES.filter(hit) }].filter(g=>g.items.length);
+    return [
+      { title:'FRECUENTES', items: COUNTRY_FREQ },
+      { title:'A–Z', items: rest.concat(['Otro']) }
+    ];
+  }
+  openCase = (id) => this.setState({screen:'caseDetail', openCaseId:id, caseId:id, dir:1, scrolled:false});
+  openGuia = (id) => this.setState({screen:'guiaDetail', guiaId:id, dir:1, scrolled:false});
+
+  renderVals(){
+    const s=this.state;
+    const caseCapture = this.props.caseCapture ?? true;
+    const showOffline = this.props.offlineBanner ?? true;
+    const algo = s.algoId ? ALGOS[s.algoId] : null;
+    const tool = s.toolId ? TOOLS.find(t=>t.id===s.toolId) : null;
+    const openCase = s.cases.find(c=>c.id===s.openCaseId) || s.cases[0];
+    const activeCase = s.cases.find(c=>c.id===s.caseId) || s.cases[0];
+    const guia = GUIAS.find(g=>g.id===s.guiaId) || GUIAS[0];
+    const isTool = s.screen==='tool';
+    const flow = ['question','checklist','result'].indexOf(s.screen)>=0;
+    const TOOL_SCREENS = ['tool','aast','aastOrgan','teg','tegResult','calcs','calc','calcResult','bjorck'];
+    const inTool = TOOL_SCREENS.indexOf(s.screen)>=0 || flow;
+    const tabColor = k => (s.screen===k || (k==='kit' && inTool) || (k==='casos'&&s.screen==='caseDetail') || (k==='guias'&&s.screen==='guiaDetail')) ? '#00205C' : 'rgba(0,32,92,.38)';
+
+    const f = norm(s.filter);
+    /* Lista de algoritmos: misma pantalla para MIP y MIAA, agrupada por región
+       (MIP: ABCDE) o por fase (MIAA: decisión / manejo en curso). */
+    const listTool = (algo && flow) ? algo.tool : s.toolId;
+    const toolAlgos = Object.values(ALGOS).filter(a => a.tool === s.toolId);
+    const matches = a => !f || norm(a.name).includes(f) || norm(a.short).includes(f) || norm(a.region||a.group||'').includes(f);
+    const groupKeys = [];
+    toolAlgos.forEach(a => { const k = a.region || a.group; if(groupKeys.indexOf(k)<0) groupKeys.push(k); });
+    const regionList = groupKeys.map(rname => {
+      const items = toolAlgos.filter(a=>(a.region||a.group)===rname && matches(a));
+      return { title:rname, items: items.map((a,i)=>({
+        name:a.name, short:a.short, sep: i<items.length-1?SEP:'none',
+        favFill: s.favs.includes(a.id)?'#E02826':'none',
+        open: ()=>this.openAlgo(a.id), toggleFav: ()=>this.toggleFav(a.id)
+      })) };
+    }).filter(r=>r.items.length);
+
+    const node = (algo && algo.type==='tree' && s.nodeId) ? algo.nodes[s.nodeId] : null;
+    const yesNoQ = (algo && algo.type==='yesno') ? algo.questions[s.qIdx] : null;
+    const step = (algo && algo.type==='yesno') ? s.qIdx+1 : s.history.length+1;
+    const total = algo ? (algo.type==='yesno' ? algo.questions.length : (algo.depth || 3)) : 3;
+    const r = s.result;
+
+    /* ---- AAST ---- */
+    const organ = s.aastOrgan ? AASTDB.organs[s.aastOrgan] : null;
+    const organGroups = this.aastGroupsFor(organ);
+    const aastCalc = this.aastComputed();
+    const aastRegionList = (AASTDB.regionOrder||[]).map(rn => {
+      const list = Object.keys(AASTDB.organs)
+        .filter(k => AASTDB.organs[k].region===rn && (!f || norm(AASTDB.organs[k].name).includes(f) || norm(rn).includes(f)))
+        .map(k => ({ name:AASTDB.organs[k].name, maxLabel:'I–'+ROMAN[AASTDB.organs[k].maxGrade], open:()=>this.openOrgan(k) }));
+      return { title:rn, organs:list };
+    }).filter(x => x.organs.length);
+    const adjKind = organ ? organ.adjust : 'none';
+    const adjList = [];
+    if(organ){
+      if(adjKind === 'vessel'){
+        const V = D.AAST_VESSEL || {};
+        adjList.push({ key:'inc', q:V.inc?V.inc.q:'', rule:'Sube 1 grado' });
+        adjList.push({ key:'dec', q:V.dec?V.dec.q:'', rule:'Baja 1 grado' });
+      } else if((D.AAST_ADJUST||{})[adjKind]){
+        const A = D.AAST_ADJUST[adjKind];
+        adjList.push({ key:'multi', q:A.q, rule:A.rule==='upTo3'?'Sube 1 grado (hasta grado III)':A.rule==='upTo5'?'Sube 1 grado (hasta grado V)':'Sube 1 grado' });
+      }
+    }
+
+    /* ---- TEG6s ---- */
+    const tegList = this.tegFieldList();
+    const tegReady = this.tegReady();
+    const tr = s.tegResult;
+
+    /* ---- Calculadoras ---- */
+    const calc = s.calcId ? CALC_BY_ID[s.calcId] : null;
+    const cr = s.calcResult;
+    const calcMatch = c => !f || norm(c.name).includes(f) || norm(c.area).includes(f) || c.kw.some(k=>norm(k).includes(f));
+    const calcAreaList = (D.CALC_AREAS||[]).map(a => {
+      const items = CALCS.filter(c => c.area===a && calcMatch(c));
+      return { title:a, items: items.map((c,i)=>({ short:c.short, kind:calcKind(c), sep: i<items.length-1?SEP:'none', open:()=>this.openCalc(c.id) })) };
+    }).filter(x => x.items.length);
+
+    const ROOT_TITLES = { kit:'EduTrauma Tools', casos:'Casos', guias:'Guías', perfil:'Perfil' };
+    const TOOL_TITLES = { mip:'MIP', abdomen:'MIAA', aast:'Escalas AAST', teg:'TEG6s', calculadoras:'Calculadoras' };
+    let navTitle = ROOT_TITLES[s.screen] || '', backLabel='', canGoBack=false;
+    if(isTool || s.screen==='aast' || s.screen==='teg' || s.screen==='calcs'){ canGoBack=true; navTitle = TOOL_TITLES[s.toolId] || (tool?tool.title:''); backLabel='Kit'; }
+    if(s.screen==='bjorck'){ canGoBack=true; navTitle='Björck'; backLabel='MIAA'; }
+    if(s.screen==='aastOrgan'){ canGoBack=true; navTitle = organ?organ.name:''; backLabel='Órganos'; }
+    if(s.screen==='tegResult'){ canGoBack=true; navTitle='Interpretación'; backLabel='Valores'; }
+    if(s.screen==='calc'){ canGoBack=true; navTitle = calc?calc.short:''; backLabel='Calculadoras'; }
+    if(s.screen==='calcResult'){ canGoBack=true; navTitle = calc?calc.short:''; backLabel='Datos'; }
+    if(flow){ canGoBack=true; navTitle = algo?algo.tag:''; backLabel = s.screen==='result' ? 'Atrás' : (s.history.length?'Atrás':(TOOL_TITLES[listTool]||'Kit')); }
+    if(s.screen==='caseDetail'){ canGoBack=true; navTitle = openCase?openCase.label:'Caso'; backLabel='Casos'; }
+    if(s.screen==='guiaDetail'){ canGoBack=true; navTitle='Guía'; backLabel='Guías'; }
+
+    /* Primer arranque: obligatorio, no se puede omitir. El prop lo desactiva
+       para revisar el resto de la app sin pasar por él. */
+    const wantOnb = this.props.showOnboarding ?? true;
+    const onbActive = wantOnb && !s.onbDone;
+    const originObj = ORIGINS.find(o=>o.id===s.origin);
+    const originLabel = originObj ? originObj.label : '';
+
+    const CHIP_BY_TOOL = { mip:'logo-mip.png', abdomen:'logo-miaa.png', aast:'logo-dqt.png', teg:'logo-dqt.png' };
+    const chipTool = inTool ? (CHIP_BY_TOOL[flow ? listTool : s.toolId] || null) : null;
+
+    return {
+      chipMip: chipTool==='logo-mip.png', chipDqt: chipTool==='logo-dqt.png', chipMiaa: chipTool==='logo-miaa.png',
+      showOffline: showOffline && s.screen==='kit',
+      canGoBack, navTitle, backLabel, back:this.back, onScroll:this.onScroll,
+      anim: s.dir < 0 ? 'etPop' : (s.dir > 0 ? 'etPush' : 'etFade'),
+      filter: s.filter, hasFilter: !!s.filter, clearSearch: ()=>this.setState({filter:''}),
+      isKit: s.screen==='kit',
+      isAlgoList: isTool,
+      isBjorck: s.screen==='bjorck',
+      isAast: s.screen==='aast', isAastOrgan: s.screen==='aastOrgan',
+      isTeg: s.screen==='teg', isTegResult: s.screen==='tegResult',
+      isCalcs: s.screen==='calcs', isCalc: s.screen==='calc', isCalcResult: s.screen==='calcResult',
+      isQuestion: s.screen==='question', isChecklist: s.screen==='checklist', isResult: s.screen==='result',
+      isCasos: s.screen==='casos', isCaseDetail: s.screen==='caseDetail',
+      isGuias: s.screen==='guias', isGuiaDetail: s.screen==='guiaDetail', isPerfil: s.screen==='perfil',
+
+      hasActiveCase: caseCapture && !!activeCase && activeCase.entries.length>0,
+      noActiveCase: caseCapture && (!activeCase || activeCase.entries.length===0),
+      activeCaseLabel: activeCase?activeCase.label:'', activeCaseMeta: activeCase?activeCase.meta:'',
+      activeCaseCount: activeCase? String(activeCase.entries.length) : '0',
+      goActiveCase: ()=>this.openCase(s.caseId),
+      hasFavs: s.favs.length>0,
+      favs: s.favs.filter(id=>ALGOS[id]).map(id=>({ label:ALGOS[id].name,
+        tool: ALGOS[id].tool==='abdomen'?'MIAA':'MIP', open:()=>this.openAlgo(id) })),
+      tools: TOOLS.map((t,i)=>({ title:t.title, desc:t.desc, mono:t.mono||'',
+        isMiaa:t.chip==='logo-miaa.png', isDqt:t.chip==='logo-dqt.png', isMip:t.chip==='logo-mip.png',
+        noChip:!t.chip, iconBg:t.iconBg, sep: i<TOOLS.length-1?SEP:'none', open:()=>this.openTool(t.id) })),
+
+      toolTitle: tool?tool.title:'', toolContents: tool?tool.contents:'',
+      toolBlurb: TOOL_BLURB[s.toolId] || (tool?tool.desc:''),
+      showBjorckRef: isTool && s.toolId==='abdomen', openBjorck: this.openBjorck,
+      onSearch: (e)=>this.setState({filter:e.target.value}),
+      regions: regionList, noResults: isTool && !regionList.length,
+      openMip: ()=>this.openTool('mip'), openOwnTool: this.openOwnTool, openCalcs: this.openCalcs,
+
+      bjGrades: (D.BJORCK_GRID||[]).map(g=>({ gLabel:g.gLabel, desc:g.desc,
+        cells: g.cells.map(c=>({ code:c.code, state:c.state, summary:c.summary,
+          stepsLabel: c.steps===1 ? '1 paso' : c.steps+' pasos',
+          chipBg: g.g<=2 ? '#00205C' : (g.g===3 ? '#c99a12' : '#E02826'), chipColor:'#fff',
+          open: ()=>this.openBjorckCell(c.ctx, c.code) })) })),
+      bjCaution: D.MIAA_BJORCK_CAUTION || '',
+
+      aastRegions: aastRegionList, aastEmpty: s.screen==='aast' && !aastRegionList.length,
+      aastOrganRegion: organ?organ.region:'', aastMaxRoman: organ?ROMAN[organ.maxGrade]:'',
+      aastRef: 'Gradación de lesiones de órganos — Moore et al. (AAST) · curso DQT, EduTrauma',
+      aastGroups: organGroups.map((grp,gi)=>({
+        title:grp.title, hasTitle: organGroups.length>1 || !!organ.categories,
+        rows: grp.rows.map((it,ii)=>{
+          const on = !!(s.aastSel && s.aastSel.gi===gi && s.aastSel.ii===ii);
+          const meta = [it.icd9 ? 'ICD-9 '+it.icd9 : '', it.ais ? 'AIS '+it.ais : ''].filter(Boolean).join(' · ');
+          return { roman:ROMAN[it.grade], label:it.label, meta: meta || '—', warn: !!it.warn, warnText: D.AAST_WARN||'',
+            on, bg: on ? '#eef4fb' : 'transparent',
+            badgeBg: on ? '#00205C' : 'rgba(0,32,92,.07)', badgeColor: on ? '#fff' : '#00205C',
+            sep: ii<grp.rows.length-1?SEP:'none', pick: ()=>this.pickAastItem(gi,ii) };
+        }) })),
+      hasAdjust: adjList.length>0,
+      adjusts: adjList.map((a,i)=>({ q:a.q, rule:a.rule, sep: i<adjList.length-1?SEP:'none',
+        track: s.aastAdj[a.key]?'#1F7A5C':'rgba(0,32,92,.16)', justify: s.aastAdj[a.key]?'flex-end':'flex-start',
+        toggle: ()=>this.toggleAastAdj(a.key) })),
+      aastBar: s.screen==='aastOrgan' && !!aastCalc,
+      aastSelRoman: aastCalc?ROMAN[aastCalc.grade]:'', aastSelName: aastCalc?aastCalc.organ.name:'',
+      aastSelAdjusted: !!(aastCalc && aastCalc.note), aastSelAdjNote: aastCalc?aastCalc.note:'',
+      aastSaveLabel: s.saved ? 'Guardado' : 'Guardar',
+
+      tegFields: tegList.map(fd=>({ label:fd.label, unit:fd.unit, hint:fd.hint,
+        value: s.teg[fd.id]===undefined ? '' : String(s.teg[fd.id]),
+        bad: s.teg[fd.id]!==undefined && !isNaN(s.teg[fd.id]) && (s.teg[fd.id]<fd.plaus[0] || s.teg[fd.id]>fd.plaus[1]),
+        set: (e)=>this.setTegNum(fd.id, e.target.value) })),
+      tegHepNo: ()=>this.setTegHep('no'), tegHepSi: ()=>this.setTegHep('si'),
+      tegNoBg: s.teg.hep==='no'?'#fff':'transparent', tegNoWeight: s.teg.hep==='no'?'700':'500',
+      tegNoShadow: s.teg.hep==='no'?'0 1px 3px rgba(0,32,92,.18)':'none',
+      tegSiBg: s.teg.hep==='si'?'#fff':'transparent', tegSiWeight: s.teg.hep==='si'?'700':'500',
+      tegSiShadow: s.teg.hep==='si'?'0 1px 3px rgba(0,32,92,.18)':'none',
+      tegRun: this.runTeg, tegReset: this.resetTeg, tegNotReady: !tegReady,
+      tegBtnBg: tegReady?'#00205C':'rgba(0,32,92,.3)',
+      tegBtnLabel: tegReady?'Interpretar':'Completa los '+tegList.length+' valores',
+      tegAlerts: tr? tr.alerts.map(al=>({ title:al.title, text:al.text, color:LVL[al.level], bg:LVL_SOFT[al.level] })):[],
+      tegComp: tr? tr.comp.map(c=>({ name:c.name, finding:c.finding, value:c.value, sug:c.sug, hasSug:!!c.sug,
+        color:LVL[c.level], pillBg:LVL_SOFT[c.level],
+        statusWord: c.level==='ok'?'Normal':(c.level==='warn'?'Vigilar':'Actuar') })):[],
+      tegCaution: D.TEG_CAUTION||'', tegRef: D.TEG_REF||'',
+
+      calcAreas: calcAreaList, calcsEmpty: s.screen==='calcs' && !calcAreaList.length,
+      hasCalcRecent: !f && s.calcRecent.length>0,
+      calcRecent: s.calcRecent.map(id=>CALC_BY_ID[id]).filter(Boolean).map(c=>({ short:c.short, open:()=>this.openCalc(c.id) })),
+      calcArea: calc?calc.area:'', calcFullName: calc?calc.name:'', calcIsPhq: !!(calc&&calc.phq), phqLegend: D.PHQ_LEGEND||'',
+      calcInputs: calc? calc.inputs.map(i=>{
+        const v = s.calcVals[i.id];
+        const isNumU = i.t==='numberunit';
+        const base = { label:i.label, isNum: i.t==='number'||isNumU, isSeg: i.t==='seg'||i.t==='segv',
+          isToggle: i.t==='toggle', isPhq: i.t==='phq' };
+        if(base.isNum){
+          base.unit = isNumU ? '' : (i.unit||'');
+          base.value = v===undefined ? '' : String(v);
+          base.set = (e)=>this.setCalcVal(i.id, D.parseNum(e.target.value));
+          base.hasUnits = isNumU;
+          base.units = isNumU ? i.units.map(u=>({ label:u.label, pick:()=>this.setCalcVal(i.id+'_unit', u.v),
+            bg: s.calcVals[i.id+'_unit']===u.v?'#fff':'transparent', weight: s.calcVals[i.id+'_unit']===u.v?'700':'500',
+            shadow: s.calcVals[i.id+'_unit']===u.v?'0 1px 3px rgba(0,32,92,.18)':'none' })) : [];
+        }
+        if(base.isSeg){
+          const stacked = i.t==='segv';
+          base.segDir = stacked?'column':'row'; base.segGap = stacked?'3px':'2px';
+          base.segTrack = stacked?'transparent':'rgba(0,32,92,.07)';
+          base.options = i.options.map(o=>({ label:o.label, pick:()=>this.setCalcVal(i.id,o.v),
+            bg: v===o.v?'#fff':(stacked?'rgba(0,32,92,.05)':'transparent'),
+            weight: v===o.v?'700':'500', minH: stacked?'46px':'40px', align: stacked?'left':'center',
+            shadow: v===o.v?(stacked?'inset 0 0 0 1.5px #00205C':'0 1px 3px rgba(0,32,92,.18)'):'none' }));
+        }
+        if(base.isToggle){
+          base.toggle = ()=>this.toggleCalcVal(i.id);
+          base.track = v?'#1F7A5C':'rgba(0,32,92,.16)'; base.justify = v?'flex-end':'flex-start';
+        }
+        if(base.isPhq){
+          base.options = [0,1,2,3].map(n=>({ label:String(n), pick:()=>this.setCalcVal(i.id,n),
+            bg: v===n?'#fff':'transparent', weight: v===n?'800':'500',
+            shadow: v===n?'0 1px 3px rgba(0,32,92,.18)':'none' }));
+        }
+        return base;
+      }) : [],
+      calcRun: this.runCalc, calcNotReady: !this.calcReady(),
+      calcBtnBg: this.calcReady()?'#00205C':'rgba(0,32,92,.3)',
+      calcBtnLabel: this.calcReady()?'Calcular':'Completa los datos',
+      crName: calc?calc.short:'', crValue: cr?String(cr.display):'', crUnit: cr?cr.unit:'',
+      crCat: cr?cr.cat:'', crDetail: cr?cr.detail:'', crFormula: cr?cr.formula:'', crRef: cr?cr.ref:'',
+      crColor: cr?LVL[cr.level]:'#00205C', crSoft: cr?LVL_SOFT[cr.level]:'#eef1f7',
+      crHasAlert: !!(cr&&cr.alert), crAlert: cr&&cr.alert?cr.alert:'',
+
+      algoName: algo?algo.name:'',
+      stepLabel: 'Paso '+step+' de '+total,
+      progress: Math.round(Math.min(step/total,1)*100)+'%',
+      qText: yesNoQ ? yesNoQ.text : (node?node.q:''),
+      hasHelp: !!(node&&node.help), qHelp: node?node.help||'':'',
+      qYesNo: !!yesNoQ, qOptsMode: !yesNoQ,
+      qHasCategory: !!(yesNoQ&&yesNoQ.category), qCategory: yesNoQ?yesNoQ.category||'':'',
+      qShowRules: !!(yesNoQ && s.qIdx===0 && algo.rules),
+      qRules: (yesNoQ && algo.rules) ? algo.rules.map(x=>({ k:x[0], v:x[1] })) : [],
+      pickYes: ()=>this.pickYesNo(true), pickNo: ()=>this.pickYesNo(false),
+      opts: node? node.opts.map((o,i)=>({ label:o.label, sub:o.sub||'', hasSub:!!o.sub, pick:()=>this.pick(i) })):[],
+
+      crits: ALGOS.nexus.criteria.map((c,i)=>({ label:c.label, sep: i<4?SEP:'none',
+        track: s.checks[c.id]?'#1F7A5C':'rgba(0,32,92,.16)', justify: s.checks[c.id]?'flex-end':'flex-start',
+        toggle:()=>this.toggleCrit(c.id) })),
+      critCount: String(ALGOS.nexus.criteria.filter(c=>s.checks[c.id]).length),
+      finishChecklist: this.finishChecklist,
+
+      resColor: r?LVL[r.level]:'#00205C', resSoft: r?LVL_SOFT[r.level]:'#eef1f7',
+      resTitle: r?r.title:'', resDetail: r?r.detail:'',
+      resIsConduct: !!(r && r.level==='conduct'), resIsClinical: !!(r && r.level!=='conduct'),
+      resEyebrow: (r && r.level==='conduct') ? 'Conducta' : (algo?algo.name:''),
+      resNeutralNote: (D.MIAA_DECISION && D.MIAA_DECISION.neutralNote) || '',
+      hasList: !!(r && r.list && r.list.length),
+      resList: (r && r.list) ? r.list.map((t,i)=>({ n:String(i+1), text:String(t).replace(/^Paso \d+:\s*/,'') })) : [],
+      hasWarn: !!(r&&r.warn), resWarn: r&&r.warn?r.warn:'',
+      hasGoto: !!(r&&r.goto), gotoLabel: r&&r.goto?r.goto.label:'',
+      goNext: ()=>{ if(r&&r.goto) this.openAlgo(r.goto.id); },
+      resRef: algo?algo.ref:'', traceLabel: this.traceText(),
+      caseCapture,
+      saveLabel: s.saved ? 'Guardado en «'+(activeCase?activeCase.label:'')+'»' : 'Guardar en «'+(activeCase?activeCase.label:'')+'»',
+      saveToCase: this.saveToCase,
+
+      cases: s.cases.map((c,i)=>({ label:c.label, meta:c.meta, isActive:c.active,
+        preview: c.entries.length? c.entries[0].title : 'Sin cálculos todavía',
+        sep: i<s.cases.length-1?SEP:'none', open:()=>this.openCase(c.id) })),
+      newCase: this.newCase,
+      caseLabel: openCase?openCase.label:'', caseMeta: openCase?openCase.meta:'',
+      caseEmpty: !!(openCase && !openCase.entries.length),
+      caseEntries: openCase? openCase.entries.map((e,i)=>({ tool:e.tool, title:e.title, time:e.time, trace:e.trace,
+        color:LVL[e.level], dot:LVL[e.level], sep: i<openCase.entries.length-1?SEP:'none' })):[],
+
+      guias: GUIAS.map((g,i)=>({ title:g.title, meta:g.meta, sep: i<GUIAS.length-1?SEP:'none', open:()=>this.openGuia(g.id) })),
+      guiaTitle: guia.title, guiaIntro: guia.intro, guiaRef: guia.ref,
+      guiaItems: guia.items.map((it,i)=>({ k:it.k, title:it.title, desc:it.desc, sep: i<guia.items.length-1?SEP:'none' })),
+
+      specs: SPECS.map((sp,i)=>({ label:sp, on: s.spec===sp, sep: i<SPECS.length-1?SEP:'none',
+        pick:()=>this.setState({spec:sp}) })),
+      countryValue: s.country || 'Sin definir', originValue: originLabel || 'Sin definir',
+      openCountrySheet: ()=>this.openSheet('country'), openOriginSheet: ()=>this.openSheet('origin'),
+
+      onbActive: onbActive, onbStep0: onbActive && s.onbStep===0,
+      onbForm: onbActive && s.onbStep>=1 && s.onbStep<=3,
+      onbTitle: s.onbStep===1 ? '¿Cuál es tu especialidad?' : (s.onbStep===2 ? '¿En qué país ejerces?' : '¿Cómo nos conociste?'),
+      onbSub: s.onbStep===1 ? 'Para mostrarte primero lo que usas.'
+        : (s.onbStep===2 ? 'Para adaptar protocolos y disponibilidad.' : 'Es la única forma de saber qué canal funciona.'),
+      onbStep1: onbActive && s.onbStep===1, onbStep2: onbActive && s.onbStep===2,
+      onbStep3: onbActive && s.onbStep===3, onbStep4: onbActive && s.onbStep===4,
+      onbNext: this.onbNext,
+      onbDots: [1,2,3].map(n=>({ bg: s.onbStep>=n ? '#E02826' : 'rgba(255,255,255,.28)',
+        w: s.onbStep===n ? '22px' : '7px' })),
+      onbStepLabel: 'Paso '+Math.min(Math.max(s.onbStep,1),3)+' de 3',
+      onbSpecs: SPECS.map((sp,i)=>({ label:sp, sep: i<SPECS.length-1?SEP:'none', pick:()=>this.onbPickSpec(sp) })),
+      onbCountries: this.countryGroups(s.sheetFilter).map(g=>({ title:g.title,
+        items: g.items.map((c,i)=>({ label:c, sep: i<g.items.length-1?SEP:'none',
+          on: s.country===c, pick:()=>this.onbPickCountry(c) })) })),
+      onbOrigins: ORIGINS.map((o,i)=>({ label:o.label, icon:o.id, sep: i<ORIGINS.length-1?SEP:'none',
+        isCorreo:o.id==='correo', isInstagram:o.id==='instagram', isWhatsapp:o.id==='whatsapp',
+        isLinkedin:o.id==='linkedin', isAmigo:o.id==='amigo', isOtro:o.id==='otro',
+        pick:()=>this.onbPickOrigin(o.id) })),
+      onbSearch: (e)=>this.setState({sheetFilter:e.target.value}),
+      onbFilter: s.sheetFilter, onbHasFilter: !!s.sheetFilter,
+      onbClearSearch: ()=>this.setState({sheetFilter:''}),
+
+      sheetCountry: s.sheet==='country', sheetOrigin: s.sheet==='origin', closeSheet: this.closeSheet,
+      sheetCountries: this.countryGroups(s.sheetFilter).map(g=>({ title:g.title,
+        items: g.items.map((c,i)=>({ label:c, sep: i<g.items.length-1?SEP:'none',
+          on: s.country===c, pick:()=>this.pickCountry(c) })) })),
+      sheetOrigins: ORIGINS.map((o,i)=>({ label:o.label, sep: i<ORIGINS.length-1?SEP:'none',
+        on: s.origin===o.id,
+        isCorreo:o.id==='correo', isInstagram:o.id==='instagram', isWhatsapp:o.id==='whatsapp',
+        isLinkedin:o.id==='linkedin', isAmigo:o.id==='amigo', isOtro:o.id==='otro',
+        pick:()=>this.pickOrigin(o.id) })),
+      sheetEmpty: s.sheet==='country' && !this.countryGroups(s.sheetFilter).length,
+      langs: LANGS.map(l=>({ label:l.label, bg: s.lang===l.id?'#fff':'transparent', weight: s.lang===l.id?'600':'500',
+        shadow: s.lang===l.id?'0 1px 3px rgba(0,32,92,.18)':'none', pick:()=>this.setState({lang:l.id}) })),
+      courses: COURSES.map((c,i)=>({ name:c.name, desc:c.desc, logo:c.logo, sep: i<COURSES.length-1?SEP:'none' })),
+
+      fbOpen: s.fb.open, fbToolName: s.fb.tool,
+      fbStep1: s.fb.step===1, fbStep2: s.fb.step===2, fbStep25: s.fb.step===2.5,
+      fbStep3: s.fb.step===3, fbThanks: s.fb.step===4,
+      fbFaces: [{v:1,face:'😞'},{v:2,face:'🙁'},{v:3,face:'😐'},{v:4,face:'🙂'},{v:5,face:'🤩'}]
+        .map(f=>({ face:f.face, pick:()=>this.fbRate(f.v) })),
+      fbClose: this.fbClose, fbText: this.fbText, fbNext: this.fbNext, fbFinish: this.fbFinish,
+      fbMejoraSi: ()=>this.setFb({step:2.5}), fbMejoraNo: ()=>this.setFb({step:3}),
+      openFeedback: this.openFeedback,
+      goKit: ()=>this.go('kit'), goCasos: ()=>this.go('casos'), goGuias: ()=>this.go('guias'), goPerfil: ()=>this.go('perfil'),
+      tabKit: tabColor('kit'), tabCasos: tabColor('casos'), tabGuias: tabColor('guias'), tabPerfil: tabColor('perfil'),
+      toast: !!s.toast, toastText: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
