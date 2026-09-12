@@ -1,0 +1,42 @@
+name: Foto del panel
+
+# Publica panel/data.json (cifrado) cada 30 min para que el panel lea los datos
+# desde su propio dominio y no dependa de que el navegador alcance a n8n.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: panel-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generar foto cifrada
+        env:
+          PANEL_KEY: ${{ secrets.PANEL_KEY }}
+        run: node .github/scripts/panel-snapshot.mjs
+
+      - name: Publicar si cambió
+        run: |
+          if [ -n "$(git status --porcelain panel/data.json)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add panel/data.json
+            git commit -m "panel: foto de datos $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          else
+            echo "Sin cambios."
+          fi
