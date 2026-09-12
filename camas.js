@@ -456,8 +456,12 @@ function camaPacienteHTML(scr){
     </div>
 
     <div class="et-share" style="margin-top:20px">
+      <button onclick="pedirFormatoEvolucion('${p.id}')">${ICON.share}${esc(t.entregar)}</button>
+      <button onclick="printCase()">${ICON.print}${esc(T().casos.pdf)}</button>
+    </div>
+    <div class="et-share" style="margin-top:9px">
       <button onclick="S.sheet='mover:${p.id}';render()">${ICON.beds}${esc(t.mover)}</button>
-      <button onclick="pedirEgreso('${p.id}','${esc(p.alias)}')">${ICON.share}${esc(t.egreso)}</button>
+      <button onclick="pedirEgreso('${p.id}','${esc(p.alias)}')">${esc(t.egreso)}</button>
     </div>
     <p class="et-note">${esc(t.egresoNota)}</p>
   </div>`;
@@ -631,5 +635,91 @@ async function guardarEnEvolucion(pacienteId, entry){
   if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
   else showToast(T().camas.guardadoEn.replace('{v}',
     (C.pacientes.find(p => p.id === pacienteId) || {}).alias || ''));
+  render();
+}
+
+
+/* ============================================================
+   Exportar la evolucion de un paciente.
+
+   Es el momento de mayor ahorro administrativo del producto: al alta, el
+   residente escribe el resumen de memoria buscando a que hora paso que.
+   Aqui esa linea de tiempo ya existe, firmada y con horas reales.
+   ============================================================ */
+function evolucionComoTexto(p, evo, indicaciones, formato){
+  const t = T().camas;
+  const d = new Date(p.ingreso);
+  const fecha = d.toLocaleDateString(T().htmlLang, { day:'2-digit', month:'2-digit', year:'numeric' });
+  const cab = formato === 'nota'
+    ? `${p.alias} — ${fecha}`
+    : `${p.alias}\n${t.desde.replace('{v}', fmtDate(d.getTime()))} · ${C.unidad.nombre}`;
+
+  const lineas = (evo || []).map(e => {
+    const hora = fmtTime(new Date(e.cliente_ts).getTime());
+    const cuerpo = e.tipo === 'resultado'
+      ? `${e.herramienta ? e.herramienta + ': ' : ''}${e.titulo || ''}${e.detalle ? '. ' + e.detalle : ''}`
+      : (e.texto || '');
+    /* En la nota para la ficha la firma sobra: la ficha ya sabe quien escribe.
+       En la entrega de turno importa saber quien decidio que. */
+    return formato === 'nota'
+      ? `${hora} — ${cuerpo}.`
+      : `${hora} · ${e.autor_nombre}\n${cuerpo}`;
+  });
+
+  const pend = (indicaciones || []).filter(i => !i.hecha_ts);
+  const bloquePend = pend.length
+    ? `\n\n${t.pendientesAlEntregar}\n` + pend.map(i => `· ${i.texto} (${i.autor_nombre})`).join('\n')
+    : '';
+
+  return `${cab}\n\n${lineas.join(formato === 'nota' ? '\n\n' : '\n\n')}${bloquePend}\n\n—\n${T().casos.noteFoot}`;
+}
+
+function pedirFormatoEvolucion(pacienteId){ S.evoFormato = pacienteId; render(); }
+function formatoEvolucionSheetHTML(){
+  if(!S.evoFormato) return '';
+  const t = T().casos, c = T().camas;
+  const id = S.evoFormato;
+  return `<div class="et-overlay" onclick="if(event.target===this){S.evoFormato=null;render()}">
+    <div class="et-sheet">
+      <div class="et-grabber"></div>
+      <div class="et-sheet-head">
+        <h2>${esc(t.formatTitle)}</h2>
+        <p>${esc(t.formatSub)}</p>
+      </div>
+      <div class="et-sheet-body" style="flex:0 1 auto;padding-bottom:6px">
+        <div class="et-group">
+          <button class="et-row" onclick="compartirEvolucion('${id}','turno')">
+            <span class="et-row-main">
+              <span class="et-row-title">${esc(t.fmtShift)}</span>
+              <span class="et-row-sub">${esc(c.fmtShiftSub)}</span>
+            </span>${ICON.right}
+          </button>
+          <button class="et-row" onclick="compartirEvolucion('${id}','nota')">
+            <span class="et-row-main">
+              <span class="et-row-title">${esc(t.fmtNote)}</span>
+              <span class="et-row-sub">${esc(t.fmtNoteSub)}</span>
+            </span>${ICON.right}
+          </button>
+        </div>
+      </div>
+    </div></div>`;
+}
+
+async function compartirEvolucion(pacienteId, formato){
+  const scr = topScreen();
+  const p = C.pacientes.find(x => x.id === pacienteId);
+  if(!p || !scr) return;
+  S.evoFormato = null;
+  const texto = evolucionComoTexto(p, scr.evolucion, scr.indicaciones, formato);
+  sendEvent('evolucion_share', { formato });
+  try{
+    if(navigator.share){ await navigator.share({ title: p.alias, text: texto }); render(); return; }
+  }catch(e){ if(e && e.name === 'AbortError'){ render(); return; } }
+  try{
+    await navigator.clipboard.writeText(texto);
+    showToast(T().casos.copied);
+  }catch(e){
+    S.shareText = texto;
+  }
   render();
 }

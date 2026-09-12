@@ -173,6 +173,7 @@ const S = {
   confirm: null,   /* {text, ok, run} de la hoja de confirmación */
   shareText: null,   /* texto del caso, cuando hay que copiarlo a mano */
   shareFormat: null, /* id del caso mientras se elige el formato de salida */
+  evoFormato: null,  /* id del paciente mientras se elige el formato de su evolución */
   toast: null,
   toastTimer: null
 };
@@ -634,8 +635,9 @@ function renderLayers(){
   const conf = typeof confirmHTML === 'function' ? confirmHTML() : '';
   const share = typeof shareTextSheetHTML === 'function' ? shareTextSheetHTML() : '';
   const fmt = typeof shareFormatSheetHTML === 'function' ? shareFormatSheetHTML() : '';
+  const fmtEvo = typeof formatoEvolucionSheetHTML === 'function' ? formatoEvolucionSheetHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + conf + fmt + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    sheetHTML() + conf + fmt + fmtEvo + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
 }
 
 function render(){
