@@ -147,6 +147,8 @@ const ICON = {
   /* Bifurcación: el símbolo de una conducta. Nunca un ✓ ni una ✗ — una
      conducta válida no es una respuesta correcta. */
   branch: SVG('<circle cx="6" cy="4.5" r="2.2"/><circle cx="17.5" cy="13" r="2.2"/><circle cx="6" cy="19.5" r="2.2"/><path d="M6 6.7v10.6"/><path d="M8.2 5.5h4.3a3 3 0 0 1 3 3v2.3"/>'),
+  share:  SVG('<path d="M12 15V4"/><path d="M8.5 7.5L12 4l3.5 3.5"/><path d="M5 13v6a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-6"/>'),
+  print:  SVG('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="7" rx="2"/><path d="M7 14h10v7H7z"/>'),
   save:   SVG('<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h7V3"/><rect x="8" y="13" width="8" height="6"/>'),
   grid:   SVG('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 4v16"/>'),
   /* Canales */
@@ -168,6 +170,7 @@ const S = {
   filter: '',
   onb: null,       /* { steps:[...], i:0 } mientras el arranque está activo */
   confirm: null,   /* {text, ok, run} de la hoja de confirmación */
+  shareText: null, /* texto del caso, cuando hay que copiarlo a mano */
   toast: null,
   toastTimer: null
 };
@@ -611,8 +614,9 @@ function renderLayers(){
      Van todas aquí porque este nodo se reescribe entero en cada render. */
   const bar = typeof gradeBarHTML === 'function' ? gradeBarHTML() : '';
   const conf = typeof confirmHTML === 'function' ? confirmHTML() : '';
+  const share = typeof shareTextSheetHTML === 'function' ? shareTextSheetHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + conf + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    sheetHTML() + conf + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
 }
 
 function render(){

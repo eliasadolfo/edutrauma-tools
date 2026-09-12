@@ -992,3 +992,45 @@ button.et-cover-row:active{ opacity:.55; }
   background:rgba(0,32,92,.07); color:var(--app-slate);
   font:700 10px/1.4 var(--et-font); text-transform:uppercase; letter-spacing:.08em;
 }
+
+/* ---------- Compartir / imprimir un caso ---------- */
+.et-share{ display:flex; gap:9px; margin-top:18px; }
+.et-share button{
+  flex:1; min-height:48px; border:0; border-radius:12px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:var(--app-surface); color:var(--app-teal);
+  box-shadow:var(--app-shadow-card);
+  font:600 15px/1 var(--et-font);
+  transition:transform .3s var(--app-spring);
+}
+.et-share button:active{ transform:scale(.96); }
+.et-share svg{ width:18px; height:18px; }
+
+/* ---------- Impresión: solo el registro del caso ----------
+   Desde la hoja de impresión, el teléfono ofrece "Guardar en Archivos" como
+   PDF. Así no hace falta generar el PDF ni cargar una librería que dejaría de
+   funcionar sin conexión. */
+@media print{
+  .et-strip, .et-ribbon, .et-nav, .et-tabs, .et-share, .et-btn, .et-btn-text,
+  #layers, .et-note{ display:none !important; }
+  html, body, .et-app{ height:auto !important; overflow:visible !important; background:#fff !important; }
+  .et-app{ max-width:none !important; }
+  .et-scroll{ overflow:visible !important; }
+  .et-pad{ padding:0 !important; }
+  .et-group{ box-shadow:none !important; border:1px solid #ccd3e2; break-inside:avoid; }
+  .et-row{ break-inside:avoid; }
+  .et-lede{ color:#000 !important; }
+  /* Encabezado impreso: el nombre del caso no se ve porque vivía en la nav bar. */
+  .et-scroll .et-pad::before{
+    content:attr(data-print-title);
+    display:block; margin:0 0 4px;
+    font:800 20px/1.25 var(--et-font); color:#00205C;
+  }
+}
+.et-textarea{
+  width:100%; box-sizing:border-box; min-height:52vh; resize:none;
+  background:var(--app-surface); border:0; border-radius:12px; padding:14px;
+  box-shadow:var(--app-shadow-card);
+  font:400 14px/1.6 var(--et-font); color:var(--app-navy);
+  -webkit-user-select:text; user-select:text;
+}

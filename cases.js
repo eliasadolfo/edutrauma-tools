@@ -174,11 +174,17 @@ function caseDetailHTML(scr){
         <h3>${esc(t.casos.noEntriesTitle)}</h3>
         <p>${esc(t.casos.noEntriesText)}</p></div>`;
 
-  return `<div class="et-pad">
+  return `<div class="et-pad" data-print-title="${esc(c.label)}">
     <p class="et-lede" style="margin:16px 0 0">${esc(caseMeta(c))}</p>
     ${c.id !== activeCaseId() ? `<button class="et-btn et-btn-ghost" style="margin-top:14px"
         onclick="makeActive('${c.id}')">${esc(t.casos.makeActive)}</button>` : ''}
     ${body}
+    ${c.entries.length ? `<div class="et-share">
+      <button onclick="shareCase('${c.id}')">${ICON.share}${esc(t.casos.share)}</button>
+      <button onclick="printCase()">${ICON.print}${esc(t.casos.pdf)}</button>
+    </div>
+    <p class="et-note">${esc(t.casos.shareNote)}</p>` : ''}
+
     <button class="et-btn" style="margin-top:18px" onclick="addAlgo('${c.id}')">${esc(t.casos.addAlgo)}</button>
     <button class="et-btn-text" onclick="deleteCase('${c.id}')"
       style="color:var(--app-red)">${esc(t.casos.delete)}</button>
@@ -296,4 +302,60 @@ function goToCase(id){
   S.stacks.casos = S.stack;
   S.dir = 1;
   render();
+}
+
+/* ---------- Compartir un caso ----------
+   El caso sale del telefono SOLO por decision explicita del usuario y solo
+   hacia donde el elija. No hay servidor de por medio: se arma el texto y se
+   entrega a la hoja de compartir del sistema (WhatsApp, correo, notas). */
+function caseAsText(c){
+  const t = T();
+  const cab = `${c.label}\n${fmtDate(c.created)} · ${c.entries.length === 1 ? t.casos.one : t.casos.many.replace('{n}', c.entries.length)}`;
+  /* Cronologico normal para entregar turno: se lee de principio a fin. */
+  const cuerpo = c.entries.slice().reverse().map(e => {
+    const linea = `${fmtTime(e.time)} · ${e.tool}\n${e.title}`;
+    return e.trace ? `${linea}\n${e.trace}` : linea;
+  }).join('\n\n');
+  return `${cab}\n\n${cuerpo}\n\n—\n${t.casos.exportFoot}`;
+}
+async function shareCase(id){
+  const c = caseById(id);
+  if(!c || !c.entries.length) return;
+  const texto = caseAsText(c);
+  sendEvent('case_share', { n: c.entries.length });
+  try{
+    if(navigator.share){ await navigator.share({ title: c.label, text: texto }); return; }
+  }catch(e){ if(e && e.name === 'AbortError') return; }
+  try{
+    await navigator.clipboard.writeText(texto);
+    showToast(T().casos.copied);
+    return;
+  }catch(e){}
+  /* Ni compartir nativo ni portapapeles: en vez de dejarlo sin salida, se le
+     muestra el texto ya seleccionado para que lo copie a mano. */
+  S.shareText = texto;
+  render();
+}
+function closeShareText(){ S.shareText = null; render(); }
+function shareTextSheetHTML(){
+  if(!S.shareText) return '';
+  const t = T();
+  return `<div class="et-overlay" onclick="if(event.target===this)closeShareText()">
+    <div class="et-sheet et-sheet-tall">
+      <div class="et-grabber"></div>
+      <div class="et-sheet-bar">
+        <h2>${esc(t.casos.share)}</h2>
+        <button class="et-cancel" onclick="closeShareText()">${esc(t.countrySheet.cancel)}</button>
+      </div>
+      <div class="et-sheet-body">
+        <p class="et-note" style="margin:0 0 10px">${esc(t.casos.selectHint)}</p>
+        <textarea class="et-textarea" readonly onfocus="this.select()">${esc(S.shareText)}</textarea>
+      </div>
+    </div></div>`;
+}
+/* Imprimir: el navegador ofrece "Guardar en Archivos" como PDF desde la misma
+   hoja de impresion. No necesitamos generar el PDF nosotros ni cargar una
+   libreria que romperia el funcionamiento sin conexion. */
+function printCase(){
+  window.print();
 }

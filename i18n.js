@@ -177,7 +177,13 @@ es: {
     savedIn: "Guardado en «{v}»",
     saveNew: "Guardar en un caso nuevo",
     toast: "Guardado en «{v}»",
-    privacy: "Los casos viven solo en este teléfono. No se envían a ningún servidor."
+    privacy: "Los casos viven solo en este teléfono. No se envían a ningún servidor.",
+    share: "Compartir", pdf: "Imprimir / PDF",
+    shareNote: "El caso sale de este teléfono solo si tú lo envías, y solo a donde tú elijas.",
+    copied: "Caso copiado — pégalo donde quieras",
+    copyFail: "No se pudo copiar.",
+    selectHint: "Mantén pulsado el texto y elige Copiar.",
+    exportFoot: "EduTrauma Tools — apoyo a la decisión clínica, no reemplaza el juicio médico."
   },
 
   guias: {
@@ -385,7 +391,13 @@ en: {
     savedIn: "Saved to “{v}”",
     saveNew: "Save to a new case",
     toast: "Saved to “{v}”",
-    privacy: "Cases live only on this phone. They are never sent to any server."
+    privacy: "Cases live only on this phone. They are never sent to any server.",
+    share: "Share", pdf: "Print / PDF",
+    shareNote: "The case leaves this phone only if you send it, and only where you choose.",
+    copied: "Case copied — paste it wherever you need",
+    copyFail: "Couldn't copy.",
+    selectHint: "Long-press the text and choose Copy.",
+    exportFoot: "EduTrauma Tools — clinical decision support, it does not replace medical judgement."
   },
 
   guias: {
@@ -593,7 +605,13 @@ pt: {
     savedIn: "Salvo em «{v}»",
     saveNew: "Salvar em um caso novo",
     toast: "Salvo em «{v}»",
-    privacy: "Os casos vivem só neste telefone. Nunca são enviados a nenhum servidor."
+    privacy: "Os casos vivem só neste telefone. Nunca são enviados a nenhum servidor.",
+    share: "Compartilhar", pdf: "Imprimir / PDF",
+    shareNote: "O caso sai deste telefone só se você o enviar, e só para onde você escolher.",
+    copied: "Caso copiado — cole onde precisar",
+    copyFail: "Não foi possível copiar.",
+    selectHint: "Mantenha pressionado o texto e escolha Copiar.",
+    exportFoot: "EduTrauma Tools — apoio à decisão clínica, não substitui o julgamento médico."
   },
 
   guias: {
