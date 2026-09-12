@@ -144,6 +144,10 @@ const ICON = {
   shield: SVG('<path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),
   chat:   SVG('<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20.5l1.5-4.4A8.4 8.4 0 0 1 3.6 11.5a8.4 8.4 0 0 1 8.4-8.4 8.4 8.4 0 0 1 9 8.4z"/>'),
   pulse:  SVG('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'),
+  /* Bifurcación: el símbolo de una conducta. Nunca un ✓ ni una ✗ — una
+     conducta válida no es una respuesta correcta. */
+  branch: SVG('<circle cx="6" cy="4.5" r="2.2"/><circle cx="17.5" cy="13" r="2.2"/><circle cx="6" cy="19.5" r="2.2"/><path d="M6 6.7v10.6"/><path d="M8.2 5.5h4.3a3 3 0 0 1 3 3v2.3"/>'),
+  grid:   SVG('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 15h18M9 4v16"/>'),
   /* Canales */
   correo:    SVG('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2.5 6.5l9.5 6.5 9.5-6.5"/>'),
   instagram: SVG('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/>'),
@@ -156,6 +160,7 @@ const ICON = {
 /* ============ Estado ============ */
 const S = {
   tab: 'kit',
+  stack: [],       /* pila de pantallas dentro de la pestaña Kit */
   dir: 0,          /* 1 push · -1 pop · 0 cambio de pestaña */
   sheet: null,     /* 'country' | 'channel' */
   filter: '',
@@ -384,10 +389,26 @@ function showToast(msg){
 }
 
 /* ============ Pantallas ============ */
+/* Cabecera de progreso, compartida por los dos motores de algoritmo. */
+function progressHTML(step, total, name){
+  const pct = Math.round((step / total) * 100);
+  return `<div class="et-prog-top">
+      <span>${esc(T().tool.stepOf.replace('{n}', step).replace('{t}', total))}</span>
+      <span class="et-prog-name">${esc(name)}</span>
+    </div>
+    <div class="et-prog"><i style="width:${pct}%"></i></div>`;
+}
+
 function kitHTML(){
   const t = T(), k = t.kit;
-  const tools = t.tools.map(tool => `
-    <a class="et-row" href="${tool.href}" onclick="sendEvent('tool_open',{tool_id:'${tool.id}'})">
+  const tools = t.tools.map(tool => {
+    /* Las portadas ya viven dentro del app; las demás siguen abriendo su
+       página actual hasta que se porten. */
+    const inside = !!(window.TOOLS && TOOLS[tool.id]);
+    const open = inside
+      ? `<button class="et-row" onclick="openTool('${tool.id}')">`
+      : `<a class="et-row" href="${tool.href}" onclick="sendEvent('tool_open',{tool_id:'${tool.id}'})">`;
+    return `${open}
       <span class="et-tile" style="background:${tool.tile}">
         ${tool.chip ? `<img src="../${tool.chip}" alt="">`
                     : `<span class="et-tile-mono">${esc(tool.mono)}</span>`}
@@ -396,7 +417,8 @@ function kitHTML(){
         <span class="et-row-title">${esc(tool.title)}</span>
         <span class="et-row-sub">${esc(tool.desc)}</span>
       </span>${ICON.right}
-    </a>`).join('');
+    ${inside ? '</button>' : '</a>'}`;
+  }).join('');
 
   return `
     <div class="et-sticky-wrap">
@@ -412,6 +434,7 @@ function kitHTML(){
       </div>
     </div>
     <div class="et-pad">
+      ${favCarouselHTML()}
       <div class="et-section">${esc(k.yourTools)}</div>
       <div class="et-group">${tools}</div>
       <p class="et-note">${esc(k.disclaimer)}</p>
@@ -423,6 +446,26 @@ function kitHTML(){
         </button>
       </div>
     </div>`;
+}
+
+/* Favoritos: se ocultan del todo si no hay ninguno. */
+function favCarouselHTML(){
+  if(typeof favs !== 'function') return '';
+  const list = favs();
+  if(!list.length) return '';
+  const cards = list.map(key => {
+    const [toolId, algoId] = key.split(':');
+    const a = TOOLS[toolId] && algoById(toolId, algoId);
+    if(!a) return '';
+    return `<button class="et-fav-card" onclick="openTool('${toolId}');openAlgo('${toolId}','${algoId}')">
+        ${STAR(true)}
+        <span class="et-fav-name">${esc(trC(a.name))}</span>
+        <span class="et-fav-tool">${esc(TOOLS[toolId].name)}</span>
+      </button>`;
+  }).filter(Boolean).join('');
+  if(!cards) return '';
+  return `<div class="et-section">${esc(T().kit.favorites)}</div>
+          <div class="et-carousel">${cards}</div>`;
 }
 
 function emptyScreenHTML(block){
@@ -526,7 +569,7 @@ function tabsHTML(){
 }
 function setTab(id){
   if(S.tab === id) return;
-  S.tab = id; S.dir = 0;
+  S.tab = id; S.dir = 0; S.filter = '';
   render();
   document.getElementById('scroll').scrollTop = 0;
 }
@@ -551,7 +594,10 @@ function render(){
   }
   document.getElementById('tabs').style.display = '';
 
-  const screen = {
+  /* La pila solo existe dentro del Kit. */
+  const scr = (S.tab === 'kit' && S.stack.length) ? S.stack[S.stack.length - 1] : null;
+
+  const screen = scr ? stackScreenHTML(scr) : {
     kit:    kitHTML,
     casos:  () => emptyScreenHTML(t.casos),
     guias:  () => emptyScreenHTML(t.guias),
@@ -562,8 +608,19 @@ function render(){
   const scroll = document.getElementById('scroll');
   scroll.innerHTML = `<div class="${anim}">${screen}</div>`;
 
-  document.getElementById('navbar').innerHTML = '';
-  document.getElementById('courseChip').innerHTML = '';
+  if(scr){
+    const nav = stackNav(scr, S.stack[S.stack.length - 2]);
+    document.getElementById('navbar').innerHTML = `
+      <div class="et-nav">
+        <button class="et-nav-back" onclick="goBack()">${ICON.left}<span>${esc(nav.backLabel)}</span></button>
+        <div class="et-nav-title"><span>${esc(nav.title)}</span></div>
+      </div>`;
+    document.getElementById('courseChip').innerHTML = nav.chip
+      ? `<span class="et-course-chip"><img src="../${nav.chip}" alt=""></span>` : '';
+  } else {
+    document.getElementById('navbar').innerHTML = '';
+    document.getElementById('courseChip').innerHTML = '';
+  }
   document.getElementById('tabs').innerHTML = tabsHTML();
   renderLayers();
 }

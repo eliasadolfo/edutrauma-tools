@@ -61,6 +61,29 @@ es: {
     doneText: "Las cinco herramientas ya están en tu teléfono y funcionan sin conexión."
   },
 
+  tool: {
+    search: "Buscar algoritmo…",
+    stepOf: "Paso {n} de {t}",
+    back: "Atrás",
+    yes: "SÍ", no: "NO",
+    rule: "Regla práctica",
+    fav: "Marcar como favorito",
+    emptyTitle: "Sin resultados",
+    emptyText: "Prueba con «Björck», «antibióticos» o «NEXUS».",
+    presentOf: "{n} de {t} presentes",
+    seeResult: "Ver resultado",
+    nonePresent: "Ningún criterio presente",
+    bjorckSub: "Los 9 grados de un vistazo, sin recorrer el árbol",
+    bjorckLede: "Los nueve grados con su conducta. Toca uno para ver los pasos.",
+    steps: "{n} pasos", step1: "1 paso",
+    directLookup: "Consulta directa",
+    conduct: "Conducta",
+    conductNote: "Dejar el abdomen abierto y cerrarlo son dos conductas igualmente válidas. Esta pantalla refleja la que corresponde a los hallazgos que indicaste — no es una respuesta correcta ni incorrecta.",
+    trace: "Trazabilidad",
+    ref: "Referencia:",
+    another: "Otro algoritmo"
+  },
+
   kit: {
     coverTitle: "¿Qué necesitas decidir?",
     coverSub: "Elige una herramienta y te acompaño paso a paso.",
@@ -171,6 +194,29 @@ en: {
     doneText: "All five tools are on your phone now, and they work offline."
   },
 
+  tool: {
+    search: "Search algorithm…",
+    stepOf: "Step {n} of {t}",
+    back: "Back",
+    yes: "YES", no: "NO",
+    rule: "Rule of thumb",
+    fav: "Mark as favourite",
+    emptyTitle: "No results",
+    emptyText: "Try “Björck”, “antibiotics” or “NEXUS”.",
+    presentOf: "{n} of {t} present",
+    seeResult: "See result",
+    nonePresent: "No criteria present",
+    bjorckSub: "All 9 grades at a glance, no tree to walk",
+    bjorckLede: "The nine grades with their management. Tap one to see the steps.",
+    steps: "{n} steps", step1: "1 step",
+    directLookup: "Direct lookup",
+    conduct: "Management",
+    conductNote: "Leaving the abdomen open and closing it are two equally valid courses of action. This screen shows the one matching the findings you entered — it is not a right or wrong answer.",
+    trace: "Traceability",
+    ref: "Reference:",
+    another: "Another algorithm"
+  },
+
   kit: {
     coverTitle: "What do you need to decide?",
     coverSub: "Pick a tool and I'll walk you through it.",
@@ -279,6 +325,29 @@ pt: {
     q3: "Como você nos conheceu?", w3: "É a única forma de saber qual canal funciona.",
     doneTitle: "Pronto",
     doneText: "As cinco ferramentas já estão no seu telefone e funcionam sem conexão."
+  },
+
+  tool: {
+    search: "Buscar algoritmo…",
+    stepOf: "Passo {n} de {t}",
+    back: "Voltar",
+    yes: "SIM", no: "NÃO",
+    rule: "Regra prática",
+    fav: "Marcar como favorito",
+    emptyTitle: "Sem resultados",
+    emptyText: "Tente «Björck», «antibióticos» ou «NEXUS».",
+    presentOf: "{n} de {t} presentes",
+    seeResult: "Ver resultado",
+    nonePresent: "Nenhum critério presente",
+    bjorckSub: "Os 9 graus de uma vez, sem percorrer a árvore",
+    bjorckLede: "Os nove graus com sua conduta. Toque em um para ver os passos.",
+    steps: "{n} passos", step1: "1 passo",
+    directLookup: "Consulta direta",
+    conduct: "Conduta",
+    conductNote: "Deixar o abdome aberto e fechá-lo são duas condutas igualmente válidas. Esta tela reflete a que corresponde aos achados que você indicou — não é uma resposta certa nem errada.",
+    trace: "Rastreabilidade",
+    ref: "Referência:",
+    another: "Outro algoritmo"
   },
 
   kit: {
