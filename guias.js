@@ -48,15 +48,15 @@ function guiasScreenHTML(){
     <p class="et-lede">${esc(t.guias.lede)}</p>
     <div class="et-group">
       ${guiasList().map(g => `
-        <button class="et-row" ${g.ready ? '' : 'disabled'}
-                onclick="${g.ready ? `push({kind:'guiaDetail',guiaId:'${g.id}'})` : ''}">
+        <button class="et-row"
+                onclick="${g.ready ? `push({kind:'guiaDetail',guiaId:'${g.id}'})` : `showToast(T().guias.pendingWhy)`}">
           <span class="et-tile et-tile-sm${g.ready ? ' et-tile-on' : ''}"
                 style="background:${g.ready ? 'var(--app-navy)' : 'rgba(0,32,92,.08)'}">${ICON.guias}</span>
           <span class="et-row-main">
             <span class="et-row-title" style="${g.ready ? '' : 'color:var(--app-slate)'}">${esc(g.title)}</span>
             <span class="et-row-sub">${esc(g.sub)}</span>
           </span>
-          ${g.ready ? ICON.right : ''}
+          ${g.ready ? ICON.right : `<span class="et-pill-soon">${esc(T().guias.pending)}</span>`}
         </button>`).join('')}
     </div>
     <p class="et-note">${esc(t.guias.note)}</p>

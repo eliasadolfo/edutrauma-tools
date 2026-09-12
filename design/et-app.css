@@ -987,3 +987,8 @@ button.et-cover-row:active{ opacity:.55; }
 }
 .et-ask-actions button:active{ transform:scale(.96); }
 .et-ask-actions button.ghost{ background:none; color:var(--app-slate); }
+.et-pill-soon{
+  flex-shrink:0; padding:3px 9px; border-radius:999px;
+  background:rgba(0,32,92,.07); color:var(--app-slate);
+  font:700 10px/1.4 var(--et-font); text-transform:uppercase; letter-spacing:.08em;
+}
