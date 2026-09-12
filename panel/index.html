@@ -190,7 +190,7 @@ function bars(items, label){
     <div class="bv">${i.n}</div>
   </div>`).join('');
 }
-function barName(i){ return esc(i.name||i.pais||i.prof||i.fuente); }
+function barName(i){ return esc(i.name||i.pais||i.prof||i.fuente||i.tool); }
 
 function kpi(name, val, sub, pill){
   return `<div class="kpi"><div class="k-top"><span class="k-name">${name}</span>${pill?`<span class="pill ${pill.c}">${pill.t}</span>`:''}</div>
@@ -256,6 +256,35 @@ function render(d){
         ${ratingsHTML}
       </div>
     </div>
+
+    ${(() => {
+      const c = d.casos || {};
+      const hay = (c.guardadores || 0) > 0;
+      return `
+    <h2>¿Lo usan como asistente de turno?</h2>
+    <p class="hint" style="margin:-6px 0 12px;">
+      Casos es la apuesta de que la app deje de ser una calculadora y pase a acompañar un turno.
+      Esto dice si prendió. <b>Solo contamos cuántos registros hay, nunca qué dicen</b> — los casos
+      viven en el teléfono de cada persona y no se envían.
+    </p>
+    <div class="kpis">
+      ${kpi('Guardan casos', c.guardadores ?? 0,
+            `<b>${c.adopcion || 0}%</b> de los usuarios · ${c.creadores || 0} crearon alguno`)}
+      ${kpi('Registros guardados', c.registros ?? 0,
+            hay ? `<b>${c.porGuardador}</b> por persona en promedio` : 'todavía ninguno')}
+      ${kpi('Entregan el caso', c.compartidores ?? 0,
+            `${c.compartidos || 0} veces compartido o impreso`)}
+    </div>
+    <div class="panel" style="margin-top:14px;">
+      <h3>Qué guardan</h3>
+      <p class="hint">${hay
+        ? 'De qué herramienta viene cada registro. Dice para qué usan realmente la memoria.'
+        : 'Cuando alguien guarde su primer resultado en un caso, aparecerá aquí.'}</p>
+      ${c.porHerramienta && c.porHerramienta.length
+        ? bars(c.porHerramienta.map(x => ({ tool: x.tool, n: x.n })))
+        : '<div class="pet-empty">Sin registros todavía. Publicado hoy — dale unos días antes de concluir nada.</div>'}
+    </div>`;
+    })()}
 
     <div class="grid2" style="margin-top:14px;">
       <div class="panel">
