@@ -395,16 +395,21 @@ function stackScreenHTML(scr){
     calcList: calcListHTML,
     calc: calcFormHTML,
     calcResult: calcResultHTML,
-    caseDetail: caseDetailHTML
+    caseDetail: caseDetailHTML,
+    guiaDetail: guiaDetailHTML
   }[scr.kind](scr);
 }
 /* Título y etiqueta de "atrás" de cada nivel. */
 function stackNav(scr, prev){
   const t = T();
   /* El detalle de caso vive en la pestaña Casos, no cuelga de una herramienta. */
+  if(scr.kind === 'guiaDetail'){
+    const g = guiasList().find(x => x.id === scr.guiaId);
+    return { backLabel: t.tabs.guias, title: g ? g.title : '', chip: null };
+  }
   if(scr.kind === 'caseDetail'){
     const c = caseById(scr.caseId);
-    return { backLabel: t.casos.title, title: c ? c.label : '', chip: null };
+    return { backLabel: t.tabs.casos, title: c ? c.label : '', chip: null };
   }
   const tool = TOOLS[scr.toolId];
   const backLabel = !prev ? t.tabs.kit

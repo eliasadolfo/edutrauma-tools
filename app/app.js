@@ -612,7 +612,7 @@ function render(){
   const screen = scr ? stackScreenHTML(scr) : {
     kit:    kitHTML,
     casos:  casosScreenHTML,
-    guias:  () => emptyScreenHTML(t.guias),
+    guias:  guiasScreenHTML,
     perfil: perfilHTML
   }[S.tab]();
 

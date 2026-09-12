@@ -959,3 +959,13 @@ button.et-cover-row:active{ opacity:.55; }
 }
 .et-input::placeholder{ color:rgba(0,32,92,.35); }
 .et-row[disabled]{ cursor:default; }
+
+/* ---------- Guías ---------- */
+.et-num, .et-code{
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  background:var(--app-navy); color:#fff; border-radius:7px;
+}
+.et-num{ width:26px; height:26px; font:700 13px/1 var(--et-font); }
+.et-code{ min-width:62px; height:26px; padding:0 8px; font:700 12px/1 var(--et-font); }
+/* El tile navy necesita su icono en blanco: .et-tile-sm svg lo pinta navy. */
+.et-tile-on svg{ color:#fff; }

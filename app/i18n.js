@@ -180,8 +180,23 @@ es: {
   guias: {
     title: "Material de los cursos",
     lede: "Consulta rápida del material de los cursos. Sin flujo: solo referencia.",
-    emptyTitle: "En preparación",
-    emptyText: "Las fichas de consulta las está redactando el equipo docente. Llegarán en una próxima actualización."
+    note: "Las fichas se arman con el mismo contenido que usan las herramientas.",
+    nexusTitle: "Criterios NEXUS — referencia",
+    tegTitle: "Panel TEG6s — qué mide cada parámetro",
+    tegSub: "Curso DQT",
+    tegLede: "Los siete valores del panel y qué representa cada uno.",
+    bjorckTitle: "Clasificación de Björck",
+    bjorckSub: "Curso MIAA · los 9 grados",
+    bjorckLede: "Los nueve grados con su conducta resumida.",
+    abcdeTitle: "Secuencia del abordaje primario",
+    pending: "En preparación",
+    criteria: "Los 5 criterios",
+    params: "Parámetros",
+    unit: "Unidad",
+    nexusRule: "La columna cervical se libera solo si NINGUNO de los cinco criterios está presente. Con uno solo, se mantiene la inmovilización.",
+    useIt: "Usar la herramienta",
+    source: "Fuente:",
+    emptyTitle: "Esta ficha aún no está lista"
   },
 
   perfil: {
@@ -369,8 +384,23 @@ en: {
   guias: {
     title: "Course material",
     lede: "Quick reference from the course material. No flow: reference only.",
-    emptyTitle: "In preparation",
-    emptyText: "The teaching team is writing these reference sheets. They'll arrive in an upcoming update."
+    note: "These sheets are built from the same content the tools use.",
+    nexusTitle: "NEXUS criteria — reference",
+    tegTitle: "TEG6s panel — what each parameter measures",
+    tegSub: "DQT course",
+    tegLede: "The seven panel values and what each one represents.",
+    bjorckTitle: "Björck classification",
+    bjorckSub: "MIAA course · the 9 grades",
+    bjorckLede: "The nine grades with their management, summarised.",
+    abcdeTitle: "Primary survey sequence",
+    pending: "In preparation",
+    criteria: "The 5 criteria",
+    params: "Parameters",
+    unit: "Unit",
+    nexusRule: "The cervical spine is cleared only if NONE of the five criteria is present. With even one, immobilisation is maintained.",
+    useIt: "Use the tool",
+    source: "Source:",
+    emptyTitle: "This sheet isn't ready yet"
   },
 
   perfil: {
@@ -558,8 +588,23 @@ pt: {
   guias: {
     title: "Material dos cursos",
     lede: "Consulta rápida do material dos cursos. Sem fluxo: apenas referência.",
-    emptyTitle: "Em preparação",
-    emptyText: "A equipe docente está redigindo estas fichas de consulta. Chegarão em uma próxima atualização."
+    note: "As fichas são montadas com o mesmo conteúdo que as ferramentas usam.",
+    nexusTitle: "Critérios NEXUS — referência",
+    tegTitle: "Painel TEG6s — o que mede cada parâmetro",
+    tegSub: "Curso DQT",
+    tegLede: "Os sete valores do painel e o que cada um representa.",
+    bjorckTitle: "Classificação de Björck",
+    bjorckSub: "Curso MIAA · os 9 graus",
+    bjorckLede: "Os nove graus com sua conduta resumida.",
+    abcdeTitle: "Sequência da abordagem primária",
+    pending: "Em preparação",
+    criteria: "Os 5 critérios",
+    params: "Parâmetros",
+    unit: "Unidade",
+    nexusRule: "A coluna cervical é liberada apenas se NENHUM dos cinco critérios estiver presente. Com um só, mantém-se a imobilização.",
+    useIt: "Usar a ferramenta",
+    source: "Fonte:",
+    emptyTitle: "Esta ficha ainda não está pronta"
   },
 
   perfil: {
