@@ -170,7 +170,8 @@ const S = {
   filter: '',
   onb: null,       /* { steps:[...], i:0 } mientras el arranque está activo */
   confirm: null,   /* {text, ok, run} de la hoja de confirmación */
-  shareText: null, /* texto del caso, cuando hay que copiarlo a mano */
+  shareText: null,   /* texto del caso, cuando hay que copiarlo a mano */
+  shareFormat: null, /* id del caso mientras se elige el formato de salida */
   toast: null,
   toastTimer: null
 };
@@ -615,8 +616,9 @@ function renderLayers(){
   const bar = typeof gradeBarHTML === 'function' ? gradeBarHTML() : '';
   const conf = typeof confirmHTML === 'function' ? confirmHTML() : '';
   const share = typeof shareTextSheetHTML === 'function' ? shareTextSheetHTML() : '';
+  const fmt = typeof shareFormatSheetHTML === 'function' ? shareFormatSheetHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + conf + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    sheetHTML() + conf + fmt + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
 }
 
 function render(){

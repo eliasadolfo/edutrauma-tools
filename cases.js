@@ -180,7 +180,7 @@ function caseDetailHTML(scr){
         onclick="makeActive('${c.id}')">${esc(t.casos.makeActive)}</button>` : ''}
     ${body}
     ${c.entries.length ? `<div class="et-share">
-      <button onclick="shareCase('${c.id}')">${ICON.share}${esc(t.casos.share)}</button>
+      <button onclick="askShareFormat('${c.id}')">${ICON.share}${esc(t.casos.share)}</button>
       <button onclick="printCase()">${ICON.print}${esc(t.casos.pdf)}</button>
     </div>
     <p class="et-note">${esc(t.casos.shareNote)}</p>` : ''}
@@ -318,11 +318,59 @@ function caseAsText(c){
   }).join('\n\n');
   return `${cab}\n\n${cuerpo}\n\n—\n${t.casos.exportFoot}`;
 }
-async function shareCase(id){
+/* Nota para la ficha: la misma informacion, redactada para pegar en la
+   evolucion. Solo devuelve lo que la app produjo — nunca pide al usuario
+   escribir datos del paciente para "ayudarle con lo administrativo": eso no
+   le quita trabajo, se lo mueve. */
+function caseAsNote(c){
+  const t = T();
+  const d = new Date(c.created);
+  const fecha = d.toLocaleDateString(t.htmlLang, { day:'2-digit', month:'2-digit', year:'numeric' });
+  /* La herramienta va en la linea: sin ella "Grado IV" no dice de que. */
+  const lineas = c.entries.slice().reverse().map(e => {
+    const base = `${fmtTime(e.time)} — ${e.tool}: ${e.title}.`;
+    return e.trace ? `${base} ${e.trace}.` : base;
+  });
+  return `${c.label} — ${fecha}\n\n${lineas.join('\n\n')}\n\n${t.casos.noteFoot}`;
+}
+
+function askShareFormat(id){ S.shareFormat = id; render(); }
+function shareFormatSheetHTML(){
+  if(!S.shareFormat) return '';
+  const t = T();
+  const id = S.shareFormat;
+  return `<div class="et-overlay" onclick="if(event.target===this){S.shareFormat=null;render()}">
+    <div class="et-sheet">
+      <div class="et-grabber"></div>
+      <div class="et-sheet-head">
+        <h2>${esc(t.casos.formatTitle)}</h2>
+        <p>${esc(t.casos.formatSub)}</p>
+      </div>
+      <div class="et-sheet-body" style="flex:0 1 auto;padding-bottom:6px">
+        <div class="et-group">
+          <button class="et-row" onclick="shareCase('${id}','turno')">
+            <span class="et-row-main">
+              <span class="et-row-title">${esc(t.casos.fmtShift)}</span>
+              <span class="et-row-sub">${esc(t.casos.fmtShiftSub)}</span>
+            </span>${ICON.right}
+          </button>
+          <button class="et-row" onclick="shareCase('${id}','nota')">
+            <span class="et-row-main">
+              <span class="et-row-title">${esc(t.casos.fmtNote)}</span>
+              <span class="et-row-sub">${esc(t.casos.fmtNoteSub)}</span>
+            </span>${ICON.right}
+          </button>
+        </div>
+      </div>
+    </div></div>`;
+}
+
+async function shareCase(id, formato){
   const c = caseById(id);
   if(!c || !c.entries.length) return;
-  const texto = caseAsText(c);
-  sendEvent('case_share', { n: c.entries.length });
+  S.shareFormat = null;
+  const texto = formato === 'nota' ? caseAsNote(c) : caseAsText(c);
+  sendEvent('case_share', { n: c.entries.length, formato: formato || 'turno' });
   try{
     if(navigator.share){ await navigator.share({ title: c.label, text: texto }); return; }
   }catch(e){ if(e && e.name === 'AbortError') return; }
