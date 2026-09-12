@@ -82,7 +82,12 @@ async function camasInit(){
   });
   if(C.sesion){ await vaciarCola(); await cargarUnidad(); }
 }
-async function enviarEnlace(){
+/* Código de 6 dígitos, no enlace.
+   Un enlace en un correo SIEMPRE abre el navegador, nunca la app instalada, y
+   en iPhone la app del icono tiene su propio almacenamiento: la sesión se
+   quedaría en Safari y no donde el usuario va a trabajar. Con un código que se
+   escribe dentro de la app, la sesión nace en el sitio correcto. */
+async function enviarCodigo(){
   const el = document.getElementById('camasEmail');
   const email = (el ? el.value : '').trim();
   if(!email) return;
@@ -93,8 +98,21 @@ async function enviarEnlace(){
   });
   C.cargando = false;
   C.error = error ? error.message : null;
-  if(!error) C.enlaceEnviado = email;
+  if(!error) C.esperandoCodigo = email;
   render();
+  setTimeout(() => { const i = document.getElementById('camasCodigoOtp'); if(i) i.focus(); }, 120);
+}
+async function verificarCodigo(){
+  const el = document.getElementById('camasCodigoOtp');
+  const token = (el ? el.value : '').replace(/\D/g, '');
+  if(token.length < 6) return;
+  const c = sbClient();
+  C.cargando = true; C.error = null; render();
+  const { error } = await c.auth.verifyOtp({ email: C.esperandoCodigo, token, type: 'email' });
+  C.cargando = false;
+  if(error){ C.error = T().camas.codigoOtpMalo; render(); return; }
+  C.esperandoCodigo = null;
+  await cargarUnidad();
 }
 async function camasSalir(){
   await sbClient().auth.signOut();
@@ -273,11 +291,19 @@ function avisoHTML(txt){
 
 function camasAuthHTML(){
   const t = T().camas;
-  if(C.enlaceEnviado){
+  if(C.esperandoCodigo){
     return `<div class="et-pad">
       <h1 class="et-h1">${esc(t.revisaCorreo)}</h1>
-      <p class="et-lede">${esc(t.enviadoA.replace('{v}', C.enlaceEnviado))}</p>
-      <button class="et-btn-text" onclick="C.enlaceEnviado=null;render()">${esc(t.otroCorreo)}</button>
+      <p class="et-lede">${esc(t.enviadoA.replace('{v}', C.esperandoCodigo))}</p>
+      <input class="et-input" id="camasCodigoOtp" inputmode="numeric" autocomplete="one-time-code"
+             maxlength="6" placeholder="000000"
+             style="text-align:center;letter-spacing:.5em;font-weight:800;font-size:26px"
+             oninput="if(this.value.replace(/\\D/g,'').length===6) verificarCodigo()">
+      <button class="et-btn" style="margin-top:12px" ${C.cargando?'disabled':''}
+              onclick="verificarCodigo()">${esc(C.cargando ? t.verificando : t.verificar)}</button>
+      ${C.error ? `<p class="et-note" style="color:var(--app-red)">${esc(C.error)}</p>` : ''}
+      <p class="et-note">${esc(t.codigoNoEnlace)}</p>
+      <button class="et-btn-text" onclick="C.esperandoCodigo=null;C.error=null;render()">${esc(t.otroCorreo)}</button>
     </div>`;
   }
   return `<div class="et-pad">
@@ -287,7 +313,7 @@ function camasAuthHTML(){
     <input class="et-input" id="camasEmail" type="email" inputmode="email" autocomplete="email"
            placeholder="${esc(t.tuCorreo)}" style="margin-top:16px">
     <button class="et-btn" style="margin-top:12px" ${C.cargando?'disabled':''}
-            onclick="enviarEnlace()">${esc(C.cargando ? t.enviando : t.enviarEnlace)}</button>
+            onclick="enviarCodigo()">${esc(C.cargando ? t.enviando : t.enviarEnlace)}</button>
     ${C.error ? `<p class="et-note" style="color:var(--app-red)">${esc(C.error)}</p>` : ''}
     <p class="et-note">${esc(t.sinContrasena)}</p>
   </div>`;
