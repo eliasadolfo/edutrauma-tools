@@ -76,6 +76,29 @@ La app funciona en pabellón sin cobertura. Las notas se guardan locales con su
 `cliente_ts` (la hora del teléfono, que es el orden real) y un `local_id` que
 hace la sincronización idempotente: subir dos veces no duplica.
 
+## Quién crea unidades
+
+Durante el piloto, solo una lista corta. Cuando se distribuya, cualquiera —
+para que crezca solo. Decisión de Elías, 12-sep-2026.
+
+Eso **no está hardcodeado**. Vive en la tabla `ajuste`:
+
+| clave | valor | significa |
+|---|---|---|
+| `creacion_unidades` | `cerrada` | solo los correos de `creador_autorizado` |
+| | `abierta` | cualquiera con sesión iniciada |
+
+Abrirlo es cambiar ese valor — no hay que tocar políticas ni desplegar la app.
+Se hizo así a propósito: abrir después es trivial, cerrar después de que
+existan unidades con pacientes dentro no lo es.
+
+La lista autoriza por **correo, no por user_id**, para poder autorizar a
+alguien antes de que entre por primera vez. Falta añadir el de Pablo.
+
+Ambas tablas tienen RLS activo y **ninguna política**: nadie las lee desde la
+app. Se administran desde la consola de Supabase. El aviso INFO del linter es
+esperado.
+
 ## Seguridad
 
 Todo pasa por RLS, y todo gira en torno a pertenecer a la unidad. Las
@@ -92,3 +115,9 @@ nadie puede llamarlas desde fuera para preguntar quién pertenece a qué.
 - Que un resultado de herramienta se pueda guardar en una cama, no solo en un
   caso privado.
 - Dejar por escrito con quién se habló en el hospital y qué se autorizó.
+- Añadir el correo de Pablo a `creador_autorizado`.
+- **El alta.** Cuando el paciente egresa, el residente escribe el resumen de
+  memoria buscando a qué hora pasó qué. La app va a tener esa línea de tiempo
+  completa, firmada y con horas reales. Exportarla en ese momento es
+  probablemente el mayor ahorro de trabajo de todo el proyecto. El paciente
+  no se borra al egresar: se marca la salida y su evolución queda.
