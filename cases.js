@@ -84,6 +84,12 @@ function saveRowHTML(entry){
     </button>
   </div>`;
 }
+/* La fila de guardar en una cama va junto a la de guardar en un caso: son dos
+   destinos distintos y el usuario tiene que ver la diferencia. */
+function saveRowsHTML(entry){
+  return saveRowHTML(entry) +
+         (typeof guardarEnCamaHTML === 'function' ? guardarEnCamaHTML(entry) : '');
+}
 function doSave(entry){
   const c = saveToCase(entry);
   render();

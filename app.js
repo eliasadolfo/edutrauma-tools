@@ -349,6 +349,7 @@ function sheetHTML(){
   if(S.sheet === 'nuevaCama') return camaSheetHTML('nueva');
   if(S.sheet && S.sheet.startsWith('ingreso:')) return camaSheetHTML('ingreso', S.sheet.slice(8));
   if(S.sheet && S.sheet.startsWith('mover:'))   return camaSheetHTML('mover',   S.sheet.slice(6));
+  if(S.sheet && S.sheet.startsWith('aCama:'))   return elegirPacienteHTML(S.sheet.slice(6));
   if(S.sheet === 'country'){
     const c = t.countrySheet;
     return `<div class="et-overlay" onclick="if(event.target===this)closeSheet()">

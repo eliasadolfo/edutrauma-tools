@@ -303,6 +303,7 @@ function camasAuthHTML(){
               onclick="verificarCodigo()">${esc(C.cargando ? t.verificando : t.verificar)}</button>
       ${C.error ? `<p class="et-note" style="color:var(--app-red)">${esc(C.error)}</p>` : ''}
       <p class="et-note">${esc(t.codigoNoEnlace)}</p>
+      <p class="et-note">${esc(t.oUsaElEnlace)}</p>
       <button class="et-btn-text" onclick="C.esperandoCodigo=null;C.error=null;render()">${esc(t.otroCorreo)}</button>
     </div>`;
   }
@@ -552,5 +553,83 @@ function irACamas(){
   S.tab = 'camas';
   S.stack = S.stacks.camas || [];
   S.dir = 0;
+  render();
+}
+
+
+/* ============================================================
+   Guardar un resultado de herramienta en la evolución de un paciente.
+
+   Este es el circulo completo del producto: la herramienta alimenta la
+   evolucion, y la evolucion es lo que permite decidir lo siguiente. La linea
+   aparece con la hora REAL en que se calculo, no cuando alguien se acordo de
+   escribirla — que es justo el trabajo administrativo que queremos quitar.
+   ============================================================ */
+
+/* ¿Hay a dónde guardar? Solo si perteneces a una unidad y hay pacientes. */
+function hayPacientes(){
+  return hayCamas() && C.pacientes.length > 0;
+}
+
+function guardarEnCamaHTML(entry){
+  if(!hayPacientes()) return '';
+  const t = T().camas;
+  return `<div class="et-group" style="margin-top:10px">
+    <button class="et-row" style="min-height:52px" onclick='S.sheet="aCama:" + encodeURIComponent(JSON.stringify(${JSON.stringify(entry)}));render()'>
+      <span style="display:flex;color:var(--app-teal)">${ICON.beds}</span>
+      <span class="et-row-main">
+        <span class="et-row-title" style="color:var(--app-teal)">${esc(t.guardarEnCama)}</span>
+        <span class="et-row-sub">${esc(t.guardarEnCamaSub)}</span>
+      </span>${ICON.right}
+    </button>
+  </div>`;
+}
+
+function elegirPacienteHTML(entryJson){
+  const t = T().camas;
+  let entry = {};
+  try{ entry = JSON.parse(decodeURIComponent(entryJson)); }catch(e){}
+  const filas = C.pacientes.map(p => {
+    const a = (p.asignacion || []).find(x => !x.hasta);
+    const cm = a && C.camas.find(c => c.id === a.cama_id);
+    return `<button class="et-row" onclick='guardarEnEvolucion("${p.id}", ${JSON.stringify(entry)})'>
+      <span class="et-row-main">
+        <span class="et-row-title">${esc(p.alias)}</span>
+        ${cm ? `<span class="et-row-sub">${esc(cm.etiqueta)}</span>` : ''}
+      </span>${ICON.right}
+    </button>`;
+  }).join('');
+  return `<div class="et-overlay" onclick="if(event.target===this)closeSheet()">
+    <div class="et-sheet">
+      <div class="et-grabber"></div>
+      <div class="et-sheet-head">
+        <h2>${esc(t.aQuePaciente)}</h2>
+        <p>${esc(t.aQuePacienteSub)}</p>
+      </div>
+      <div class="et-sheet-body" style="flex:0 1 auto;padding-bottom:6px">
+        <div class="et-group">${filas}</div>
+      </div>
+    </div></div>`;
+}
+
+async function guardarEnEvolucion(pacienteId, entry){
+  const fila = {
+    paciente_id: pacienteId,
+    autor_id: C.sesion.id,
+    autor_nombre: C.unidad.nombre_propio,
+    tipo: 'resultado',
+    herramienta: entry.tool || '',
+    titulo: entry.title || '',
+    detalle: entry.trace || '',
+    nivel: entry.level || 'info',
+    cliente_ts: new Date().toISOString(),
+    local_id: localId()
+  };
+  const c = sbClient();
+  const { error } = await c.from('evolucion').insert(fila);
+  S.sheet = null;
+  if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
+  else showToast(T().camas.guardadoEn.replace('{v}',
+    (C.pacientes.find(p => p.id === pacienteId) || {}).alias || ''));
   render();
 }

@@ -309,7 +309,7 @@ function tegResultHTML(scr){
     <div class="et-group"><div class="et-row" style="cursor:default">
       <span class="et-trace-val"><b>${esc(t.tool.ref)}</b> ${esc(D.TEG_REF)}</span>
     </div></div>
-    ${saveRowHTML({
+    ${saveRowsHTML({
       tool: 'TEG6s',
       title: tegSummary(out),
       level: tegLevel(out),
@@ -534,7 +534,7 @@ function calcResultHTML(scr){
         <span class="et-trace-val"><b>${esc(t.tool.ref)}</b> ${esc(o.ref)}</span></div>` : ''}
     </div>
 
-    ${saveRowHTML({
+    ${saveRowsHTML({
       tool: trC(c.short),
       title: o.display + (o.unit ? ' ' + o.unit : '') + (o.cat ? ' · ' + trC(o.cat) : ''),
       level: o.level,

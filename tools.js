@@ -360,7 +360,7 @@ function resultScreenHTML(scr){
       </div>
     </div>
 
-    ${saveRowHTML({
+    ${saveRowsHTML({
       tool: TOOLS[scr.toolId].name + ' · ' + trC(a.tag || a.name),
       title: trC(r.title),
       level: isConduct ? 'info' : r.level,
