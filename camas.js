@@ -213,32 +213,54 @@ async function crearCama(){
   const el = document.getElementById('camaEtiqueta');
   const etiqueta = (el ? el.value : '').trim();
   if(!etiqueta) return;
-  const c = sbClient();
-  await c.from('cama').insert({ unidad_id: C.unidad.id, etiqueta, orden: C.camas.length });
-  S.sheet = null;
-  await cargarUnidad();
+  await conAviso('hojaBtn', T().camas.trabajando, async () => {
+    const { error } = await sbClient().from('cama')
+      .insert({ unidad_id: C.unidad.id, etiqueta, orden: C.camas.length });
+    if(error){ showToast(error.message); return; }
+    S.sheet = null;
+    await cargarUnidad();
+  });
 }
+/* Una sola llamada al servidor, que crea el paciente y le asigna la cama
+   dentro de la misma transaccion. Y con aviso de que esta trabajando: sin eso,
+   el usuario cree que no paso nada y lo vuelve a intentar. */
+let ocupado = false;
+async function conAviso(btnId, etiqueta, fn){
+  if(ocupado) return;
+  ocupado = true;
+  const b = document.getElementById(btnId);
+  const antes = b ? b.textContent : '';
+  if(b){ b.disabled = true; b.textContent = etiqueta; }
+  try{ await fn(); }
+  finally{
+    ocupado = false;
+    const b2 = document.getElementById(btnId);
+    if(b2){ b2.disabled = false; b2.textContent = antes; }
+  }
+}
+
 async function ingresarPaciente(camaId){
   const el = document.getElementById('pacienteAlias');
   const alias = (el ? el.value : '').trim();
   if(!alias) return;
-  const c = sbClient();
-  const { data, error } = await c.from('paciente')
-    .insert({ unidad_id: C.unidad.id, alias, creado_por: C.sesion.id })
-    .select('id').single();
-  if(error){ showToast(error.message); return; }
-  await c.from('asignacion').insert({ paciente_id: data.id, cama_id: camaId, movido_por: C.sesion.id });
-  S.sheet = null;
-  await cargarUnidad();
+  await conAviso('hojaBtn', T().camas.trabajando, async () => {
+    const { error } = await sbClient().rpc('ingresar_paciente', {
+      p_unidad: C.unidad.id, p_cama: camaId, p_alias: alias
+    });
+    if(error){ showToast(error.message); return; }
+    S.sheet = null;
+    await cargarUnidad();
+  });
 }
 /* Mover = cerrar la asignacion anterior y abrir otra. La evolucion no se
    entera porque cuelga del paciente, no de la cama. */
 async function moverPaciente(pacienteId, camaDestino){
-  const c = sbClient();
-  const ahora = new Date().toISOString();
-  await c.from('asignacion').update({ hasta: ahora })
-    .eq('paciente_id', pacienteId).is('hasta', null);
-  await c.from('asignacion').insert({ paciente_id: pacienteId, cama_id: camaDestino, movido_por: C.sesion.id });
+  if(ocupado) return;
+  ocupado = true;
+  const { error } = await sbClient().rpc('mover_paciente',
+    { p_paciente: pacienteId, p_cama: camaDestino });
+  ocupado = false;
+  if(error){ showToast(error.message); return; }
   S.sheet = null;
   await cargarUnidad();
   showToast(T().camas.movido);
@@ -577,7 +599,7 @@ function hojaSimple(titulo, ph, id, accion, fn, nota){
       <div class="et-sheet-body" style="flex:0 1 auto">
         <input class="et-input" id="${id}" maxlength="40" autocomplete="off"
                placeholder="${esc(ph)}" onkeydown="if(event.key==='Enter'){${fn}}">
-        <button class="et-btn" style="margin-top:14px" onclick="${fn}">${esc(accion)}</button>
+        <button class="et-btn" id="hojaBtn" style="margin-top:14px" onclick="${fn}">${esc(accion)}</button>
       </div>
     </div></div>`;
 }
