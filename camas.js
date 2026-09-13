@@ -288,38 +288,45 @@ async function cargarPaciente(id){
   if(scr && scr.kind === 'camaPaciente'){ scr.evolucion = ev || []; scr.indicaciones = ind || []; render(); }
 }
 async function escribirEvolucion(pacienteId){
+  if(ocupado) return;
   const el = document.getElementById('evoTexto');
   const texto = (el ? el.value : '').trim();
   if(!texto) return;
+  ocupado = true;
+  if(el) el.value = '';                      /* vaciar ya: nada que reenviar */
   const fila = {
     paciente_id: pacienteId, autor_id: C.sesion.id, autor_nombre: C.unidad.nombre_propio,
     tipo: 'texto', texto, cliente_ts: new Date().toISOString(), local_id: localId()
   };
-  const c = sbClient();
-  const { error } = await c.from('evolucion').insert(fila);
+  const { error } = await sbClient().from('evolucion').insert(fila);
+  ocupado = false;
   if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
-  el.value = '';
   await cargarPaciente(pacienteId);
 }
 async function dejarIndicacion(pacienteId){
+  if(ocupado) return;
   const el = document.getElementById('indTexto');
   const texto = (el ? el.value : '').trim();
   if(!texto) return;
+  ocupado = true;
+  if(el) el.value = '';
   const fila = {
     paciente_id: pacienteId, texto, autor_id: C.sesion.id, autor_nombre: C.unidad.nombre_propio,
     cliente_ts: new Date().toISOString(), local_id: localId()
   };
-  const c = sbClient();
-  const { error } = await c.from('indicacion').insert(fila);
+  const { error } = await sbClient().from('indicacion').insert(fila);
+  ocupado = false;
   if(error){ encolar({ tabla:'indicacion', fila }); showToast(T().camas.sinRed); }
-  el.value = '';
   await cargarPaciente(pacienteId);
 }
 async function marcarIndicacion(id, pacienteId){
+  if(ocupado) return;
+  ocupado = true;
   const c = sbClient();
   await c.from('indicacion').update({
     hecha_ts: new Date().toISOString(), hecha_por: C.sesion.id, hecha_nombre: C.unidad.nombre_propio
   }).eq('id', id);
+  ocupado = false;
   await cargarPaciente(pacienteId);
 }
 
@@ -668,7 +675,20 @@ function elegirPacienteHTML(entryJson){
     </div></div>`;
 }
 
+/* Clave estable a partir del contenido: si se toca el boton veinte veces, el
+   indice unico (paciente_id, local_id) deja pasar UNA. No depende de que la
+   interfaz se porte bien — y la interfaz, cuando hay mala senal, no se porta
+   bien. */
+function claveDe(entry){
+  const base = [entry.tool, entry.title, entry.trace].join('|');
+  let h = 0;
+  for(let i = 0; i < base.length; i++){ h = (h * 31 + base.charCodeAt(i)) | 0; }
+  return 'r' + Math.abs(h).toString(36);
+}
+
 async function guardarEnEvolucion(pacienteId, entry){
+  if(ocupado) return;
+  ocupado = true;
   const fila = {
     paciente_id: pacienteId,
     autor_id: C.sesion.id,
@@ -679,15 +699,16 @@ async function guardarEnEvolucion(pacienteId, entry){
     detalle: entry.trace || '',
     nivel: entry.level || 'info',
     cliente_ts: new Date().toISOString(),
-    local_id: localId()
+    local_id: claveDe(entry)
   };
-  const c = sbClient();
-  const { error } = await c.from('evolucion').insert(fila);
   S.sheet = null;
-  if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
-  else showToast(T().camas.guardadoEn.replace('{v}',
-    (C.pacientes.find(p => p.id === pacienteId) || {}).alias || ''));
-  render();
+  render();                                  /* cerrar la hoja de inmediato */
+  const { error } = await sbClient().from('evolucion').insert(fila);
+  ocupado = false;
+  const alias = (C.pacientes.find(p => p.id === pacienteId) || {}).alias || '';
+  if(error && error.code === '23505') showToast(T().camas.yaEstaba.replace('{v}', alias));
+  else if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
+  else showToast(T().camas.guardadoEn.replace('{v}', alias));
 }
 
 
