@@ -96,7 +96,7 @@ es: {
   },
 
   camas: {
-    tab: "Camas",
+    tab: "Camas", institucion: "Institución",
     cargando: "Cargando…",
     sinLibreria: "No se pudo cargar la conexión. Revisa tu señal y vuelve a intentarlo.",
     entrar: "Entrar a una unidad",
@@ -393,7 +393,7 @@ en: {
   },
 
   camas: {
-    tab: "Beds",
+    tab: "Beds", institucion: "Institution",
     cargando: "Loading…",
     sinLibreria: "Couldn't load the connection. Check your signal and try again.",
     entrar: "Join a unit",
@@ -690,7 +690,7 @@ pt: {
   },
 
   camas: {
-    tab: "Leitos",
+    tab: "Leitos", institucion: "Instituição",
     cargando: "Carregando…",
     sinLibreria: "Não foi possível carregar a conexão. Verifique o sinal e tente novamente.",
     entrar: "Entrar em uma unidade",

@@ -579,7 +579,7 @@ function perfilHTML(){
       <p style="margin:9px 0 0;font:400 12px/1.45 var(--et-font);color:var(--app-slate)">${esc(pf.offlineNote)}</p>
     </div>
 
-    <div class="et-section">${esc(T().camas.tab)}</div>
+    <div class="et-section">${esc(T().camas.institucion)}</div>
     <div class="et-group">
       <button class="et-row" style="min-height:54px" onclick="irACamas()">
         <span class="et-row-main">
