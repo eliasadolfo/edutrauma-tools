@@ -167,9 +167,14 @@ function adjustedGrade(o, scr){
   } else if(scr.adj.a){
     const a = D.AAST_ADJUST[o.adjust];
     if(a){
+      /* "Sube un grado, hasta el III" limita CUÁNTO puede subir, no convierte
+         un IV en III. Sin el Math.max, marcar "lesiones múltiples" en una
+         lesión grado IV la BAJABA a III — un grado menos en la lesión más
+         grave. Lo encontró el banco de pruebas en 63 lesiones. */
       const cap = a.rule === 'upTo3' ? 3 : a.rule === 'upTo5' ? 5 : o.maxGrade;
-      g = Math.min(g + 1, cap, o.maxGrade);
-      note = a.note;
+      const subido = Math.max(g, Math.min(g + 1, cap, o.maxGrade));
+      if(subido > g){ g = subido; note = a.note; }
+      else note = T().aast.sinCambio;   /* el ajuste no aplica a este grado */
     }
   }
   return { grade:g, note, label:it.label };

@@ -68,6 +68,7 @@ es: {
     adjust: "Ajustes",
     upOne: "Sube 1 grado.", downOne: "Baja 1 grado.",
     aastGrade: "Grado AAST",
+    sinCambio: "El ajuste no cambia este grado: ya está en el máximo que permite la regla.",
     save: "Guardar",
     saved: "Guardado: {v}",
     ref: "Gradación de lesiones de órganos — Moore et al. (AAST) · curso DQT, EduTrauma."
@@ -364,6 +365,7 @@ en: {
     adjust: "Adjustments",
     upOne: "Raises 1 grade.", downOne: "Lowers 1 grade.",
     aastGrade: "AAST grade",
+    sinCambio: "The adjustment doesn't change this grade: it is already at the rule's ceiling.",
     save: "Save",
     saved: "Saved: {v}",
     ref: "Organ injury scaling — Moore et al. (AAST) · DQT course, EduTrauma."
@@ -660,6 +662,7 @@ pt: {
     adjust: "Ajustes",
     upOne: "Sobe 1 grau.", downOne: "Baixa 1 grau.",
     aastGrade: "Grau AAST",
+    sinCambio: "O ajuste não altera este grau: já está no máximo que a regra permite.",
     save: "Salvar",
     saved: "Salvo: {v}",
     ref: "Graduação de lesões de órgãos — Moore et al. (AAST) · curso DQT, EduTrauma."
