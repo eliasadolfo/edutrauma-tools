@@ -102,17 +102,42 @@ async function enviarCodigo(){
   render();
   setTimeout(() => { const i = document.getElementById('camasCodigoOtp'); if(i) i.focus(); }, 120);
 }
+/* NO se puede llamar a render() mientras el usuario escribe: rehace el DOM y
+   destruye el propio campo con lo que lleva tecleado. Aqui se toca la pantalla
+   en sitio (boton deshabilitado) y solo se redibuja cuando ya hay respuesta. */
+let verificando = false;
 async function verificarCodigo(){
+  if(verificando) return;
   const el = document.getElementById('camasCodigoOtp');
-  const token = (el ? el.value : '').replace(/\D/g, '');
+  const token = (el ? el.value : '').replace(/[^0-9]/g, '');
   if(token.length < 6) return;
+
+  verificando = true;
+  C.cargando = true; C.error = null;
+  const btn = document.getElementById('camasVerificarBtn');
+  if(btn){ btn.disabled = true; btn.textContent = T().camas.verificando; }
+  if(el) el.blur();
+
   const c = sbClient();
-  C.cargando = true; C.error = null; render();
   const { error } = await c.auth.verifyOtp({ email: C.esperandoCodigo, token, type: 'email' });
+  verificando = false;
   C.cargando = false;
-  if(error){ C.error = T().camas.codigoOtpMalo; render(); return; }
+
+  if(error){
+    C.error = T().camas.codigoOtpMalo;
+    render();
+    const otra = document.getElementById('camasCodigoOtp');
+    if(otra){ otra.value = ''; otra.focus(); }
+    return;
+  }
   C.esperandoCodigo = null;
   await cargarUnidad();
+}
+/* Solo deja pasar digitos, sin redibujar nada. */
+function soloDigitos(el){
+  const limpio = el.value.replace(/[^0-9]/g, '').slice(0, 6);
+  if(el.value !== limpio) el.value = limpio;
+  if(limpio.length === 6) verificarCodigo();
 }
 async function camasSalir(){
   await sbClient().auth.signOut();
@@ -298,9 +323,9 @@ function camasAuthHTML(){
       <input class="et-input" id="camasCodigoOtp" inputmode="numeric" autocomplete="one-time-code"
              maxlength="6" placeholder="000000"
              style="text-align:center;letter-spacing:.5em;font-weight:800;font-size:26px"
-             oninput="if(this.value.replace(/\\D/g,'').length===6) verificarCodigo()">
-      <button class="et-btn" style="margin-top:12px" ${C.cargando?'disabled':''}
-              onclick="verificarCodigo()">${esc(C.cargando ? t.verificando : t.verificar)}</button>
+             oninput="soloDigitos(this)">
+      <button class="et-btn" id="camasVerificarBtn" style="margin-top:12px"
+              onclick="verificarCodigo()">${esc(t.verificar)}</button>
       ${C.error ? `<p class="et-note" style="color:var(--app-red)">${esc(C.error)}</p>` : ''}
       <p class="et-note">${esc(t.codigoNoEnlace)}</p>
       <p class="et-note">${esc(t.oUsaElEnlace)}</p>
