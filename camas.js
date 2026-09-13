@@ -110,7 +110,7 @@ async function verificarCodigo(){
   if(verificando) return;
   const el = document.getElementById('camasCodigoOtp');
   const token = (el ? el.value : '').replace(/[^0-9]/g, '');
-  if(token.length < 6) return;
+  if(token.length < LARGO_CODIGO) return;
 
   verificando = true;
   C.cargando = true; C.error = null;
@@ -133,11 +133,16 @@ async function verificarCodigo(){
   C.esperandoCodigo = null;
   await cargarUnidad();
 }
-/* Solo deja pasar digitos, sin redibujar nada. */
+/* Cuantos digitos trae el codigo. Supabase lo genera de 8 en este proyecto;
+   si algun dia se cambia en su configuracion, hay que cambiarlo aqui tambien.
+   Se envia solo cuando el campo esta COMPLETO, nunca antes: mandar un codigo
+   a medias hace que el servidor lo rechace y el usuario no entiende por que. */
+const LARGO_CODIGO = 8;
+
 function soloDigitos(el){
-  const limpio = el.value.replace(/[^0-9]/g, '').slice(0, 6);
+  const limpio = el.value.replace(/[^0-9]/g, '').slice(0, LARGO_CODIGO);
   if(el.value !== limpio) el.value = limpio;
-  if(limpio.length === 6) verificarCodigo();
+  if(limpio.length === LARGO_CODIGO) verificarCodigo();
 }
 async function camasSalir(){
   await sbClient().auth.signOut();
@@ -321,8 +326,8 @@ function camasAuthHTML(){
       <h1 class="et-h1">${esc(t.revisaCorreo)}</h1>
       <p class="et-lede">${esc(t.enviadoA.replace('{v}', C.esperandoCodigo))}</p>
       <input class="et-input" id="camasCodigoOtp" inputmode="numeric" autocomplete="one-time-code"
-             maxlength="6" placeholder="000000"
-             style="text-align:center;letter-spacing:.5em;font-weight:800;font-size:26px"
+             maxlength="8" placeholder="00000000"
+             style="text-align:center;letter-spacing:.35em;font-weight:800;font-size:24px"
              oninput="soloDigitos(this)">
       <button class="et-btn" id="camasVerificarBtn" style="margin-top:12px"
               onclick="verificarCodigo()">${esc(t.verificar)}</button>
