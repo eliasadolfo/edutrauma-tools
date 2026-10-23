@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Registro · Congreso de Trauma Venezuela · EduTrauma</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#00205C">
+<link rel="icon" href="../icon-192.png">
+<style>
+:root{--navy:#00205C;--navy2:#001845;--red:#E02826;--bg:#eef1f7;--card:#fff;--text:#00205C;--muted:#5b6b8c;--line:#d5dbe8;--ok:#1F7A5C;--oksoft:#e9f6f1}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+header{background:var(--navy);padding:calc(env(safe-area-inset-top,0px) + 18px) 20px 22px;color:#fff;text-align:center}
+header img{height:38px;width:auto;display:block;margin:0 auto 12px}
+header .alianza{font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.85;margin:0}
+header h1{font-size:21px;line-height:1.25;margin:6px 0 0;text-wrap:balance}
+main{max-width:480px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
+.beneficios{display:grid;gap:8px;margin:0 0 16px;padding:0;list-style:none}
+.beneficios li{background:var(--card);border-left:4px solid var(--red);border-radius:10px;padding:10px 12px;font-weight:600;font-size:15px}
+.beneficios small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+form,.listo{background:var(--card);border-radius:14px;padding:18px 16px;box-shadow:0 1px 2px rgba(0,32,92,.06),0 6px 20px rgba(0,32,92,.06)}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 5px}
+.campo{margin:0 0 14px}
+input{width:100%;font:inherit;font-size:17px;color:var(--text);padding:12px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;-webkit-appearance:none;appearance:none}
+input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(0,32,92,.12)}
+.oculto{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+button{width:100%;font:inherit;font-size:18px;font-weight:700;color:#fff;background:var(--red);border:0;border-radius:12px;padding:15px;margin-top:4px;cursor:pointer}
+button[disabled]{opacity:.6}
+.error{color:var(--red);font-size:14px;margin:10px 0 0;min-height:1em}
+.nota{color:var(--muted);font-size:12.5px;margin:12px 0 0;text-align:center}
+.listo{text-align:center}
+.listo .check{width:56px;height:56px;border-radius:50%;background:var(--oksoft);color:var(--ok);font-size:30px;line-height:56px;margin:0 auto 10px}
+.listo h2{margin:0 0 6px;font-size:21px}
+.listo p{margin:8px 0;color:var(--text)}
+.codigo{display:inline-block;font:700 22px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;background:var(--bg);border:1.5px dashed var(--navy);border-radius:10px;padding:12px 16px;margin:6px 0 2px}
+.listo a{color:var(--navy);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <img src="../logo-blanco-trim.png" alt="EduTrauma">
+  <p class="alianza">EduTrauma + RedVital</p>
+  <h1>Congreso de Cirugía de Trauma de Venezuela</h1>
+</header>
+<main>
+  <section id="paso-form">
+    <ul class="beneficios">
+      <li>Descuentos en nuestros programas de estudio</li>
+      <li>Sorteo de libros<small>Hoy, bloque de trauma · Salón Cabriales</small></li>
+      <li>Descuentos en libros<small>Editorial Médica Panamericana</small></li>
+    </ul>
+    <form id="f" novalidate>
+      <div class="campo"><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" autocomplete="name" autocapitalize="words" required></div>
+      <div class="campo"><label for="profesion">Especialidad o profesión</label><input id="profesion" name="profesion" autocapitalize="sentences" placeholder="Ej.: cirujano general, residente, enfermería" required></div>
+      <div class="campo"><label for="hospital">Hospital o ciudad</label><input id="hospital" name="hospital" autocapitalize="words" required></div>
+      <div class="campo"><label for="correo">Correo</label><input id="correo" name="correo" type="email" autocomplete="email" inputmode="email" autocapitalize="off" required></div>
+      <div class="campo"><label for="whatsapp">WhatsApp</label><input id="whatsapp" name="whatsapp" type="tel" autocomplete="tel" inputmode="tel" placeholder="0414 123 4567" required></div>
+      <div class="oculto" aria-hidden="true"><label for="web">Web</label><input id="web" name="web" tabindex="-1" autocomplete="off"></div>
+      <button id="enviar" type="submit">Registrarme</button>
+      <p class="error" id="err" role="alert"></p>
+      <p class="nota">Tus datos solo los usa EduTrauma para el sorteo y para enviarte tus beneficios.</p>
+    </form>
+  </section>
+  <section id="paso-listo" class="listo" hidden>
+    <div class="check">✓</div>
+    <h2 id="saludo">¡Listo, quedaste registrado!</h2>
+    <p>Ya participas en el <b>sorteo de libros</b> de hoy en el Salón Cabriales.</p>
+    <p>Tu código para el <b>15 % de descuento</b> en el libro <i>100 Casos en el Paciente Politraumatizado</i>:</p>
+    <div class="codigo">EDUTRAUMAVEN</div>
+    <p>Úsalo en <a href="https://www.medicapanamericana.com" target="_blank" rel="noopener">www.medicapanamericana.com</a></p>
+    <p>La próxima semana te escribimos con el detalle de tu <b>descuento en nuestros programas de estudio</b>. ¡Que disfrutes el congreso!</p>
+  </section>
+</main>
+<script>
+(function(){
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-congreso-ve-form';
+  var f=document.getElementById('f'),btn=document.getElementById('enviar'),err=document.getElementById('err');
+  function listo(nombre){
+    document.getElementById('paso-form').hidden=true;
+    document.getElementById('paso-listo').hidden=false;
+    var pila=String(nombre||'').trim().split(/\s+/)[0];
+    if(pila&&/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{2,}$/.test(pila)) document.getElementById('saludo').textContent='¡Listo, '+pila+', quedaste registrado!';
+    window.scrollTo(0,0);
+  }
+  try{var prev=localStorage.getItem('et_congreso_ve_ok');if(prev)listo(prev);}catch(e){}
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();err.textContent='';
+    var d={};['nombre','profesion','hospital','correo','whatsapp','web'].forEach(function(k){d[k]=(f.elements[k].value||'').trim();});
+    if(d.nombre.length<3){err.textContent='Escribe tu nombre y apellido.';f.elements.nombre.focus();return;}
+    if(!d.profesion){err.textContent='Escribe tu especialidad o profesión.';f.elements.profesion.focus();return;}
+    if(!d.hospital){err.textContent='Escribe tu hospital o ciudad.';f.elements.hospital.focus();return;}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.correo)){err.textContent='Revisa tu correo.';f.elements.correo.focus();return;}
+    if(d.whatsapp.replace(/\D/g,'').length<8){err.textContent='Revisa tu número de WhatsApp.';f.elements.whatsapp.focus();return;}
+    btn.disabled=true;btn.textContent='Registrando…';
+    fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+      .then(function(r){return r.json().catch(function(){return {ok:r.ok};});})
+      .then(function(j){
+        if(j&&j.ok){try{localStorage.setItem('et_congreso_ve_ok',d.nombre);}catch(e){}listo(d.nombre);}
+        else{err.textContent='Revisa tus datos e intenta de nuevo.';btn.disabled=false;btn.textContent='Registrarme';}
+      })
+      .catch(function(){err.textContent='No hay conexión. Intenta de nuevo en unos segundos.';btn.disabled=false;btn.textContent='Registrarme';});
+  });
+})();
+</script>
+</body>
+</html>
