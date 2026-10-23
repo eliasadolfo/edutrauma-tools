@@ -11,14 +11,16 @@
 :root{--navy:#00205C;--navy2:#001845;--red:#E02826;--bg:#eef1f7;--card:#fff;--text:#00205C;--muted:#5b6b8c;--line:#d5dbe8;--ok:#1F7A5C;--oksoft:#e9f6f1}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
-header{background:var(--navy);padding:calc(env(safe-area-inset-top,0px) + 18px) 20px 22px;color:#fff;text-align:center}
-header img{height:38px;width:auto;display:block;margin:0 auto 12px}
+header{background:var(--navy);padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 16px;color:#fff;text-align:center}
+header img{height:30px;width:auto;display:block;margin:0 auto 12px}
 header .alianza{font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.85;margin:0}
-header h1{font-size:21px;line-height:1.25;margin:6px 0 0;text-wrap:balance}
+header h1{font-size:18px;line-height:1.25;margin:6px 0 0;text-wrap:balance}
 main{max-width:480px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
-.beneficios{display:grid;gap:8px;margin:0 0 16px;padding:0;list-style:none}
-.beneficios li{background:var(--card);border-left:4px solid var(--red);border-radius:10px;padding:10px 12px;font-weight:600;font-size:15px}
-.beneficios small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.beneficios{display:grid;gap:4px;margin:0 0 12px;padding:12px 14px;list-style:none;background:var(--card);border-radius:12px;border-left:4px solid var(--red)}
+.beneficios li{font-weight:600;font-size:14px;line-height:1.35}
+.beneficios li:not(.beneficios-tit)::before{content:'✓ ';color:var(--red)}
+.beneficios-tit{font-size:13px;color:var(--muted);margin:0 0 4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.beneficios small{font-weight:400;color:var(--muted);font-size:13px}
 form,.listo{background:var(--card);border-radius:14px;padding:18px 16px;box-shadow:0 1px 2px rgba(0,32,92,.06),0 6px 20px rgba(0,32,92,.06)}
 label{display:block;font-weight:600;font-size:14px;margin:0 0 5px}
 .campo{margin:0 0 14px}
@@ -45,11 +47,11 @@ button[disabled]{opacity:.6}
 </header>
 <main>
   <section id="paso-form">
-    <ul class="beneficios">
+    <ul class="beneficios"><li class="beneficios-tit" style="list-style:none">Regístrate y obtienes</li>
       <li>Descuentos en nuestros programas de estudio</li>
-      <li>Sorteo de libros<small>Hoy, bloque de trauma · Salón Cabriales</small></li>
-      <li>Descuentos en libros<small>Editorial Médica Panamericana</small></li>
-      <li>Acceso gratuito a EduTrauma Tools<small>Herramientas de apoyo a la decisión clínica en trauma</small></li>
+      <li>Sorteo de libros<small> · hoy, Salón Cabriales</small></li>
+      <li>Descuentos en libros<small> · Panamericana</small></li>
+      <li>Acceso gratuito a EduTrauma Tools</li>
     </ul>
     <form id="f" novalidate>
       <div class="campo"><label for="nombre">Nombre y apellido</label><input id="nombre" name="nombre" autocomplete="name" autocapitalize="words" required></div>
