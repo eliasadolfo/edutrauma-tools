@@ -548,7 +548,9 @@ function camaPacienteHTML(scr){
       </span>
     </div>`).join('');
 
-  return `<div class="et-pad">
+  /* Impreso, el encabezado es lo único que identifica el documento: sin él
+     salía una evolución anónima, imposible de archivar en la ficha correcta. */
+  return `<div class="et-pad" data-print-title="${esc(p.alias + ' · ' + C.unidad.nombre)}">
     <p class="et-lede" style="margin:16px 0 0">
       ${cama ? esc(cama.etiqueta) + ' · ' : ''}${esc(t.desde.replace('{v}', fmtDate(new Date(p.ingreso).getTime())))}
     </p>

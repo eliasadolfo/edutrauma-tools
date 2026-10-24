@@ -194,7 +194,12 @@ function treePick(i){
   const scr = topScreen();
   const a = algoById(scr.toolId, scr.algoId);
   const o = a.nodes[scr.node].opts[i];
-  scr.history.push({ node: scr.node, label: o.label });
+  /* Se guarda el contexto ANTES de aplicar la respuesta. Sin esto, retroceder
+     restauraba el nodo pero no el contexto: lo que marcó la rama abandonada
+     seguía ahí y podía cambiar el resultado final. Hoy ningún algoritmo lo
+     dispara (121 recorridos con retroceso, 0 divergencias), pero es la clase
+     de error que aparece sola en cuanto se añada un algoritmo nuevo. */
+  scr.history.push({ node: scr.node, label: o.label, ctx: Object.assign({}, scr.ctx) });
   Object.assign(scr.ctx, o.set || {});
   if(o.next){ scr.node = o.next; S.dir = 1; render(); scrollTop(); return; }
   showResult(scr.toolId, scr.algoId, a.resolve(scr.ctx), scr.history.map(h => h.label));
@@ -373,9 +378,16 @@ function resultScreenHTML(scr){
     <p class="et-note" style="text-align:center">${esc(T().kit.disclaimer)}</p>
   </div>`;
 }
-/* "Otro algoritmo" vuelve a la herramienta de origen, no siempre a la misma. */
+/* "Otro algoritmo" vuelve a la portada de la herramienta de origen.
+   MIAA y MIP tienen pantalla 'tool'; AAST, TEG y Calculadoras entran directo y
+   su portada es otra. Buscando solo 'tool', la pila se vaciaba entera y
+   "Otra calculadora" dejaba al usuario en el Kit — justo donde no quería ir
+   quien acaba de calcular un puntaje y necesita el siguiente. */
+const INICIO_TOOL = ['tool', 'aast', 'calcList', 'teg'];
 function backToTool(){
-  while(S.stack.length && topScreen().kind !== 'tool') S.stack.pop();
+  while(S.stack.length > 1 && !INICIO_TOOL.includes(topScreen().kind)) S.stack.pop();
+  /* Si el primer nivel tampoco es una portada, no queda nada que conservar. */
+  if(S.stack.length === 1 && !INICIO_TOOL.includes(topScreen().kind)) S.stack.pop();
   S.dir = -1; render(); scrollTop();
 }
 
@@ -451,6 +463,7 @@ function goBack(){
   if(scr && scr.kind === 'tree' && scr.history.length){
     const last = scr.history.pop();
     scr.node = last.node;
+    if(last.ctx) scr.ctx = last.ctx;   /* deshacer también lo que marcó esa respuesta */
     S.dir = -1; render(); scrollTop(); return;
   }
   if(scr && scr.kind === 'yesno' && scr.i > 0){

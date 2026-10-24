@@ -676,7 +676,11 @@ function renderLayers(){
   const fmt = typeof shareFormatSheetHTML === 'function' ? shareFormatSheetHTML() : '';
   const fmtEvo = typeof formatoEvolucionSheetHTML === 'function' ? formatoEvolucionSheetHTML() : '';
   document.getElementById('layers').innerHTML =
-    sheetHTML() + conf + fmt + fmtEvo + share + bar + (S.toast ? `<div class="et-toast">${esc(S.toast)}</div>` : '');
+    /* El toast es el único acuse de "se guardó" que da la app. Sin role/aria-live
+       un lector de pantalla no lo anuncia nunca: quien no ve la pantalla no se
+       entera de si su línea quedó guardada. */
+    sheetHTML() + conf + fmt + fmtEvo + share + bar +
+    (S.toast ? `<div class="et-toast" role="status" aria-live="polite">${esc(S.toast)}</div>` : '');
 }
 
 function render(){

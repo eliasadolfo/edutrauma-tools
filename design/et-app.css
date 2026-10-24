@@ -1010,8 +1010,24 @@ button.et-cover-row:active{ opacity:.55; }
    Desde la hoja de impresión, el teléfono ofrece "Guardar en Archivos" como
    PDF. Así no hace falta generar el PDF ni cargar una librería que dejaría de
    funcionar sin conexión. */
+/* ---------- Foco visible ----------
+   No había ninguna regla de foco en toda la app, y cuatro inputs quitaban el
+   del navegador sin poner nada. Con teclado o con un conmutador no se sabía
+   dónde se estaba. :focus-visible no se le aparece a quien toca la pantalla. */
+.et-app a:focus-visible,
+.et-app button:focus-visible,
+.et-app input:focus-visible,
+.et-app textarea:focus-visible{
+  outline:2.5px solid var(--app-teal);
+  outline-offset:2px;
+  border-radius:8px;
+}
+
 @media print{
+  /* Lo que se imprime es un documento clínico: fuera todo control. Los campos
+     de escribir y el interruptor salían impresos dentro de la evolución. */
   .et-strip, .et-ribbon, .et-nav, .et-tabs, .et-share, .et-btn, .et-btn-text,
+  .et-escribir, .et-marcar, .et-search, .et-sticky-search, .et-sticky-wrap,
   #layers, .et-note{ display:none !important; }
   html, body, .et-app{ height:auto !important; overflow:visible !important; background:#fff !important; }
   .et-app{ max-width:none !important; }
