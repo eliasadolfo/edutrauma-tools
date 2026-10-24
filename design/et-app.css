@@ -1103,6 +1103,11 @@ button.et-cover-row:active{ opacity:.55; }
   text-transform:uppercase; letter-spacing:.12em; color:var(--app-teal); margin-bottom:2px;
 }
 
+/* Escrito pero todavía no confirmado por el servidor. Se ve, porque hacerlo
+   desaparecer hasta que vuelva la red es lo que hace dudar y escribir dos veces. */
+.et-evo.pendiente, .et-ind.pendiente{ opacity:.62; }
+.et-evo.pendiente .et-evo-firma, .et-ind.pendiente .et-ind-meta{ font-style:italic; }
+
 .et-escribir{ display:flex; gap:8px; align-items:stretch; margin-top:10px; }
 .et-escribir .et-input{ flex:1; }
 .et-escribir button{
@@ -1112,4 +1117,24 @@ button.et-cover-row:active{ opacity:.55; }
   transition:transform .3s var(--app-spring);
 }
 .et-escribir button:active{ transform:scale(.94); }
+
+/* Interruptor "esto es un pendiente": se escribe primero y se clasifica
+   después. Apagado por defecto — la mayoría de lo que se escribe es evolución. */
+.et-marcar{
+  display:flex; align-items:center; gap:10px; width:100%;
+  margin:10px 0 0; padding:7px 2px; text-align:left;
+  background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  font:600 14px/1.3 var(--et-font); color:var(--app-slate);
+}
+.et-marcar > span:last-child{ flex:1; min-width:0; }
+.et-marcar.on{ color:var(--app-navy); }
+.et-marcar-caja{
+  flex-shrink:0; width:21px; height:21px; border-radius:6px;
+  border:1.5px solid var(--app-sep); background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s ease, border-color .15s ease;
+}
+.et-marcar-caja svg{ width:12px; height:12px; color:#fff; opacity:0; }
+.et-marcar.on .et-marcar-caja{ background:var(--app-teal); border-color:var(--app-teal); }
+.et-marcar.on .et-marcar-caja svg{ opacity:1; }
 .et-escribir button svg{ width:10px; height:16px; color:#fff; }

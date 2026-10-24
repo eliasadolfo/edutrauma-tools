@@ -69,6 +69,24 @@ function localId(){
   return (crypto.randomUUID ? crypto.randomUUID() : 'l-' + Date.now() + '-' + Math.random().toString(36).slice(2));
 }
 
+/* Un error de Postgres no es un mensaje para un residente a las 3 de la mañana.
+   "duplicate key value violates unique constraint cama_unidad_etiqueta_key" no
+   dice qué pasó ni cómo arreglarlo, y además llega en inglés. Aquí se traduce a
+   una frase que diga las dos cosas; lo técnico queda en la consola. */
+function mensajeError(error){
+  if(!error) return '';
+  const t = T().camas;
+  console.warn('[camas]', error);
+  const code = error.code || '';
+  const txt  = (error.message || '').toLowerCase();
+  if(code === '23505' && txt.includes('cama'))        return t.errorCamaRepetida;
+  if(code === '23505' && txt.includes('asignacion'))  return t.errorCamaOcupada;
+  if(code === '23505')                                return t.errorCamaRepetida;
+  if(code === '42501' || code === 'PGRST301' || txt.includes('row-level security'))
+    return t.errorPermiso;
+  return t.errorGenerico;
+}
+
 /* ---------- Sesion ---------- */
 async function camasInit(){
   const c = sbClient();
@@ -97,7 +115,7 @@ async function enviarCodigo(){
     email, options: { emailRedirectTo: location.origin + '/#camas' }
   });
   C.cargando = false;
-  C.error = error ? error.message : null;
+  C.error = error ? mensajeError(error) : null;
   if(!error) C.esperandoCodigo = email;
   render();
   setTimeout(() => { const i = document.getElementById('camasCodigoOtp'); if(i) i.focus(); }, 120);
@@ -201,7 +219,7 @@ async function crearUnidad(){
   C.cargando = true; C.error = null; render();
   const { data, error } = await c.rpc('crear_unidad', { p_nombre: nombre, p_nombre_organizador: yo });
   C.cargando = false;
-  if(error){ C.error = error.message; render(); return; }
+  if(error){ C.error = mensajeError(error); render(); return; }
   await cargarUnidad();
 }
 
@@ -216,7 +234,7 @@ async function crearCama(){
   await conAviso('hojaBtn', T().camas.trabajando, async () => {
     const { error } = await sbClient().from('cama')
       .insert({ unidad_id: C.unidad.id, etiqueta, orden: C.camas.length });
-    if(error){ showToast(error.message); return; }
+    if(error){ showToast(mensajeError(error)); return; }
     S.sheet = null;
     await cargarUnidad();
   });
@@ -247,7 +265,7 @@ async function ingresarPaciente(camaId){
     const { error } = await sbClient().rpc('ingresar_paciente', {
       p_unidad: C.unidad.id, p_cama: camaId, p_alias: alias
     });
-    if(error){ showToast(error.message); return; }
+    if(error){ showToast(mensajeError(error)); return; }
     S.sheet = null;
     await cargarUnidad();
   });
@@ -260,16 +278,21 @@ async function moverPaciente(pacienteId, camaDestino){
   const { error } = await sbClient().rpc('mover_paciente',
     { p_paciente: pacienteId, p_cama: camaDestino });
   ocupado = false;
-  if(error){ showToast(error.message); return; }
+  if(error){ showToast(mensajeError(error)); return; }
   S.sheet = null;
   await cargarUnidad();
   showToast(T().camas.movido);
 }
+/* El alta se avisa SOLO si el servidor la aceptó. Decir "dado de alta" cuando
+   el update falló es peor que no decir nada: el residente cierra la pantalla
+   creyendo que el paciente salió y la cama sigue ocupada para el resto. */
 async function darEgreso(pacienteId){
   const c = sbClient();
   const ahora = new Date().toISOString();
-  await c.from('paciente').update({ egreso: ahora, actualizado: ahora, actualizado_por: C.sesion.id })
+  const { error } = await c.from('paciente')
+    .update({ egreso: ahora, actualizado: ahora, actualizado_por: C.sesion.id })
     .eq('id', pacienteId);
+  if(error){ S.confirm = null; render(); showToast(mensajeError(error)); return; }
   await c.from('asignacion').update({ hasta: ahora }).eq('paciente_id', pacienteId).is('hasta', null);
   S.confirm = null;
   S.stack = []; S.stacks.camas = S.stack;
@@ -277,7 +300,23 @@ async function darEgreso(pacienteId){
   showToast(T().camas.egresado);
 }
 
-/* ---------- Evolucion e indicaciones ---------- */
+/* ---------- Evolucion e indicaciones ----------
+
+   Lo que se escribe aparece EN EL ACTO, marcado como pendiente, y se confirma
+   cuando el servidor responde. Antes el campo se vaciaba y no pasaba nada
+   visible hasta que volvía la red: el residente no sabía si su línea existía,
+   y sin señal la veía desaparecer aunque estuviera guardada en la cola. */
+function fundirPendientes(delServidor, enPantalla){
+  const pend = (enPantalla || []).filter(x => x._pendiente &&
+    !(delServidor || []).some(s => s.local_id === x.local_id));
+  return (delServidor || []).concat(pend);
+}
+function lineaPendiente(campo, fila){
+  const scr = topScreen();
+  if(!scr || scr.kind !== 'camaPaciente') return;
+  scr[campo] = (scr[campo] || []).concat([Object.assign({ _pendiente: true }, fila)]);
+  render();
+}
 async function cargarPaciente(id){
   const c = sbClient();
   const [{ data: ev }, { data: ind }] = await Promise.all([
@@ -285,11 +324,15 @@ async function cargarPaciente(id){
     c.from('indicacion').select('*').eq('paciente_id', id).order('cliente_ts', { ascending: true })
   ]);
   const scr = topScreen();
-  if(scr && scr.kind === 'camaPaciente'){ scr.evolucion = ev || []; scr.indicaciones = ind || []; render(); }
+  if(scr && scr.kind === 'camaPaciente'){
+    scr.evolucion    = fundirPendientes(ev,  scr.evolucion);
+    scr.indicaciones = fundirPendientes(ind, scr.indicaciones);
+    render();
+  }
 }
 async function escribirEvolucion(pacienteId){
   if(ocupado) return;
-  const el = document.getElementById('evoTexto');
+  const el = document.getElementById('escribirTexto');
   const texto = (el ? el.value : '').trim();
   if(!texto) return;
   ocupado = true;
@@ -298,14 +341,20 @@ async function escribirEvolucion(pacienteId){
     paciente_id: pacienteId, autor_id: C.sesion.id, autor_nombre: C.unidad.nombre_propio,
     tipo: 'texto', texto, cliente_ts: new Date().toISOString(), local_id: localId()
   };
+  lineaPendiente('evolucion', fila);
   const { error } = await sbClient().from('evolucion').insert(fila);
   ocupado = false;
-  if(error){ encolar({ tabla:'evolucion', fila }); showToast(T().camas.sinRed); }
+  if(error){
+    encolar({ tabla:'evolucion', fila });
+    showToast(T().camas.sinRed);
+    render();                 /* la línea se queda a la vista, marcada por subir */
+    return;
+  }
   await cargarPaciente(pacienteId);
 }
 async function dejarIndicacion(pacienteId){
   if(ocupado) return;
-  const el = document.getElementById('indTexto');
+  const el = document.getElementById('escribirTexto');
   const texto = (el ? el.value : '').trim();
   if(!texto) return;
   ocupado = true;
@@ -314,19 +363,28 @@ async function dejarIndicacion(pacienteId){
     paciente_id: pacienteId, texto, autor_id: C.sesion.id, autor_nombre: C.unidad.nombre_propio,
     cliente_ts: new Date().toISOString(), local_id: localId()
   };
+  lineaPendiente('indicaciones', fila);
   const { error } = await sbClient().from('indicacion').insert(fila);
   ocupado = false;
-  if(error){ encolar({ tabla:'indicacion', fila }); showToast(T().camas.sinRed); }
+  if(error){
+    encolar({ tabla:'indicacion', fila });
+    showToast(T().camas.sinRed);
+    render();
+    return;
+  }
   await cargarPaciente(pacienteId);
 }
 async function marcarIndicacion(id, pacienteId){
   if(ocupado) return;
   ocupado = true;
   const c = sbClient();
-  await c.from('indicacion').update({
+  const { error } = await c.from('indicacion').update({
     hecha_ts: new Date().toISOString(), hecha_por: C.sesion.id, hecha_nombre: C.unidad.nombre_propio
   }).eq('id', id);
   ocupado = false;
+  /* Si falla, la casilla NO se queda marcada: una indicación tachada que el
+     equipo no ve tachada es la peor forma de perder un pendiente. */
+  if(error) showToast(mensajeError(error));
   await cargarPaciente(pacienteId);
 }
 
@@ -353,9 +411,9 @@ function camasAuthHTML(){
   if(C.esperandoCodigo){
     return `<div class="et-pad">
       <h1 class="et-h1">${esc(t.revisaCorreo)}</h1>
-      <p class="et-lede">${esc(t.enviadoA.replace('{v}', C.esperandoCodigo))}</p>
+      <p class="et-lede">${esc(t.enviadoA.replace('{n}', LARGO_CODIGO).replace('{v}', C.esperandoCodigo))}</p>
       <input class="et-input" id="camasCodigoOtp" inputmode="numeric" autocomplete="one-time-code"
-             maxlength="8" placeholder="00000000"
+             maxlength="${LARGO_CODIGO}" placeholder="${'0'.repeat(LARGO_CODIGO)}"
              style="text-align:center;letter-spacing:.35em;font-weight:800;font-size:24px"
              oninput="soloDigitos(this)">
       <button class="et-btn" id="camasVerificarBtn" style="margin-top:12px"
@@ -375,7 +433,7 @@ function camasAuthHTML(){
     <button class="et-btn" style="margin-top:12px" ${C.cargando?'disabled':''}
             onclick="enviarCodigo()">${esc(C.cargando ? t.enviando : t.enviarEnlace)}</button>
     ${C.error ? `<p class="et-note" style="color:var(--app-red)">${esc(C.error)}</p>` : ''}
-    <p class="et-note">${esc(t.sinContrasena)}</p>
+    <p class="et-note">${esc(t.sinContrasena.replace('{n}', LARGO_CODIGO))}</p>
   </div>`;
 }
 
@@ -461,20 +519,23 @@ function camaPacienteHTML(scr){
   const pendientes = (scr.indicaciones || []).filter(i => !i.hecha_ts);
   const hechas     = (scr.indicaciones || []).filter(i => i.hecha_ts);
 
-  const indHTML = i => `<div class="et-ind ${i.hecha_ts ? 'hecha' : ''}">
-      <button class="et-ind-check" ${i.hecha_ts ? 'disabled' : ''}
+  /* Una indicación que todavía no llegó al servidor no tiene id: no se puede
+     marcar como hecha hasta que suba, y se dice por qué en vez de fallar. */
+  const indHTML = i => `<div class="et-ind ${i.hecha_ts ? 'hecha' : ''}${i._pendiente ? ' pendiente' : ''}">
+      <button class="et-ind-check" ${i.hecha_ts || i._pendiente ? 'disabled' : ''}
               onclick="marcarIndicacion('${i.id}','${p.id}')"
               aria-label="${esc(t.marcarHecha)}">${i.hecha_ts ? ICON.checkBig : ''}</button>
       <span class="et-ind-main">
         <span class="et-ind-txt">${esc(i.texto)}</span>
-        <span class="et-ind-meta">${esc(i.autor_nombre)} · ${esc(fmtTime(new Date(i.cliente_ts).getTime()))}${
+        <span class="et-ind-meta">${esc(i.autor_nombre)} · ${
+          i._pendiente ? esc(t.enviandoLinea) : esc(fmtTime(new Date(i.cliente_ts).getTime()))}${
           i.hecha_ts ? ` · ${esc(t.hechaPor.replace('{v}', i.hecha_nombre || ''))}` : ''}</span>
       </span>
     </div>`;
 
   /* La evolucion se lee de arriba abajo, como una evolucion de papel. */
   const evo = (scr.evolucion || []).map(e => `
-    <div class="et-evo ${e.tipo === 'resultado' ? 'calc' : ''}">
+    <div class="et-evo ${e.tipo === 'resultado' ? 'calc' : ''}${e._pendiente ? ' pendiente' : ''}">
       <span class="et-evo-hora">${esc(fmtTime(new Date(e.cliente_ts).getTime()))}</span>
       <span class="et-evo-main">
         ${e.tipo === 'resultado'
@@ -482,7 +543,8 @@ function camaPacienteHTML(scr){
              <span class="et-evo-txt">${esc(e.titulo || '')}</span>
              ${e.detalle ? `<span class="et-evo-det">${esc(e.detalle)}</span>` : ''}`
           : `<span class="et-evo-txt">${esc(e.texto || '')}</span>`}
-        <span class="et-evo-firma">${esc(e.autor_nombre)}</span>
+        <span class="et-evo-firma">${esc(e.autor_nombre)}${
+          e._pendiente ? ' · ' + esc(t.enviandoLinea) : ''}</span>
       </span>
     </div>`).join('');
 
@@ -497,22 +559,13 @@ function camaPacienteHTML(scr){
         ? pendientes.map(indHTML).join('') + hechas.map(indHTML).join('')
         : `<p class="et-note" style="padding:10px 14px;margin:0">${esc(t.sinIndicaciones)}</p>`}
     </div>
-    <div class="et-escribir">
-      <input class="et-input" id="indTexto" maxlength="200" placeholder="${esc(t.indPh)}"
-             onkeydown="if(event.key==='Enter')dejarIndicacion('${p.id}')">
-      <button onclick="dejarIndicacion('${p.id}')">${ICON.right}</button>
-    </div>
 
     <div class="et-section">${esc(t.evolucion)}</div>
     ${scr.evolucion === null
       ? `<p class="et-note">${esc(T().camas.cargando)}</p>`
       : evo || `<p class="et-note">${esc(t.sinEvolucion)}</p>`}
 
-    <div class="et-escribir" style="margin-top:12px">
-      <input class="et-input" id="evoTexto" maxlength="500" placeholder="${esc(t.evoPh)}"
-             onkeydown="if(event.key==='Enter')escribirEvolucion('${p.id}')">
-      <button onclick="escribirEvolucion('${p.id}')">${ICON.right}</button>
-    </div>
+    ${escribirHTML(p.id)}
 
     <div class="et-share" style="margin-top:20px">
       <button onclick="pedirFormatoEvolucion('${p.id}')">${ICON.share}${esc(t.entregar)}</button>
@@ -525,6 +578,53 @@ function camaPacienteHTML(scr){
     <p class="et-note">${esc(t.egresoNota)}</p>
   </div>`;
 }
+/* ---------- Un solo lugar donde escribir ----------
+   Antes había dos campos: indicaciones arriba, evolución abajo. En el primer
+   turno real se escribió una evolución ("se le tomó la temperatura, 38 grados")
+   dentro de indicaciones, simplemente porque era el primer casillero. No se
+   equivocó quien escribió: la pantalla obligaba a clasificar ANTES de redactar,
+   que es al revés de como trabaja la cabeza en un turno.
+   Ahora se escribe primero y se clasifica después, con un interruptor. */
+function alternarPendiente(){
+  S.esPendiente = !S.esPendiente;
+  const sw = document.getElementById('swPendiente');
+  if(sw){
+    sw.setAttribute('aria-pressed', S.esPendiente ? 'true' : 'false');
+    sw.classList.toggle('on', S.esPendiente);
+  }
+  const t = T().camas;
+  const campo = document.getElementById('escribirTexto');
+  if(campo){
+    campo.placeholder = S.esPendiente ? t.indPh : t.evoPh;
+    campo.maxLength   = S.esPendiente ? 200 : 500;
+    campo.focus();
+  }
+  /* La nota dice a dónde va lo que se escriba. Si no cambia con el
+     interruptor, está mintiendo la mitad del tiempo. */
+  const nota = document.getElementById('notaPendiente');
+  if(nota) nota.textContent = S.esPendiente ? t.esPendienteSi : t.esPendienteNo;
+}
+function enviarLinea(pacienteId){
+  if(S.esPendiente) dejarIndicacion(pacienteId);
+  else              escribirEvolucion(pacienteId);
+}
+function escribirHTML(pacienteId){
+  const t = T().camas;
+  const on = !!S.esPendiente;
+  return `<div class="et-escribir" style="margin-top:12px">
+      <input class="et-input" id="escribirTexto" maxlength="${on ? 200 : 500}"
+             placeholder="${esc(on ? t.indPh : t.evoPh)}"
+             onkeydown="if(event.key==='Enter')enviarLinea('${pacienteId}')">
+      <button onclick="enviarLinea('${pacienteId}')">${ICON.right}</button>
+    </div>
+    <button class="et-marcar${on ? ' on' : ''}" id="swPendiente" type="button"
+            aria-pressed="${on}" onclick="alternarPendiente()">
+      <span class="et-marcar-caja">${ICON.check}</span>
+      <span>${esc(t.esPendiente)}</span>
+    </button>
+    <p class="et-note" id="notaPendiente">${esc(on ? t.esPendienteSi : t.esPendienteNo)}</p>`;
+}
+
 function pedirEgreso(id, alias){
   S.confirm = {
     text: T().camas.confirmEgreso.replace('{v}', alias),
@@ -538,11 +638,23 @@ function pedirEgreso(id, alias){
 function camaEquipoHTML(){
   const t = T().camas;
   const scr = topScreen();
+  /* Con `data` a secas, un fallo dejaba la pantalla en "Cargando…" para
+     siempre. Ahora dice qué pasó y deja reintentar. */
+  if(scr.fallo){
+    return `<div class="et-pad">
+      <p class="et-note" style="color:var(--app-red)">${esc(scr.fallo)}</p>
+      <button class="et-btn et-btn-ghost" style="margin-top:12px"
+              onclick="reintentarEquipo()">${esc(t.reintentar)}</button>
+    </div>`;
+  }
   if(!scr.miembros){
     sbClient().from('miembro').select('user_id, nombre, email, rol, estado, unido')
-      .eq('unidad_id', C.unidad.id).then(({ data }) => {
+      .eq('unidad_id', C.unidad.id).then(({ data, error }) => {
         const s = topScreen();
-        if(s && s.kind === 'camaEquipo'){ s.miembros = data || []; render(); }
+        if(!s || s.kind !== 'camaEquipo') return;
+        if(error) s.fallo = mensajeError(error);
+        else { s.miembros = data || []; s.fallo = null; }
+        render();
       });
     return `<div class="et-pad"><p class="et-note">${esc(t.cargando)}</p></div>`;
   }
@@ -557,14 +669,33 @@ function camaEquipoHTML(){
           </span>
           ${m.user_id !== C.sesion.id
             ? `<button class="et-cancel" style="color:var(--app-red)"
-                 onclick="sacarMiembro('${m.user_id}')">${esc(t.sacar)}</button>` : ''}
+                 onclick="pedirSacar('${m.user_id}', '${esc(m.nombre || '')}')">${esc(t.sacar)}</button>` : ''}
         </div>`).join('')}
     </div>
     <p class="et-note">${esc(t.equipoNota)}</p>
   </div>`;
 }
+function reintentarEquipo(){
+  const s = topScreen();
+  if(s){ s.fallo = null; s.miembros = null; }
+  render();
+}
+/* Sacar a alguien le quita el acceso a pacientes reales y no se deshace desde
+   la app. Pide confirmación igual que borrar un caso: la misma clase de acción
+   se comporta igual en todas partes. */
+function pedirSacar(userId, nombre){
+  S.confirm = {
+    text: T().camas.confirmSacar.replace('{v}', nombre),
+    ok: T().camas.sacar,
+    run: () => sacarMiembro(userId)
+  };
+  render();
+}
 async function sacarMiembro(userId){
-  await sbClient().from('miembro').delete().eq('unidad_id', C.unidad.id).eq('user_id', userId);
+  const { error } = await sbClient().from('miembro')
+    .delete().eq('unidad_id', C.unidad.id).eq('user_id', userId);
+  S.confirm = null;
+  if(error){ render(); showToast(mensajeError(error)); return; }
   const s = topScreen();
   if(s) s.miembros = null;
   render();

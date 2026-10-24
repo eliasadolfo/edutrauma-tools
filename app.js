@@ -570,14 +570,7 @@ function perfilHTML(){
     <div class="et-seg">${langs}</div>
 
     <div class="et-section">${esc(pf.offline)}</div>
-    <div class="et-card">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px">
-        <span style="font:600 17px/1.2 var(--et-font)">${esc(pf.offlineCount)}</span>
-        <span style="font:600 13px/1.2 var(--et-font);color:var(--app-green)">${esc(pf.offlineState)}</span>
-      </div>
-      <div class="et-meter"><i style="width:100%"></i></div>
-      <p style="margin:9px 0 0;font:400 12px/1.45 var(--et-font);color:var(--app-slate)">${esc(pf.offlineNote)}</p>
-    </div>
+    ${offlineCardHTML()}
 
     <div class="et-section">${esc(T().camas.institucion)}</div>
     <div class="et-group">
@@ -595,6 +588,52 @@ function perfilHTML(){
     <p class="et-note" style="text-align:center;margin-top:22px">${esc(pf.footer)}</p>
   </div>`;
 }
+/* ---------- Disponibilidad offline: medida, no afirmada ----------
+   Esta tarjeta decía "5 de 5 herramientas · Descargadas" con la barra al 100%
+   escrito a mano, sin preguntarle nunca a la caché. Si el service worker fallaba
+   —que es justo cuando el dato importa— seguía diciendo que estaba todo bajado.
+   Un indicador de estado que no mira el estado es peor que no tenerlo. */
+let CACHE_ESTADO = null;   /* { listos, total } cuando ya se midió */
+async function medirCache(){
+  try{
+    if(!('caches' in window)) return null;
+    const nombres = await caches.keys();
+    const mio = nombres.find(n => n.startsWith('et-tools-app'));
+    if(!mio) return { listos: 0, total: 0 };
+    const c = await caches.open(mio);
+    const guardados = await c.keys();
+    return { listos: guardados.length, total: guardados.length };
+  }catch(e){ return null; }
+}
+function offlineCardHTML(){
+  const pf = T().perfil;
+  const e = CACHE_ESTADO;
+  /* Se mide SIEMPRE que se dibuja, no una sola vez: el service worker termina
+     de guardar después del primer pintado, y una cifra medida hace diez
+     minutos vuelve a ser una afirmación en vez de un estado. Solo se repinta
+     si el número cambió, así no se cicla. */
+  medirCache().then(r => {
+    const n = r || { listos:0, total:0 };
+    if(CACHE_ESTADO && CACHE_ESTADO.listos === n.listos) return;
+    CACHE_ESTADO = n;
+    if(S.tab === 'perfil' && !S.stack.length) render();
+  });
+  if(e === null){
+    return `<div class="et-card"><p style="margin:0;font:400 13px/1.45 var(--et-font);color:var(--app-slate)">${esc(T().camas.cargando)}</p></div>`;
+  }
+  const listo = e.listos > 0;
+  return `<div class="et-card">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px">
+        <span style="font:600 17px/1.2 var(--et-font)">${esc(pf.offlineCount.replace('{n}', e.listos))}</span>
+        <span style="font:600 13px/1.2 var(--et-font);color:var(--${listo ? 'app-green' : 'app-slate'})">${
+          esc(listo ? pf.offlineState : pf.offlineNone)}</span>
+      </div>
+      <div class="et-meter"><i style="width:${listo ? 100 : 0}%"></i></div>
+      <p style="margin:9px 0 0;font:400 12px/1.45 var(--et-font);color:var(--app-slate)">${
+        esc(listo ? pf.offlineNote : pf.offlineNoneNote)}</p>
+    </div>`;
+}
+
 function setSpecialty(s){
   etSaveProfile({ specialty: s });
   sendEvent('profile_saved', { specialty: s });
