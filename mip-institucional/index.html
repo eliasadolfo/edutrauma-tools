@@ -231,7 +231,6 @@ button.enviar[disabled]{opacity:.6}
     ev.preventDefault();err.textContent='';
     var d={};['nombre','correo','whatsapp','institucion','servicio','ciudad','pais','caso','frase','mejora','jefe_nombre','jefe_cargo','jefe_contacto','web'].forEach(function(k){d[k]=(f.elements[k].value||'').trim();});
     for(var k in sel)d[k]=sel[k];
-    if(d.campeon!=='contacto'||!(d.jefe_origen==='publico'||d.jefe_origen==='autorizado'))d.jefe_contacto='';
     d.tipo=d.tipo||'sin_dato';d.cohorte=(qs.get('c')||'').slice(0,30);d.origen=(qs.get('o')||'').slice(0,40);d.version=VERSION;
     d.consentimiento=document.getElementById('consentimiento').checked;
     if(d.nombre.length<3)return falta('Escribe tu nombre y apellido.','nombre');
@@ -243,6 +242,7 @@ button.enviar[disabled]{opacity:.6}
     if(!d.ciudad)return falta('Escribe tu ciudad.','ciudad');
     if(!d.pais)return falta('Elige tu país.','pais');
     if(d.campeon==='contacto'&&d.jefe_contacto&&!d.jefe_origen)return falta('Indica si el contacto de la jefatura es público o si te autorizó a darlo.','jefe_contacto');
+    if(d.campeon!=='contacto'||!(d.jefe_origen==='publico'||d.jefe_origen==='autorizado'))d.jefe_contacto='';
     if(!d.consentimiento)return falta('Para enviar, marca la autorización de uso de datos.','consentimiento');
     btn.disabled=true;btn.textContent='Enviando…';
     fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
