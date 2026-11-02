@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Llevemos el MIP a tu hospital · EduTrauma</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#00205C">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="../icon-192.png">
+<style>
+:root{--navy:#00205C;--red:#E02826;--bg:#ffffff;--soft:#f4f6fb;--text:#00205C;--muted:#5b6b8c;--line:#d5dbe8;--ok:#1F7A5C;--oksoft:#e9f6f1;color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+header{background:var(--navy);padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 18px;color:#fff;text-align:center}
+header img{height:30px;width:auto;display:block;margin:0 auto 10px}
+header h1{font-size:21px;line-height:1.25;margin:0;text-wrap:balance}
+header .sub{font-size:13px;opacity:.85;margin:6px 0 0}
+main{max-width:520px;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 32px)}
+.intro{margin:0 0 14px;padding:12px 14px;background:var(--soft);border-left:4px solid var(--red);border-radius:10px;font-size:15px}
+fieldset{border:0;margin:0 0 6px;padding:16px 0 4px;border-top:1px solid var(--line)}
+fieldset:first-of-type{border-top:0;padding-top:4px}
+legend{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0;margin:0 0 10px}
+legend b{display:inline-block;min-width:20px;height:20px;line-height:20px;border-radius:50%;background:var(--navy);color:#fff;text-align:center;font-size:12px;margin-right:6px}
+label,.q{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
+.q small,label small{font-weight:400;color:var(--muted)}
+.campo{margin:0 0 14px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+input[type=text],input[type=email],input[type=tel],select,textarea{width:100%;font:inherit;font-size:16px;color:var(--text);padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;-webkit-appearance:none;appearance:none}
+textarea{min-height:84px;resize:vertical}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--navy) 50%),linear-gradient(135deg,var(--navy) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(0,32,92,.12)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:14.5px;color:var(--navy);background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer;line-height:1.2;text-align:left}
+.chip[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.chip:focus-visible{outline:3px solid rgba(0,32,92,.35);outline-offset:2px}
+.nota .chip{min-width:38px;text-align:center;padding:8px 0}
+.nota{gap:6px}
+.extremos{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
+.oculto{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.consent{display:flex;gap:10px;align-items:flex-start;font-weight:400;background:var(--soft);border-radius:10px;padding:12px;font-size:13.5px;line-height:1.4}
+.consent input{width:22px;height:22px;flex:0 0 22px;margin:1px 0 0;accent-color:var(--navy)}
+details{font-size:13px;color:var(--muted);margin:8px 2px 0}
+details summary{cursor:pointer;color:var(--navy);font-weight:600}
+details p{margin:6px 0}
+button.enviar{width:100%;font:inherit;font-size:18px;font-weight:700;color:#fff;background:var(--red);border:0;border-radius:12px;padding:15px;margin-top:16px;cursor:pointer}
+button.enviar[disabled]{opacity:.6}
+.error{color:var(--red);font-size:14px;margin:10px 0 0;min-height:1em;font-weight:600}
+[hidden]{display:none!important}
+.listo{text-align:center;padding:20px 4px}
+.listo .check{width:56px;height:56px;border-radius:50%;background:var(--oksoft);color:var(--ok);font-size:30px;line-height:56px;margin:0 auto 10px}
+.listo h2{margin:0 0 8px;font-size:22px}
+.listo p{margin:8px 0}
+@media (max-width:360px){.dos{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <img src="../logo-blanco-trim.png" alt="EduTrauma">
+  <h1>Llevemos el MIP a tu hospital</h1>
+  <p class="sub">Manejo Integral del Politraumatizado · 3 minutos</p>
+</header>
+<main>
+<section id="paso-form">
+  <p class="intro">Fuiste parte del MIP. Queremos que más residentes y médicos de tu servicio se formen en trauma. Cuéntanos quién decide la capacitación donde trabajas o estudias y nosotros preparamos la propuesta.</p>
+  <form id="f" novalidate>
+
+  <fieldset>
+    <legend><b>1</b>Sobre ti</legend>
+    <div class="campo"><label for="nombre">Nombre y apellido</label><input type="text" id="nombre" name="nombre" autocomplete="name" autocapitalize="words" required></div>
+    <div class="dos">
+      <div class="campo"><label for="correo">Correo</label><input type="email" id="correo" name="correo" autocomplete="email" inputmode="email" autocapitalize="off" required></div>
+      <div class="campo"><label for="whatsapp">WhatsApp</label><input type="tel" id="whatsapp" name="whatsapp" autocomplete="tel" inputmode="tel" placeholder="+56 9 …"></div>
+    </div>
+    <div class="campo"><span class="q">Tu rol hoy</span><div class="chips" data-name="rol" data-single>
+      <button type="button" class="chip">Residente</button><button type="button" class="chip">Médico/a especialista</button><button type="button" class="chip">Médico/a general</button><button type="button" class="chip">Enfermería</button><button type="button" class="chip">Docente o jefatura</button><button type="button" class="chip">Otro</button>
+    </div></div>
+    <div class="campo" id="bloque-tipo"><span class="q">¿Cómo hiciste el MIP?</span><div class="chips" data-name="tipo" data-single>
+      <button type="button" class="chip" data-v="becado">Con beca</button><button type="button" class="chip" data-v="institucional">Por convenio de mi institución</button><button type="button" class="chip" data-v="pagado">Lo pagué yo</button>
+    </div></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><b>2</b>Tu institución</legend>
+    <div class="campo"><label for="institucion">Hospital, universidad o servicio de salud</label><input type="text" id="institucion" name="institucion" autocapitalize="words" placeholder="Ej.: Hospital de Coronel" required></div>
+    <div class="campo"><label for="servicio">Servicio o departamento <small>(opcional)</small></label><input type="text" id="servicio" name="servicio" autocapitalize="sentences" placeholder="Ej.: Urgencias, Cirugía, UCI"></div>
+    <div class="dos">
+      <div class="campo"><label for="ciudad">Ciudad</label><input type="text" id="ciudad" name="ciudad" autocapitalize="words" required></div>
+      <div class="campo"><label for="pais">País</label><select id="pais" name="pais" required>
+        <option value="">Elige…</option><option>Chile</option><option>Perú</option><option>México</option><option>Colombia</option><option>Venezuela</option><option>Ecuador</option><option>Guatemala</option><option>Argentina</option><option>Bolivia</option><option>Paraguay</option><option>Uruguay</option><option>Costa Rica</option><option>Panamá</option><option>Honduras</option><option>El Salvador</option><option>Nicaragua</option><option>Rep. Dominicana</option><option>Brasil</option><option>Otro</option>
+      </select></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><b>3</b>Su formación en trauma hoy</legend>
+    <div class="campo"><span class="q">¿Cuántos residentes o médicos de tu servicio necesitan formación en trauma?</span><div class="chips" data-name="n_formar" data-single>
+      <button type="button" class="chip">1-5</button><button type="button" class="chip">6-15</button><button type="button" class="chip">16-30</button><button type="button" class="chip">31-60</button><button type="button" class="chip">60+</button><button type="button" class="chip" data-v="no_se">No sé</button>
+    </div></div>
+    <div class="campo"><span class="q">¿Qué formación usan hoy? <small>(puedes marcar varias)</small></span><div class="chips" data-name="formacion">
+      <button type="button" class="chip">ATLS</button><button type="button" class="chip">PHTLS o ATCN</button><button type="button" class="chip">Curso interno</button><button type="button" class="chip">Ninguna formal</button><button type="button" class="chip" data-v="otro">Otra</button>
+    </div>
+    <input type="text" id="formacion_otro" name="formacion_otro" placeholder="¿Cuál?" hidden style="margin-top:8px"></div>
+    <div id="bloque-pago" hidden>
+      <div class="campo"><span class="q">¿Quién la paga?</span><div class="chips" data-name="paga" data-single>
+        <button type="button" class="chip" data-v="institucion">La institución</button><button type="button" class="chip" data-v="persona">Cada médico o residente</button><button type="button" class="chip" data-v="mixto">Mixto</button><button type="button" class="chip" data-v="no_se">No sé</button>
+      </div></div>
+      <div class="dos">
+        <div class="campo"><label for="costo">¿Cuánto cuesta aprox.? <small>(por persona)</small></label><input type="text" id="costo" name="costo" placeholder="Ej.: USD 700"></div>
+        <div class="campo"><label for="frecuencia">¿Cada cuánto?</label><select id="frecuencia" name="frecuencia">
+          <option value="">Elige…</option><option>Al ingresar a la residencia</option><option>Cada 4 años (recertificación)</option><option>Cada año</option><option>Solo algunos lo hacen</option><option>No sé</option>
+        </select></div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><b>4</b>Quién decide</legend>
+    <div class="campo"><span class="q">¿Quién decide la capacitación de tu servicio? <small>(puedes marcar varias)</small></span><div class="chips" data-name="decide">
+      <button type="button" class="chip">Jefe/a de servicio</button><button type="button" class="chip">Jefe/a de docencia o programa de residencia</button><button type="button" class="chip">Dirección del hospital</button><button type="button" class="chip">Universidad o facultad</button><button type="button" class="chip">Capacitación o RR. HH.</button><button type="button" class="chip">No sé</button>
+    </div></div>
+    <div class="dos">
+      <div class="campo"><label for="jefe_nombre">Nombre de esa jefatura</label><input type="text" id="jefe_nombre" name="jefe_nombre" autocapitalize="words" placeholder="Ej.: Dra. Ana Pérez"></div>
+      <div class="campo"><label for="jefe_cargo">Cargo</label><input type="text" id="jefe_cargo" name="jefe_cargo" autocapitalize="sentences" placeholder="Ej.: Jefa de Urgencias"></div>
+    </div>
+    <div class="campo"><span class="q">¿Podemos tener su contacto?</span><div class="chips" data-name="jefe_origen" data-single>
+      <button type="button" class="chip" data-v="publico">Sí, es su contacto institucional público</button><button type="button" class="chip" data-v="autorizado">Sí, le pregunté y acepta</button><button type="button" class="chip" data-v="yo">Prefiero presentarlos yo</button><button type="button" class="chip" data-v="no">No lo tengo</button>
+    </div>
+    <input type="text" id="jefe_contacto" name="jefe_contacto" placeholder="Correo o teléfono de la jefatura" hidden style="margin-top:8px"></div>
+    <div class="campo"><span class="q">¿Cuándo se define el presupuesto de capacitación?</span><div class="chips" data-name="ciclo" data-single>
+      <button type="button" class="chip" data-v="inicio_anio">Al inicio del año académico</button><button type="button" class="chip" data-v="anual">Una vez al año, por calendario</button><button type="button" class="chip" data-v="proyecto">Por proyecto, en cualquier momento</button><button type="button" class="chip" data-v="no_se">No sé</button>
+    </div></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><b>5</b>Tu apoyo</legend>
+    <div class="campo"><span class="q">¿Nos ayudarías a presentar el MIP en tu servicio?</span><div class="chips" data-name="campeon" data-single>
+      <button type="button" class="chip" data-v="presento_y_reunion">Sí, los presento y me sumo a la reunión</button><button type="button" class="chip" data-v="presento">Sí, los presento por correo o WhatsApp</button><button type="button" class="chip" data-v="mencionarme">Pueden contactar mencionándome</button><button type="button" class="chip" data-v="no">Por ahora no</button>
+    </div></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><b>6</b>Tu experiencia en el MIP</legend>
+    <div class="campo"><span class="q">¿Qué tan probable es que recomiendes el MIP a un colega?</span><div class="chips nota" data-name="nota" data-single>
+      <button type="button" class="chip">0</button><button type="button" class="chip">1</button><button type="button" class="chip">2</button><button type="button" class="chip">3</button><button type="button" class="chip">4</button><button type="button" class="chip">5</button><button type="button" class="chip">6</button><button type="button" class="chip">7</button><button type="button" class="chip">8</button><button type="button" class="chip">9</button><button type="button" class="chip">10</button>
+    </div><div class="extremos"><span>Nada probable</span><span>Muy probable</span></div></div>
+    <div class="campo"><label for="testimonio">En una o dos frases, ¿qué te dejó el MIP?</label><textarea id="testimonio" name="testimonio" maxlength="600" placeholder="Ej.: Ahora ordeno la evaluación inicial y sé cuándo activar…"></textarea></div>
+    <div class="campo"><span class="q">¿Podemos usar tu comentario?</span><div class="chips" data-name="uso_testimonio" data-single>
+      <button type="button" class="chip" data-v="nombre">Sí, con mi nombre y cargo</button><button type="button" class="chip" data-v="iniciales">Sí, solo con mis iniciales</button><button type="button" class="chip" data-v="interno">Solo para uso interno</button>
+    </div></div>
+  </fieldset>
+
+  <div class="oculto" aria-hidden="true"><label for="web">Web</label><input type="text" id="web" name="web" tabindex="-1" autocomplete="off"></div>
+
+  <label class="consent"><input type="checkbox" id="consentimiento" name="consentimiento" required>
+    <span>Autorizo a EduTrauma a usar estos datos para contactarme y, si lo indiqué, para presentar una propuesta de formación a mi institución. No se venden ni se ceden a terceros. Si comparto el contacto de una jefatura, confirmo que es público o que me autorizó a darlo.</span></label>
+  <details><summary>Cómo cuidamos tus datos</summary>
+    <p>Responsable: EduTrauma (Capacitaciones EduTrauma SpA, Chile). Finalidad: contactarte y preparar propuestas de formación institucional en trauma. Conservamos estos datos hasta 24 meses.</p>
+    <p>Puedes pedir acceso, corrección, eliminación u oposición, o retirar tu autorización cuando quieras, escribiendo a contacto@edutrauma.net. En Chile aplican la Ley 19.628 y la Ley 21.719; fuera de Chile, tu consentimiento expreso en este formulario y la ley de tu país.</p>
+  </details>
+
+  <button class="enviar" id="enviar" type="submit">Enviar</button>
+  <p class="error" id="err" role="alert"></p>
+  </form>
+</section>
+
+<section id="paso-listo" class="listo" hidden>
+  <div class="check">✓</div>
+  <h2 id="saludo">¡Gracias!</h2>
+  <p>Recibimos tu respuesta. Nuestro equipo la revisa y prepara la propuesta para tu servicio.</p>
+  <p>Si aceptaste presentarnos, te escribimos antes de contactar a tu institución.</p>
+  <p style="color:var(--muted);font-size:14px;margin-top:18px">Equipo EduTrauma</p>
+</section>
+</main>
+<script>
+(function(){
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v1-2026-11';
+  var qs=new URLSearchParams(location.search), f=document.getElementById('f'), btn=document.getElementById('enviar'), err=document.getElementById('err');
+  var tipoUrl=(qs.get('t')||'').toLowerCase(), sel={};
+  // Chips: selección única (data-single) o múltiple
+  [].forEach.call(document.querySelectorAll('.chips'),function(g){
+    var nombre=g.getAttribute('data-name'), unico=g.hasAttribute('data-single');
+    sel[nombre]=unico?'':[];
+    [].forEach.call(g.querySelectorAll('.chip'),function(c){
+      c.setAttribute('aria-pressed','false');
+      c.addEventListener('click',function(){
+        var v=c.getAttribute('data-v')||c.textContent.trim(), on=c.getAttribute('aria-pressed')!=='true';
+        if(unico){[].forEach.call(g.querySelectorAll('.chip'),function(o){o.setAttribute('aria-pressed','false');});sel[nombre]=on?v:'';}
+        else{var a=sel[nombre].filter(function(x){return x!==v;});if(on)a.push(v);sel[nombre]=a;}
+        c.setAttribute('aria-pressed',on?'true':'false');
+        cambio();
+      });
+    });
+  });
+  function cambio(){
+    var fo=sel.formacion||[];
+    document.getElementById('formacion_otro').hidden=fo.indexOf('otro')<0;
+    document.getElementById('bloque-pago').hidden=!fo.some(function(x){return x!=='Ninguna formal';});
+    var jo=sel.jefe_origen;
+    document.getElementById('jefe_contacto').hidden=!(jo==='publico'||jo==='autorizado');
+  }
+  if(['becado','institucional','pagado'].indexOf(tipoUrl)>=0){sel.tipo=tipoUrl;document.getElementById('bloque-tipo').hidden=true;}
+  function listo(nombre){
+    document.getElementById('paso-form').hidden=true;document.getElementById('paso-listo').hidden=false;
+    var pila=String(nombre||'').trim().split(/\s+/)[0];
+    if(pila&&/^[A-Za-zÁÉÍÓÚÑáéíóúñü]{2,}$/.test(pila))document.getElementById('saludo').textContent='¡Gracias, '+pila+'!';
+    window.scrollTo(0,0);
+  }
+  try{var prev=localStorage.getItem('et_mip_inst_ok');if(prev)listo(prev);}catch(e){}
+  function falta(msg,id){err.textContent=msg;var el=document.getElementById(id);if(el){el.focus();el.scrollIntoView({block:'center'});}}
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();err.textContent='';
+    var d={};['nombre','correo','whatsapp','institucion','servicio','ciudad','pais','formacion_otro','costo','frecuencia','jefe_nombre','jefe_cargo','jefe_contacto','testimonio','web'].forEach(function(k){d[k]=(f.elements[k].value||'').trim();});
+    for(var k in sel)d[k]=sel[k];
+    if(d.jefe_contacto&&!(d.jefe_origen==='publico'||d.jefe_origen==='autorizado'))d.jefe_contacto='';
+    d.tipo=d.tipo||'sin_dato';d.cohorte=(qs.get('c')||'').slice(0,30);d.origen=(qs.get('o')||'').slice(0,40);d.version=VERSION;
+    d.consentimiento=document.getElementById('consentimiento').checked;
+    if(d.nombre.length<3)return falta('Escribe tu nombre y apellido.','nombre');
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.correo))return falta('Revisa tu correo.','correo');
+    if(d.whatsapp&&d.whatsapp.replace(/\D/g,'').length<8)return falta('Revisa tu número de WhatsApp.','whatsapp');
+    if(d.institucion.length<3)return falta('Escribe tu hospital, universidad o servicio.','institucion');
+    if(!d.ciudad)return falta('Escribe tu ciudad.','ciudad');
+    if(!d.pais)return falta('Elige tu país.','pais');
+    if(!d.consentimiento)return falta('Para enviar, marca la autorización de uso de datos.','consentimiento');
+    btn.disabled=true;btn.textContent='Enviando…';
+    fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+      .then(function(r){return r.json().catch(function(){return {ok:r.ok};});})
+      .then(function(j){
+        if(j&&j.ok){try{localStorage.setItem('et_mip_inst_ok',d.nombre);}catch(e){}listo(d.nombre);}
+        else{err.textContent='Revisa tus datos e intenta de nuevo.';btn.disabled=false;btn.textContent='Enviar';}
+      })
+      .catch(function(){err.textContent='No hay conexión. Intenta de nuevo en unos segundos.';btn.disabled=false;btn.textContent='Enviar';});
+  });
+})();
+</script>
+</body>
+</html>
