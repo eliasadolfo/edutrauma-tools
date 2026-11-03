@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Evalúa el MIP · EduTrauma</title>
+<title>Evalúa el MIP teórico · EduTrauma</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#00205C">
 <meta name="color-scheme" content="light">
@@ -67,12 +67,12 @@ button.enviar[disabled]{opacity:.6}
 <body>
 <header>
   <img src="../logo-blanco-trim.png" alt="EduTrauma">
-  <h1>Evalúa el MIP</h1>
-  <p class="sub">Manejo Integral del Politraumatizado · 4 minutos</p>
+  <h1>Evalúa el MIP teórico</h1>
+  <p class="sub">Manejo Integral del Politraumatizado · fase teórica online · 4 minutos</p>
 </header>
 <main>
 <section id="paso-form">
-  <p class="intro">Tu evaluación sirve de evidencia para que las jefaturas de tu servicio comparen el MIP con la formación en trauma que ya conocen. Contesta con franqueza: lo bueno y lo que no.</p>
+  <p class="intro">Evalúa la fase teórica online que hiciste. Tu evaluación sirve de evidencia para que las jefaturas de tu servicio comparen el MIP con la formación en trauma que ya conocen. Contesta con franqueza: lo bueno y lo que no.</p>
   <form id="f" novalidate>
 
   <fieldset>
@@ -97,14 +97,14 @@ button.enviar[disabled]{opacity:.6}
     <legend><b>2</b>Evalúa el MIP, punto por punto</legend>
     <p style="font-size:14px;margin:0 0 12px;color:var(--muted)">Nota de 1 (muy deficiente) a 5 (excelente) y, si conoces otra formación, cómo queda el MIP frente a ella.</p>
     <div id="atributos"></div>
-    <div class="campo"><span class="q">¿Qué temas te sirvieron más? <small>(puedes marcar varios)</small></span><div class="chips" data-name="temas">
-      <button type="button" class="chip">Generalidades del trauma</button><button type="button" class="chip">Evaluación primaria ABCDEF</button><button type="button" class="chip">Evaluación secundaria</button><button type="button" class="chip">Imágenes en trauma</button><button type="button" class="chip">Situaciones especiales</button><button type="button" class="chip">Trauma balístico</button><button type="button" class="chip">Reuniones en vivo</button><button type="button" class="chip">Libro del curso</button>
+    <div class="campo"><span class="q">¿Qué módulos te sirvieron más? <small>(puedes marcar varios)</small></span><div class="chips" data-name="temas">
+      <button type="button" class="chip">Generalidades</button><button type="button" class="chip">Vía aérea (A)</button><button type="button" class="chip">Ventilación (B)</button><button type="button" class="chip">Circulación (C)</button><button type="button" class="chip">Neurológico (D)</button><button type="button" class="chip">Exposición e hipotermia (E)</button><button type="button" class="chip">Evaluación secundaria</button><button type="button" class="chip">Imágenes</button><button type="button" class="chip">Situaciones especiales (trauma y embarazo)</button><button type="button" class="chip">Balística</button>
     </div></div>
   </fieldset>
 
   <fieldset>
     <legend><b>3</b>En tus palabras</legend>
-    <div class="campo"><label for="caso">¿Qué caso o decisión del MIP ya aplicaste en tu servicio?</label><textarea id="caso" name="caso" maxlength="600" placeholder="Ej.: En un choque con fractura de pelvis ordené la evaluación primaria y prioricé el control de la hemorragia antes de la imagen…"></textarea></div>
+    <div class="campo"><label for="caso">¿Qué caso o decisión del MIP ya aplicaste en tu servicio?</label><textarea id="caso" name="caso" maxlength="600" placeholder="Ej.: En un paciente con trauma de tórax seguí el orden ABCDE antes de pedir imágenes…"></textarea></div>
     <div class="campo"><label for="frase">Si tu jefatura te preguntara si vale la pena para el equipo, ¿qué le dirías en una frase?</label><textarea id="frase" name="frase" maxlength="300" style="min-height:60px"></textarea></div>
     <div class="campo"><label for="mejora">¿Qué mejorarías? <small>(opcional, solo lo lee EduTrauma)</small></label><input type="text" id="mejora" name="mejora" maxlength="300"></div>
     <div class="campo"><span class="q">¿Qué tan probable es que recomiendes el MIP a un colega?</span><div class="chips nota10" data-name="nps" data-single>
@@ -167,26 +167,26 @@ button.enviar[disabled]{opacity:.6}
 </main>
 <script>
 (function(){
-  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v2-2026-11';
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v3-2026-11';
   // Atributos evaluados: clave, título, pregunta guía. Mantener las claves: el Sheet y el informe dependen de ellas.
   var ATR=[
-    ['contenidos','Contenidos y temas','¿Qué tan completos, ordenados y actualizados te parecieron?'],
-    ['docentes','Docentes','Claridad, experiencia en trauma y disposición a responder.'],
-    ['casos','Casos clínicos y toma de decisiones','¿Te entrenó para decidir frente al paciente, no solo para memorizar?'],
-    ['modalidad','Modalidad','Videoclases online, reuniones en vivo y práctica presencial si la hiciste.'],
-    ['tiempo','Tiempo y turnos','¿Pudiste hacerlo sin dejar tus turnos ni tu trabajo?'],
+    ['contenidos','Contenidos','Los 10 módulos: de generalidades y el ABCDE a evaluación secundaria, imágenes, situaciones especiales y balística. ¿Qué tan completos y claros te parecieron?'],
+    ['docentes','Docentes','Claridad de las clases y disposición a responder en las reuniones en vivo.'],
+    ['decisiones','Priorización y toma de decisiones','¿Te ayudó a ordenar la atención inicial y decidir qué hacer primero?'],
+    ['modalidad','Modalidad','Clases grabadas por módulo en la plataforma y reuniones en vivo por Zoom.'],
+    ['evaluaciones','Evaluaciones','Pretest, prueba al final de cada módulo y examen final.'],
+    ['tiempo','Tiempo y turnos','¿Pudiste seguir el curso sin dejar tus turnos ni tu trabajo?'],
     ['aplicabilidad','Aplicable en tu servicio','¿Lo aprendido sirve con los recursos reales de tu hospital?'],
-    ['equipo','Trabajo en equipo','¿Sirve para todo el equipo de urgencia, no solo para médicos?'],
-    ['costo','Costo','Lo que vale frente a lo que entrega (precio de lista: USD 499).'],
-    ['certificado','Certificado de 40 horas','¿Qué valor tiene para tu currículum o tu servicio?'],
-    ['cambio','Cambio en tu práctica','¿Cuánto cambió cómo atiendes a un politraumatizado?']
+    ['cambio','Cambio en tu práctica','¿Cuánto cambió cómo atiendes a un politraumatizado?','Aún no he atendido un caso']
   ];
+
   var cont=document.getElementById('atributos');
   ATR.forEach(function(a){
     var d=document.createElement('div');d.className='attr';d.id='attr-'+a[0];
     d.innerHTML='<h3>'+a[1]+'</h3><p>'+a[2]+'</p>'+
       '<div class="chips escala" data-name="nota_'+a[0]+'" data-single><button type="button" class="chip">1</button><button type="button" class="chip">2</button><button type="button" class="chip">3</button><button type="button" class="chip">4</button><button type="button" class="chip">5</button></div>'+
       '<div class="extremos"><span>Muy deficiente</span><span>Excelente</span></div>'+
+      (a[3]?'<div class="chips" data-name="na_'+a[0]+'" style="margin-top:8px"><button type="button" class="chip" data-v="si">'+a[3]+'</button></div>':'')+
       '<div class="vs" hidden><p class="t">Frente <span class="ref">a la otra formación</span>, el MIP es:</p><div class="chips" data-name="vs_'+a[0]+'" data-single>'+
       '<button type="button" class="chip" data-v="mejor">Mejor</button><button type="button" class="chip" data-v="igual">Igual</button><button type="button" class="chip" data-v="peor">Peor</button><button type="button" class="chip" data-v="no_sabe">No sé</button></div></div>';
     cont.appendChild(d);
@@ -235,7 +235,7 @@ button.enviar[disabled]{opacity:.6}
     d.consentimiento=document.getElementById('consentimiento').checked;
     if(d.nombre.length<3)return falta('Escribe tu nombre y apellido.','nombre');
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.correo))return falta('Revisa tu correo.','correo');
-    var sinNota=ATR.filter(function(a){return !d['nota_'+a[0]];});
+    var sinNota=ATR.filter(function(a){return !d['nota_'+a[0]]&&!(d['na_'+a[0]]||[]).length;});
     if(sinNota.length){sinNota.forEach(function(a){document.getElementById('attr-'+a[0]).classList.add('falta');});
       return falta('Falta tu nota en: '+sinNota.map(function(a){return a[1];}).join(', ')+'.','attr-'+sinNota[0][0]);}
     if(d.institucion.length<3)return falta('Escribe tu hospital, universidad o servicio.','institucion');
