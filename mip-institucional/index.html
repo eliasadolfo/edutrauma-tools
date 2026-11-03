@@ -85,9 +85,6 @@ button.enviar[disabled]{opacity:.6}
     <div class="campo"><span class="q">Tu rol hoy</span><div class="chips" data-name="rol" data-single>
       <button type="button" class="chip">Estudiante o interno/a</button><button type="button" class="chip">Residente</button><button type="button" class="chip">Médico/a general</button><button type="button" class="chip">Médico/a especialista</button><button type="button" class="chip">Enfermería</button><button type="button" class="chip">Docente o jefatura</button><button type="button" class="chip">Otro</button>
     </div></div>
-    <div class="campo" id="bloque-tipo"><span class="q">¿Cómo hiciste el MIP?</span><div class="chips" data-name="tipo" data-single>
-      <button type="button" class="chip" data-v="becado">Con beca</button><button type="button" class="chip" data-v="institucional">Por convenio de mi institución</button><button type="button" class="chip" data-v="pagado">Lo pagué yo</button>
-    </div></div>
     <div class="campo"><span class="q">¿Con qué otra formación en trauma lo puedes comparar? <small>(marca las que hiciste o conoces bien)</small></span><div class="chips" data-name="ref">
       <button type="button" class="chip" data-v="ATLS">ATLS</button><button type="button" class="chip" data-v="PHTLS/ATCN">PHTLS o ATCN</button><button type="button" class="chip" data-v="Curso interno">Curso de mi hospital o universidad</button><button type="button" class="chip" data-v="Otra">Otra</button><button type="button" class="chip" data-v="Ninguna">Ninguna</button>
     </div></div>
@@ -167,7 +164,7 @@ button.enviar[disabled]{opacity:.6}
 </main>
 <script>
 (function(){
-  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v3-2026-11';
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v4-2026-11';
   // Atributos evaluados: clave, título, pregunta guía. Mantener las claves: el Sheet y el informe dependen de ellas.
   var ATR=[
     ['contenidos','Contenidos','Los 10 módulos: de generalidades y el ABCDE a evaluación secundaria, imágenes, situaciones especiales y balística. ¿Qué tan completos y claros te parecieron?'],
@@ -193,7 +190,7 @@ button.enviar[disabled]{opacity:.6}
     cont.appendChild(d);
   });
   var qs=new URLSearchParams(location.search), f=document.getElementById('f'), btn=document.getElementById('enviar'), err=document.getElementById('err');
-  var tipoUrl=(qs.get('t')||'').toLowerCase(), sel={};
+  var sel={};   // un solo formulario para todos los becados (Elías, 3-nov)
   [].forEach.call(document.querySelectorAll('.chips'),function(g){
     var nombre=g.getAttribute('data-name'), unico=g.hasAttribute('data-single');
     sel[nombre]=unico?'':[];
@@ -219,7 +216,6 @@ button.enviar[disabled]{opacity:.6}
     [].forEach.call(document.querySelectorAll('.vs'),function(v){v.hidden=!r.length;v.querySelector('.ref').textContent=nombreRef;});
     document.getElementById('bloque-contacto').hidden=sel.campeon!=='contacto';
   }
-  if(['becado','institucional','pagado'].indexOf(tipoUrl)>=0){sel.tipo=tipoUrl;document.getElementById('bloque-tipo').hidden=true;}
   function listo(nombre){
     document.getElementById('paso-form').hidden=true;document.getElementById('paso-listo').hidden=false;
     var pila=String(nombre||'').trim().split(/\s+/)[0];
@@ -232,7 +228,7 @@ button.enviar[disabled]{opacity:.6}
     ev.preventDefault();err.textContent='';
     var d={};['nombre','correo','whatsapp','institucion','servicio','ciudad','pais','caso','frase','mejora','jefe_nombre','jefe_cargo','jefe_contacto','web'].forEach(function(k){d[k]=(f.elements[k].value||'').trim();});
     for(var k in sel)d[k]=sel[k];
-    d.tipo=d.tipo||'sin_dato';d.cohorte=(qs.get('c')||'').slice(0,30);d.origen=(qs.get('o')||'').slice(0,40);d.version=VERSION;
+    d.tipo='becado';d.cohorte=(qs.get('c')||'').slice(0,30);d.origen=(qs.get('o')||'').slice(0,40);d.version=VERSION;
     d.consentimiento=document.getElementById('consentimiento').checked;
     if(d.nombre.length<3)return falta('Escribe tu nombre y apellido.','nombre');
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.correo))return falta('Revisa tu correo.','correo');
