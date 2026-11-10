@@ -92,10 +92,10 @@ button.enviar[disabled]{opacity:.6}
 
   <fieldset>
     <legend><b>2</b>Evalúa el MIP, punto por punto</legend>
-    <p style="font-size:14px;margin:0 0 12px;color:var(--muted)">Nota de 1 (muy deficiente) a 5 (excelente) y, si conoces otra formación, cómo queda el MIP frente a ella.</p>
+    <p style="font-size:14px;margin:0 0 12px;color:var(--muted)">Nota de 1 a 5 (cada pregunta dice qué significa) y, si conoces otra formación, cómo queda el MIP frente a ella.</p>
     <div id="atributos"></div>
     <div class="campo"><span class="q">¿Qué módulos te sirvieron más? <small>(puedes marcar varios)</small></span><div class="chips" data-name="temas">
-      <button type="button" class="chip">Generalidades</button><button type="button" class="chip">Vía aérea (A)</button><button type="button" class="chip">Ventilación (B)</button><button type="button" class="chip">Circulación (C)</button><button type="button" class="chip">Neurológico (D)</button><button type="button" class="chip">Exposición e hipotermia (E)</button><button type="button" class="chip">Evaluación secundaria</button><button type="button" class="chip">Imágenes</button><button type="button" class="chip">Situaciones especiales (trauma y embarazo)</button><button type="button" class="chip">Balística</button>
+      <button type="button" class="chip">Generalidades</button><button type="button" class="chip">Vía aérea (A)</button><button type="button" class="chip">Ventilación (B)</button><button type="button" class="chip">Circulación (C)</button><button type="button" class="chip">Neurológico (D)</button><button type="button" class="chip">Exposición e hipotermia (E)</button><button type="button" class="chip">Evaluación secundaria</button><button type="button" class="chip">Imágenes</button><button type="button" class="chip">Situaciones especiales</button><button type="button" class="chip">Balística</button>
     </div></div>
   </fieldset>
 
@@ -164,7 +164,7 @@ button.enviar[disabled]{opacity:.6}
 </main>
 <script>
 (function(){
-  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v4-2026-11';
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v5-2026-11';
   // Atributos evaluados: clave, título, pregunta guía. Mantener las claves: el Sheet y el informe dependen de ellas.
   var ATR=[
     ['contenidos','Contenidos','Los 10 módulos: de generalidades y el ABCDE a evaluación secundaria, imágenes, situaciones especiales y balística. ¿Qué tan completos y claros te parecieron?'],
@@ -172,10 +172,10 @@ button.enviar[disabled]{opacity:.6}
     ['decisiones','Priorización y toma de decisiones','¿Te ayudó a ordenar la atención inicial y decidir qué hacer primero?'],
     ['modalidad','Modalidad','Clases grabadas por módulo en la plataforma y reuniones en vivo por Zoom.'],
     ['evaluaciones','Evaluaciones','Pretest, prueba al final de cada módulo y examen final.'],
-    ['certificado','Certificado de 40 horas','¿Qué valor tiene para tu currículum o tu servicio?','Aún no lo recibo'],
+    ['certificado','Certificado de 40 horas','¿Qué tan valioso consideras el certificado de 40 horas académicas para tu desarrollo profesional y curricular?','Aún no lo recibo',['Ningún valor','Poco valor','Valor moderado','Alto valor','Muy alto valor']],
     ['tiempo','Duración y organización del curso','¿En qué medida la duración y organización del curso te permitieron cumplir con las actividades académicas sin interferir con tus responsabilidades profesionales y personales?'],
     ['aplicabilidad','Aplicable en tu servicio','¿Lo aprendido sirve con los recursos reales de tu hospital?'],
-    ['cambio','Cambio en tu práctica','¿Cuánto cambió cómo atiendes a un politraumatizado?','Aún no he atendido un caso']
+    ['cambio','Preparación para atender a un politraumatizado','¿En qué medida consideras que los conocimientos y habilidades adquiridos durante el curso MIP han mejorado tu preparación para atender a un paciente politraumatizado?','',['Nada','Poco','Moderadamente','Bastante','Mucho']]
   ];
 
   var cont=document.getElementById('atributos');
@@ -183,7 +183,7 @@ button.enviar[disabled]{opacity:.6}
     var d=document.createElement('div');d.className='attr';d.id='attr-'+a[0];
     d.innerHTML='<h3>'+a[1]+'</h3><p>'+a[2]+'</p>'+
       '<div class="chips escala" data-name="nota_'+a[0]+'" data-single><button type="button" class="chip">1</button><button type="button" class="chip">2</button><button type="button" class="chip">3</button><button type="button" class="chip">4</button><button type="button" class="chip">5</button></div>'+
-      '<div class="extremos"><span>Muy deficiente</span><span>Excelente</span></div>'+
+      (a[4]?'<p class="escala-txt" style="font-size:13px;color:var(--muted);margin:6px 0 0">'+a[4].map(function(t,i){return (i+1)+' '+t;}).join(' · ')+'</p>':'<div class="extremos"><span>Muy deficiente</span><span>Excelente</span></div>')+
       (a[3]?'<div class="chips" data-name="na_'+a[0]+'" style="margin-top:8px"><button type="button" class="chip" data-v="si">'+a[3]+'</button></div>':'')+
       '<div class="vs" hidden><p class="t">Frente <span class="ref">a la otra formación</span>, el MIP es:</p><div class="chips" data-name="vs_'+a[0]+'" data-single>'+
       '<button type="button" class="chip" data-v="mejor">Mejor</button><button type="button" class="chip" data-v="igual">Igual</button><button type="button" class="chip" data-v="peor">Peor</button><button type="button" class="chip" data-v="no_sabe">No sé</button></div></div>';
