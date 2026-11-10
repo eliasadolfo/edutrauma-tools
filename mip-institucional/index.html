@@ -107,7 +107,7 @@ button.enviar[disabled]{opacity:.6}
     <div class="campo"><span class="q">¿Qué tan probable es que recomiendes el MIP a un colega?</span><div class="chips nota10" data-name="nps" data-single>
       <button type="button" class="chip">0</button><button type="button" class="chip">1</button><button type="button" class="chip">2</button><button type="button" class="chip">3</button><button type="button" class="chip">4</button><button type="button" class="chip">5</button><button type="button" class="chip">6</button><button type="button" class="chip">7</button><button type="button" class="chip">8</button><button type="button" class="chip">9</button><button type="button" class="chip">10</button>
     </div><div class="extremos"><span>Nada probable</span><span>Muy probable</span></div></div>
-    <div class="campo"><span class="q">¿Podemos mostrar tus respuestas escritas a jefaturas?</span><div class="chips" data-name="uso_cita" data-single>
+    <div class="campo"><span class="q">¿Podemos mostrar tus respuestas escritas a instituciones, jefaturas y en la difusión de EduTrauma (web y redes)?</span><div class="chips" data-name="uso_cita" data-single>
       <button type="button" class="chip" data-v="nombre">Sí, con mi nombre y rol</button><button type="button" class="chip" data-v="rol">Sí, solo con mi rol e institución</button><button type="button" class="chip" data-v="interno">No, solo uso interno</button>
     </div></div>
   </fieldset>
@@ -143,7 +143,7 @@ button.enviar[disabled]{opacity:.6}
   <div class="oculto" aria-hidden="true"><label for="web">Web</label><input type="text" id="web" name="web" tabindex="-1" autocomplete="off"></div>
 
   <label class="consent"><input type="checkbox" id="consentimiento" name="consentimiento" required>
-    <span>Autorizo a EduTrauma a usar estas respuestas para evaluar el MIP y preparar propuestas de formación para instituciones. En los informes a jefaturas las notas se muestran agregadas y mis textos solo como elegí arriba. No se venden ni se ceden a terceros. Si comparto el contacto de una jefatura, confirmo que es público o que me autorizó a darlo.</span></label>
+    <span>Autorizo a EduTrauma a usar estas respuestas para evaluar el MIP y preparar propuestas de formación para instituciones. En los informes a instituciones y jefaturas, y en la difusión de EduTrauma (web y redes), las notas se muestran agregadas y mis textos solo como elegí arriba. No se venden ni se ceden a terceros. Si comparto el contacto de una jefatura, confirmo que es público o que me autorizó a darlo.</span></label>
   <details><summary>Cómo cuidamos tus datos</summary>
     <p>Responsable: EduTrauma (Capacitaciones EduTrauma SpA, Chile). Finalidad: evaluar el curso y preparar propuestas de formación institucional en trauma. Conservamos estos datos hasta 24 meses.</p>
     <p>Puedes pedir acceso, corrección, eliminación u oposición, o retirar tu autorización cuando quieras, escribiendo a contacto@edutrauma.net. En Chile aplican la Ley 19.628 y la Ley 21.719; fuera de Chile, tu consentimiento expreso en este formulario y la ley de tu país.</p>
@@ -164,7 +164,7 @@ button.enviar[disabled]{opacity:.6}
 </main>
 <script>
 (function(){
-  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v5-2026-11';
+  var URL='https://devwebhook.tuescuelademarcas.cl/webhook/et-mip-institucional', VERSION='v6-2026-11';
   // Atributos evaluados: clave, título, pregunta guía. Mantener las claves: el Sheet y el informe dependen de ellas.
   var ATR=[
     ['contenidos','Contenidos','Los 10 módulos: de generalidades y el ABCDE a evaluación secundaria, imágenes, situaciones especiales y balística. ¿Qué tan completos y claros te parecieron?'],
